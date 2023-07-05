@@ -20,7 +20,7 @@ DOCKER_REGISTRY = asia-docker.pkg.dev/icfpc-primary/asia
 ###############################################################################
 
 .PHONY: test
-test:
+test: test/rust
 
 .PHONY:
 check:
