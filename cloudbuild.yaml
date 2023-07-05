@@ -1,0 +1,7 @@
+steps:
+  # Echo hello world
+  - name: ubuntu:22.04
+    entrypoint: /bin/bash
+    args: 
+      - -c
+      - echo hello world
