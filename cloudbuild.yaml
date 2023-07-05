@@ -1,9 +1,9 @@
 steps:
-  # Echo hello world
-  - name: ubuntu:22.04
+  - name: 'rust:1.70.0'
     entrypoint: /bin/bash
     args: 
       - -c
-      - echo hello world
+      - make test/rust
+
 options:
   logging: CLOUD_LOGGING_ONLY
