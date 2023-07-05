@@ -5,3 +5,5 @@ steps:
     args: 
       - -c
       - echo hello world
+options:
+  logging: CLOUD_LOGGING_ONLY
