@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::Input;
 
 pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo) {
@@ -35,6 +37,7 @@ pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo) {
     (musicians_info, attendees_info)
 }
 
+#[derive(Serialize)]
 pub struct Stats {
     pub mean: f64,
     pub std: f64,
@@ -80,16 +83,52 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
 pub struct MusiciansInfo {
+    // #[serde(rename = "Mus")]
     pub n_musicians: usize,
     pub area_per_musician: f64,
     pub n_instruments: usize,
+    // #[serde(with = "stats1")]
     pub stats_musicians_per_instrument: Stats,
 }
 
-#[derive(Debug)]
+// serde_with::with_prefix!(stats1 "Mus/Ins");
+
+// impl MusiciansInfo {
+//     pub fn header() -> Vec<String> {
+//         let mut out = vec![
+//             "#Mus".to_string(),
+//             "Area/Mus".to_string(),
+//             "#Ins".to_string(),
+//         ];
+//         out.extend(["mean", "std", "min", "max"].iter().map(|k| format!("#Mus/Ins.{}", k)));
+//         out
+//     }
+
+//     pub fn to_strings(&self) -> Vec<String> {
+//         let mut out = vec![
+//             self.n_musicians.to_string(),
+//             self.area_per_musician.to_string(),
+//             self.n_instruments.to_string(),
+//         ];
+//         let stats = &self.stats_musicians_per_instrument;
+//         out.extend(
+//             [
+//                 stats.mean,
+//                 stats.std,
+//                 stats.min,
+//                 stats.max,
+//             ]
+//             .iter()
+//             .map(|x| x.to_string()),
+//         );
+//         out
+//     }
+// }
+
+#[derive(Debug, Serialize)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
 pub struct AttendeesInfo {
     pub n_attendees: usize,

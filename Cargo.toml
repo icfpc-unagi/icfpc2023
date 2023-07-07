@@ -26,6 +26,7 @@ aes-gcm = "0.9"
 aead = "0.3"
 hex = "0.4"
 actix-web = { version = "4.0.0-beta.9", optional = true }
+flatten-json-object = "0.6.1"
 
 [profile.release]
 debug = true
