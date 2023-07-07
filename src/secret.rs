@@ -26,6 +26,24 @@ pub fn decrypt(input: &str) -> Result<String> {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Embedded secrets
+//
+// Create secrets by:
+// $ cargo run --bin encrypt "secret"
+///////////////////////////////////////////////////////////////////////////////
+
 pub fn api_password() -> Result<String> {
-    Ok(decrypt("UNAGI::76254259ff4e8fd2a63b360b::3fd40d3a3cf282fedcbe55d790e9e7a48f506b63804f9a56")?)
+    decrypt("UNAGI::76254259ff4e8fd2a63b360b::3fd40d3a3cf282fedcbe55d790e9e7a48f506b63804f9a56")
+}
+
+pub fn api_token() -> Result<String> {
+    decrypt(
+        "UNAGI::7cc16a775814eb937770b6fc::\
+        70970bb8e6a0012d6639fe9db87e87b42a793f925d8ce5ef940ef9ae8aafe0fc\
+        7001aca64826796bfe3a297afaa667182b625e9e00daa31e5c763ce160c84739\
+        b8e2738292bc988a64d542eca09b1020cbc3f44b0b8c1682d536e9edb073e667\
+        21c8f00148f0bea3384a26b889db6e3758f18199b046859da4621234e2504fd5\
+        d3b104152232b5ac22343a6ac87824ad4dbbfbdabeee3218408dcfe3c416a595\
+        39b16248c39ee18d40477732aad5f930b88f1e8cc3b5cc5957980f5c")
 }
