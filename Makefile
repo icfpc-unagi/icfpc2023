@@ -39,8 +39,8 @@ rebase:
 
 .PHONY: test/rust
 test/rust:
-	cargo test
-	cargo build --bins
+	cargo test --features local
+	cargo build --features local --bins
 
 .PHONY: test/secrets
 test/secrets: secrets
