@@ -111,3 +111,31 @@ pub fn compute_score(input: &Input, output: &Output) -> i64 {
     }
     score
 }
+
+pub fn compute_score_for_musician(input: &Input, output: &Output) -> Vec<i64> {
+    if !is_valid_output(input, output) {
+        return vec![0; input.n_musicians()];
+    }
+
+    return (0..input.n_musicians())
+        .map(|musician_id| {
+            (0..input.n_attendees())
+                .map(|attendee_id| compute_score_for_pair(input, output, musician_id, attendee_id))
+                .sum()
+        })
+        .collect();
+}
+
+pub fn compute_score_for_attendees(input: &Input, output: &Output) -> Vec<i64> {
+    if !is_valid_output(input, output) {
+        return vec![0; input.n_musicians()];
+    }
+
+    return (0..input.n_attendees())
+        .map(|attendee_id| {
+            (0..input.n_musicians())
+                .map(|musician_id| compute_score_for_pair(input, output, musician_id, attendee_id))
+                .sum()
+        })
+        .collect();
+}
