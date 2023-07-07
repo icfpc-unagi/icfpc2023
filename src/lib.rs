@@ -1,3 +1,5 @@
+pub mod scoring;
+pub use scoring::*;
 use serde::{Deserialize, Serialize};
 
 pub trait SetMinMax {
@@ -50,6 +52,10 @@ impl Input {
 
     pub fn n_attendees(&self) -> usize {
         self.pos.len()
+    }
+
+    pub fn n_instruments(&self) -> usize {
+        self.tastes[0].len()
     }
 }
 
