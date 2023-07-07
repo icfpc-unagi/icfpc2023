@@ -75,7 +75,7 @@ struct JsonAttendee {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct JsonConcert {
+pub struct JsonConcert {
     room_width: f64,
     room_height: f64,
     stage_width: f64,
