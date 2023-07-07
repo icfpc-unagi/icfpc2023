@@ -21,6 +21,9 @@ tokio = { version = "1", features = ["full"], optional = true }
 svg = "0.13.1"
 anyhow = "1.0.71"
 glob = "0.3.0"
+aes-gcm = "0.9"
+aead = "0.3"
+hex = "0.4"
 
 [profile.release]
 debug = true
