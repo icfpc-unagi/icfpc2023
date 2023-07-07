@@ -1,16 +1,13 @@
-use std::collections::BTreeSet;
+use crate::Input;
 
-use icfpc2023::read_input;
-
-fn main() {
-    let input = read_input();
+pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo) {
     let stage_wh = input.stage1 - input.stage0;
     let stage_area = stage_wh.0 * stage_wh.1;
     let n_musicians = input.n_musicians();
     let n_attendees = input.n_attendees();
-    let n_instruments = BTreeSet::from_iter(input.musicians.clone()).len();
-    assert_eq!(n_instruments, input.n_instruments());
-    assert_eq!(n_instruments, input.musicians.iter().max().unwrap() + 1);
+    let n_instruments = input.n_instruments();
+    // assert_eq!(n_instruments, BTreeSet::from_iter(input.musicians.clone()).len());
+    // assert_eq!(n_instruments, input.musicians.iter().max().unwrap() + 1);
 
     let area_per_musician = stage_area / n_musicians as f64;
     let n_musicians_per_instrument =
@@ -28,20 +25,21 @@ fn main() {
         n_musicians,
         area_per_musician,
         n_instruments,
-        stats_musician_per_instrument: Stats::from_iter(&n_musicians_per_instrument),
+        stats_musicians_per_instrument: Stats::from_iter(&n_musicians_per_instrument),
     };
     let attendees_info = AttendeesInfo {
         n_attendees,
         stats_tastes: Stats::from_iter(&all_tastes),
     };
-    println!("{:?}", (musicians_info, attendees_info));
+    // println!("{:?}", (musicians_info, attendees_info));
+    (musicians_info, attendees_info)
 }
 
-struct Stats {
-    mean: f64,
-    std: f64,
-    min: f64,
-    max: f64,
+pub struct Stats {
+    pub mean: f64,
+    pub std: f64,
+    pub min: f64,
+    pub max: f64,
 }
 
 impl Stats {
@@ -84,18 +82,18 @@ where
 
 #[derive(Debug)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
-struct MusiciansInfo {
-    n_musicians: usize,
-    area_per_musician: f64,
-    n_instruments: usize,
-    stats_musician_per_instrument: Stats,
+pub struct MusiciansInfo {
+    pub n_musicians: usize,
+    pub area_per_musician: f64,
+    pub n_instruments: usize,
+    pub stats_musicians_per_instrument: Stats,
 }
 
 #[derive(Debug)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
-struct AttendeesInfo {
-    n_attendees: usize,
-    stats_tastes: Stats,
+pub struct AttendeesInfo {
+    pub n_attendees: usize,
+    pub stats_tastes: Stats,
 }
 
 fn mean_and_std<T: Copy + Into<f64>>(data: &[T]) -> (f64, f64) {
