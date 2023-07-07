@@ -3,20 +3,22 @@ use std::io::prelude::*;
 use std::path::Path;
 use reqwest::Error;
 use serde_json::Value;
+use anyhow::Result;
+use tokio;
+
+use icfpc2023::api;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let mut problem_id = 1;
+    let number_of_problems = api::get_number_of_problems().await.unwrap();
     let output_dir = "problems/";
 
-    loop {
-        let url = format!("https://api.icfpcontest.com/problem?problem_id={}", problem_id);
-        let response = reqwest::get(&url).await?;
-        if response.status().is_success() {
-            let data: Value = response.json().await?;
-            if let Some(success_data) = data.get("Success") {
-                let json_string = success_data.as_str().unwrap_or("");
-                let data_to_save: Value = serde_json::from_str(json_string).unwrap_or(Value::Null);
+    for problem_id in 1..=number_of_problems {
+        let problem = api::get_raw_problem(problem_id).await;
+        match problem {
+            // Save problem to a file.
+            Ok(json_string) => {
+                let data_to_save: Value = serde_json::from_str(&json_string).unwrap_or(Value::Null);
                 let output_path = format!("{}problem-{}.json", output_dir, problem_id);
                 if Path::new(&output_path).exists() {
                     println!("File for problem_id={} already exists. Skipping...", problem_id);
@@ -25,15 +27,12 @@ async fn main() -> Result<(), Error> {
                     file.write_all(data_to_save.to_string().as_bytes()).unwrap();
                     println!("Successfully downloaded and wrote data for problem_id={}", problem_id);
                 }
-            } else {
-                println!("'Success' key not found in response for problem_id={}. Skipping...", problem_id);
-                break;
             }
-        } else {
-            println!("Download finished or failed. Check the last problem_id: {}", problem_id);
-            break;
+            Err(error) => {
+                println!("problem_id={}: {}", problem_id, error);
+            }
         }
-        problem_id += 1;
     }
+
     Ok(())
 }
