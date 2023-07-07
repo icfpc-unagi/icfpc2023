@@ -1,6 +1,6 @@
 use super::*;
 
-const EXAMPLE_INPUT: &str = r#"
+pub const EXAMPLE_INPUT: &str = r#"
 {
 "room_width": 2000.0,
 "room_height": 5000.0,
@@ -19,7 +19,7 @@ const EXAMPLE_INPUT: &str = r#"
 }
 "#;
 
-const EXAMPLE_OUTPUT: &str = r#"
+pub const EXAMPLE_OUTPUT: &str = r#"
 {
     "placements": [
     {"x": 590.0, "y": 10.0 },
