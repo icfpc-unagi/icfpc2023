@@ -134,6 +134,18 @@ struct XY {
     y: f64,
 }
 
+impl From<&P> for XY {
+    fn from(p: &P) -> Self {
+        XY { x: p.0, y: p.1 }
+    }
+}
+
+impl Into<P> for XY {
+    fn into(self) -> P {
+        P(self.x, self.y)
+    }
+}
+
 pub fn write_output(output: &Output) {
     let out = Out {
         placements: output.iter().map(|p| XY { x: p.0, y: p.1 }).collect(),

@@ -132,7 +132,19 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
 }
 
 /// Submits a solution and returns the submission ID.
-pub async fn submit(problem_id: u32, contents: &str) -> Result<u32> {
+pub async fn submit(problem_id: u32, placements: &Output) -> Result<u32> {
+    #[derive(Serialize)]
+    struct Solution {
+        placements: Vec<XY>,
+    }
+    let contents = serde_json::to_string(&Solution {
+        placements: placements.iter().map(|p| p.into()).collect(),
+    })?;
+
+    submit_raw(problem_id, &contents).await
+}
+
+pub async fn submit_raw(problem_id: u32, contents: &str) -> Result<u32> {
     #[derive(Serialize)]
     struct SubmissionRequest<'a> {
         problem_id: u32,
