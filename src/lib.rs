@@ -51,6 +51,10 @@ impl Input {
     pub fn n_attendees(&self) -> usize {
         self.pos.len()
     }
+
+    pub fn n_instruments(&self) -> usize {
+        self.tastes[0].len()
+    }
 }
 
 pub type Output = Vec<P>;
