@@ -83,6 +83,11 @@ pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
 
+pub fn read_input_from_file(path: &str) -> Input {
+    let content = std::fs::read_to_string(path).expect("Failed to read file");
+    parse_input(&content)
+}
+
 pub fn parse_input(s: &str) -> Input {
     let json: JsonConcert = serde_json::from_str(s).unwrap();
     Input {
