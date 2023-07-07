@@ -43,6 +43,16 @@ pub struct Input {
     pub tastes: Vec<Vec<f64>>,
 }
 
+impl Input {
+    pub fn n_musicians(&self) -> usize {
+        self.musicians.len()
+    }
+
+    pub fn n_attendees(&self) -> usize {
+        self.pos.len()
+    }
+}
+
 pub type Output = Vec<P>;
 
 #[derive(Serialize, Deserialize, Debug)]
