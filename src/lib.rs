@@ -73,8 +73,8 @@ pub fn parse_input(s: &str) -> Input {
         room: P(json.room_width, json.room_height),
         stage0: P(json.stage_bottom_left.0, json.stage_bottom_left.1),
         stage1: P(
-            json.stage_bottom_left.0 + json.room_width,
-            json.stage_bottom_left.1 + json.room_height,
+            json.stage_bottom_left.0 + json.stage_width,
+            json.stage_bottom_left.1 + json.stage_height,
         ),
         musicians: json.musicians,
         pos: json.attendees.iter().map(|a| P(a.x, a.y)).collect(),
