@@ -12,27 +12,14 @@ pub struct Ret {
 }
 
 #[wasm_bindgen]
-pub fn vis(input: String, output: String, t: i32) -> Ret {
-    let input = tools::parse_input(&input);
-    match tools::parse_output(&input, &output) {
-        Ok(out) => {
-            let (score, error, svg) = tools::vis(&input, &out[..t as usize], show_number, focus);
-            Ret { score, error, svg }
-        }
-        Err(error) => Ret {
-            score: 0,
-            error,
-            svg: "".to_owned(),
-        },
-    }
+pub fn vis(input: String, output: String, _t: i32, color_type: i32) -> Ret {
+    let input = icfpc2023::parse_input(&input);
+    let out = icfpc2023::parse_output(&output);
+    let (score, error, svg) = icfpc2023::vis::vis(&input, &out, color_type);
+    Ret { score, error, svg }
 }
 
 #[wasm_bindgen]
-pub fn get_max_turn(input: String, output: String) -> i32 {
-    let input = tools::parse_input(&input);
-    if let Ok(out) = tools::parse_output(&input, &output) {
-        out.len() as i32
-    } else {
-        0
-    }
+pub fn get_max_turn(_input: String, _output: String) -> i32 {
+    1
 }

@@ -43,18 +43,26 @@ pub fn rect(x: f64, y: f64, w: f64, h: f64, fill: &str) -> Rectangle {
         .set("fill", fill)
 }
 
-pub fn vis(input: &Input, out: &Output) -> (i64, String, String) {
-    let mul = (800.0 / input.room.0).min(800.0 / input.room.1);
-    let W = (input.room.0 * mul).ceil() as usize;
-    let H = (input.room.1 * mul).ceil() as usize;
-    let score = 0; //compute_score(input, out);
+pub fn vis(input: &Input, out: &Output, color_type: i32) -> (i64, String, String) {
+    let room = (
+        input.pos.iter().map(|a| a.0.ceil() as usize).max().unwrap() as f64 + 10.0,
+        input.pos.iter().map(|a| a.1.ceil() as usize).max().unwrap() as f64 + 10.0,
+    );
+    let mul = (1000.0 / room.0).min(700.0 / room.1);
+    let W = (room.0 * mul).ceil() as usize;
+    let H = (room.1 * mul).ceil() as usize;
+    let score = compute_score(input, out);
+    let score_musicians = compute_score_for_musician(input, out);
+    let score_attendees = compute_score_for_attendees(input, out);
+    let score_musician_max = score_musicians.iter().map(|a| a.abs()).max().unwrap();
+    let score_attendees_max = score_attendees.iter().map(|a| a.abs()).max().unwrap();
     let mut doc = svg::Document::new()
         .set("id", "vis")
         .set("viewBox", (-5, -5, W + 10, H + 10))
         .set("width", W + 10)
         .set("height", H + 10);
     doc = doc.add(
-        rect(0.0, 0.0, input.room.0 * mul, input.room.1 * mul, "white")
+        rect(0.0, 0.0, room.0 * mul, room.1 * mul, "white")
             .set("stroke-width", 1)
             .set("stroke", "black"),
     );
@@ -74,15 +82,25 @@ pub fn vis(input: &Input, out: &Output) -> (i64, String, String) {
         doc = doc.add(
             Group::new()
                 .add(Title::new().add(Text::new(format!(
-                    "attendees {}\n({:.0}, {:.0})",
-                    i, input.pos[i].0, input.pos[i].1
+                    "attendees {}\n({:.0}, {:.0})\nscore = {}",
+                    i, input.pos[i].0, input.pos[i].1, score_attendees[i]
                 ))))
                 .add(
                     Circle::new()
                         .set("cx", input.pos[i].0 * mul)
                         .set("cy", input.pos[i].1 * mul)
-                        .set("r", 1)
-                        .set("fill", "black"),
+                        .set("r", 2)
+                        .set(
+                            "fill",
+                            match color_type {
+                                0 => "black".to_owned(),
+                                1 => color(
+                                    0.5 + 0.5 * score_attendees[i] as f64
+                                        / score_attendees_max as f64,
+                                ),
+                                _ => unimplemented!(),
+                            },
+                        ),
                 ),
         );
     }
@@ -90,15 +108,25 @@ pub fn vis(input: &Input, out: &Output) -> (i64, String, String) {
         doc = doc.add(
             Group::new()
                 .add(Title::new().add(Text::new(format!(
-                    "musicians {}, inst = {}\n({}, {})",
-                    i, input.musicians[i], out[i].0, out[i].1
+                    "musicians {}, inst = {}\n({}, {})\nscore = {}",
+                    i, input.musicians[i], out[i].0, out[i].1, score_musicians[i]
                 ))))
                 .add(
                     Circle::new()
                         .set("cx", out[i].0 * mul)
                         .set("cy", out[i].1 * mul)
                         .set("r", 5.0 * mul)
-                        .set("fill", color(input.musicians[i] as f64 / t as f64)),
+                        .set(
+                            "fill",
+                            match color_type {
+                                0 => color(input.musicians[i] as f64 / t as f64),
+                                1 => color(
+                                    0.5 + 0.5 * score_musicians[i] as f64
+                                        / score_musician_max as f64,
+                                ),
+                                _ => unimplemented!(),
+                            },
+                        ),
                 ),
         )
     }

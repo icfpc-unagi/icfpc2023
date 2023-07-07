@@ -3,74 +3,14 @@
 <head>
   <title>Visualizer</title>
   <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
-  <script src="//img.atcoder.jp/public/4432a1b/js/lib/jquery-1.9.1.min.js"></script>
-  <style type="text/css">
-    svg .goods:hover {
-      stroke-width: 3px;
-    }
-  </style>
 </head>
 
 <body>
-  <span class="lang-en">
-    <p>
-      The problem statement is <a href="https://atcoder.jp/contests/ahc021/tasks/ahc021_a">here</a>.
-    </p>
-    Usage
-    <details>
-      <p>
-        Changing the value in the Seed field will generate the corresponding input to the Input field.<br>
-        Pressing the Download button will download the inputs for seed values seed, seed+1, ..., seed+#cases-1 at
-        once.<br>
-      </p>
-      <p>
-        By running your program locally against the generated input and pasting the output of your program into the
-        Output field, the visualization results will be displayed.<br>
-        When you output multiple solutions, pressing the ▶ button starts animation.<br>
-        By pressing the Save as PNG or Save as Animation GIF button, you can download the visualization results.<br>
-      </p>
-      <p>
-        The color of each ball corresponds to the written number, where 0 is blue and 464 is red.<br>
-        By pointing the mouse cursor over a ball, the coordinates are displayed in a tooltip.<br>
-        Clicking on a ball displays the trace of the ball's movement as arrows.<br>
-        Click again to unselect the ball.
-      </p>
-    </details>
-  </span>
-  <span class="lang-ja">
-    <p>
-      問題文は<a href="https://atcoder.jp/contests/ahc021/tasks/ahc021_a">こちら</a>。
-    </p>
-    使い方
-    <details>
-      <p>
-        Seed 欄の値を変えると対応する入力が Input 欄に生成されます。<br>
-        Download ボタンを押すと、シード値が seed, seed+1, ..., seed+#cases-1 に対応する入力を一括ダウンロード出来ます。<br>
-      </p>
-      <p>
-        生成された入力に対して解答プログラムをローカル実行し、プログラムの出力を Output 欄に貼り付けると、ビジュアライズ結果が表示されます。<br>
-        複数の解を出力した場合、▶ ボタンを押すと、アニメーションが開始します。<br>
-        Save as PNGや Save as Animation GIF ボタンを押すと、ビジュアライズ結果のダウンロードが出来ます。<br>
-      </p>
-      <p>
-        各ボールの色は書かれている数字に対応しており、0が青色、464が赤色となっています。<br>
-        ボールにマウスカーソルを合わせると、座標がツールチップで表示されます。<br>
-        ボールをクリックするとそのボールを動かした軌跡が矢印で表示されます。<br>
-        もう一度クリックすると解除されます。
-      </p>
-    </details>
-  </span>
-  <hr>
   <p>
     <label>
-      Seed:
+      Problem:
       <input type="number" id="seed" value="0" min="0" max="18446744073709551615" onchange="generate()" />
-    </label>&emsp;
-    <label>
-      #cases:
-      <input type="number" id="cases" value="100" min="1" max="10000">
     </label>
-    <input type="button" id="download" value="Download" onclick="download()">
   </p>
   <p>
     <label>
@@ -86,29 +26,17 @@
     </label>
   </p>
   <p>
-    <label>
-      <input type="checkbox" id="show_number" onclick="visualize()">show number&ensp;
-    </label>&ensp;
-    <label>
-      focus:
-      <input type="number" id="focus" value="-1" min="-1" max="464" style="width:70px;text-align:right;"
-        onchange="visualize()" />
-    </label>&ensp;
+    <input type="button" id="save_png" value="Save as PNG">&ensp;
   </p>
   <p>
-    <input type="button" id="save_png" value="Save as PNG">&ensp;
-    <input type="button" id="save_gif" value="Save as Animation GIF">&ensp;
-    <!-- <input type="button" id="share" value="Share on Twitter">&ensp; -->
+    <label>
+      color_type:
+      <select id="color_type">
+        <option value="0">楽器ID</option>
+        <option value="1">スコア</option>
+      </select>
+    </label>&ensp;
   </p>
-  <!-- <p id="share_info" hidden>
-    <span class="lang-ja">
-      <font color='red'>Seed=0に対するpngのみ共有出来ます。動画や解法・考察等は共有しないようお願いします。</font>
-    </span>
-    <span class="lang-en">
-      <font color='red'>You can only share pngs for seed=0. DO NOT share videos, solutions, discussions, etc.</font>
-    </span>
-    <input type="button" id="share_ok" value="OK">
-  </p> -->
   <p style="display:flex;">
     <input type="button" id="play" value="▶" style="width:32px;height:32px;bottom:5px;position:relative;">&ensp;
     <label>
@@ -131,27 +59,8 @@
   <p id="score" style="user-select:none"></p>
   <div id="result">
   </div>
-  <script src='./gif.js'></script>
-  <script src='./jszip.min.js'></script>
   <script type="module">
-    var lang = (new URL(document.location)).searchParams.get("lang");
-    if (lang == null) {
-      lang = "ja";
-    }
-    if (lang == "ja") {
-      $(".lang-en").hide();
-    } else {
-      $(".lang-ja").hide();
-    }
-
-    if ((new URL(document.location)).searchParams.get("seed") != null) {
-      document.getElementById("seed").value = (new URL(document.location)).searchParams.get("seed");
-    }
-    if ((new URL(document.location)).searchParams.get("output") != null) {
-      document.getElementById("output").value = (new URL(document.location)).searchParams.get("output");
-    }
-
-    import init, { gen, vis, get_max_turn } from './d17182d7.js';
+    import init, { vis, get_max_turn } from './vis.js';
 
     var seed0 = "";
 
@@ -164,56 +73,21 @@
 
     function generate() {
       const seed = document.getElementById("seed").value;
-      const input = gen(seed);
-      document.getElementById("input").value = input;
+      // const input = gen(seed);
+      // document.getElementById("input").value = input;
       updateOutput();
     }
     window.generate = generate;
 
-    function download() {
-      const dl = document.getElementById("download");
-      dl.disabled = true;
-      var seed = document.getElementById("seed").value;
-      const cases = Number(document.getElementById("cases").value);
-      const zip = new JSZip();
-      for (var i = 0; i < cases; i++) {
-        const input = gen(seed);
-        zip.file(("" + i).padStart(4, '0') + ".txt", input);
-        function inc(s) {
-          if (s.length == 0) {
-            return "1";
-          } else if (s.slice(-1) == "9") {
-            return inc(s.slice(0, -1)) + "0";
-          } else {
-            return s.slice(0, -1) + (Number(s.slice(-1)) + 1);
-          }
-        }
-        seed = inc(seed);
-      }
-
-      zip.generateAsync({ type: "blob" }, e => {
-        dl.value = String(Math.round(e.percent)).padStart(3, " ") + "% finished";
-      }).then(blob => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "in.zip";
-        a.click();
-        window.URL.revokeObjectURL(a.href);
-        dl.value = "Download";
-        dl.disabled = false;
-      });
-    }
-    window.download = download;
-
     function visualize() {
       const input = document.getElementById("input").value;
       const output = document.getElementById("output").value;
-      // document.getElementById("share_ok").disabled = input != seed0;
       const t = document.getElementById("turn").value;
-      const show_number = document.getElementById("show_number").checked;
-      const focus = document.getElementById("focus").value;
+      const select = document.getElementById("color_type");
+      const color_type = parseInt(select.options[select.selectedIndex].value);
+      console.log(color_type);
       try {
-        const ret = vis(input, output, t, show_number, focus);
+        const ret = vis(input, output, t, color_type);
         document.getElementById("score").innerHTML = "Score = " + ret.score;
         if (ret.error != "") {
           document.getElementById("score").innerHTML += " <font color='red'>(" + ret.error + ")</font>";
@@ -293,9 +167,9 @@
       const input = document.getElementById("input").value;
       const output = document.getElementById("output").value;
       const t = document.getElementById("turn").value;
-      const show_number = document.getElementById("show_number").checked;
-      const focus = document.getElementById("focus").value;
-      const svgData = vis(input, output, t, show_number, focus).svg;
+      const select = document.getElementById("color_type");
+      const color_type = parseInt(select.options[select.selectedIndex].value);
+      const svgData = vis(input, output, t, color_type).svg;
       const svg = new DOMParser().parseFromString(svgData, "image/svg+xml").getElementById("vis");
       const canvas = document.createElement("canvas");
       canvas.width = svg.width.baseVal.value;
@@ -311,102 +185,6 @@
       }
       image.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(svgData)));
     }
-
-    const save_gif = document.getElementById("save_gif");
-    save_gif.onclick = event => {
-      save_gif.disabled = true;
-      save_gif.value = "Generating GIF...";
-      const input = document.getElementById("input").value;
-      const output = document.getElementById("output").value;
-      const show_number = document.getElementById("show_number").checked;
-      const focus = document.getElementById("focus").value;
-      const max_turn = Number(document.getElementById("turn").max);
-      const step = 20;
-      const delay = step * 500 / speed.value;
-      const gif = new GIF({
-        workers: 2,
-        quality: 10,
-      });
-      gif.on("progress", function (p) {
-        save_gif.value = String(Math.round(50 + 50 * p)).padStart(3, " ") + "% finished";
-      });
-      function add_frame(t) {
-        save_gif.value = String(Math.round(50.0 * t / max_turn)).padStart(3, " ") + "% finished";
-        const svgData = vis(input, output, t, show_number, focus).svg;
-        const svg = new DOMParser().parseFromString(svgData, "image/svg+xml").getElementById("vis");
-        const canvas = document.createElement("canvas");
-        canvas.width = svg.width.baseVal.value;
-        canvas.height = svg.height.baseVal.value;
-        const ctx = canvas.getContext("2d");
-        const image = new Image;
-        image.onload = function () {
-          ctx.drawImage(image, 0, 0);
-          if (t == max_turn) {
-            gif.addFrame(canvas, { delay: 3000 });
-          } else {
-            gif.addFrame(canvas, { delay: delay });
-          }
-          if (t < max_turn) {
-            add_frame(Math.min(t + step, max_turn));
-          } else {
-            gif.on('finished', function (blob) {
-              const a = document.createElement("a");
-              a.href = URL.createObjectURL(blob);
-              a.download = "vis.gif";
-              a.click();
-              window.URL.revokeObjectURL(a.href);
-              save_gif.value = "Save as Animation GIF";
-              save_gif.disabled = false;
-            });
-            gif.render();
-          }
-        }
-        image.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(svgData)));
-      }
-      add_frame(0);
-    }
-
-    // document.getElementById("share_ok").onclick = event => {
-    //   $("#share_info").hide();
-    //   const seed = document.getElementById("seed").value;
-    //   const input = document.getElementById("input").value;
-    //   const output = document.getElementById("output").value;
-    //   const ret = vis(input, output);
-    //   if (ret.error == "") {
-    //     const score = ret.score;
-    //     const tag = "ahc021";
-    //     const problem = "Pyramid Sorting";
-    //     if (lang == "ja" || lang == null) {
-    //       const text = problem + "のseed=" + seed + "で" + score.toLocaleString() + "点を獲得!!!" + "\nhttps://atcoder.jp/contests/ahc021\n(画像は自動で挿入されません。各自ダウンロードして添付し、この文章は消してね)";
-    //       const link = "https://twitter.com/intent/tweet?hashtags=" + tag + ",visualizer&text=" + encodeURIComponent(text);
-    //       window.open(link);
-    //     } else {
-    //       const text = "I got " + score.toLocaleString() + " points on " + problem + " with seed=" + seed + "!!!" + "\nhttps://atcoder.jp/contests/ahc021\n(Visualization image will not be inserted automatically. Please download and attach images by yourself and delete this text.)";
-    //       const link = "https://twitter.com/intent/tweet?hashtags=" + tag + ",visualizer&text=" + encodeURIComponent(text);
-    //       window.open(link);
-    //     }
-    //   } else {
-    //     if (lang == "ja" || lang == null) {
-    //       alert("出力が不正です");
-    //     } else {
-    //       alert("illegal output");
-    //     }
-    //   }
-    // }
-
-    // document.getElementById("share").onclick = event => {
-    //   $("#share_info").toggle();
-    // }
-
-    window.vis_focus = id => {
-      if (document.getElementById("focus").value == id) {
-        document.getElementById("focus").value = "-1";
-      } else {
-        document.getElementById("focus").value = id;
-      }
-      visualize();
-    }
-
   </script>
 </body>
 
