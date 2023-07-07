@@ -31,7 +31,7 @@ macro_rules! mat {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
-pub struct P(f64, f64);
+pub struct P(pub f64, pub f64);
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Input {
@@ -64,7 +64,11 @@ struct JsonConcert {
 }
 
 pub fn read_input() -> Input {
-    let json: JsonConcert = serde_json::from_reader(std::io::stdin()).unwrap();
+    parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
+}
+
+pub fn parse_input(s: &str) -> Input {
+    let json: JsonConcert = serde_json::from_str(s).unwrap();
     Input {
         room: P(json.room_width, json.room_height),
         stage0: P(json.stage_bottom_left.0, json.stage_bottom_left.1),
@@ -78,20 +82,27 @@ pub fn read_input() -> Input {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct Out {
+    placement: Vec<XY>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct XY {
+    x: f64,
+    y: f64,
+}
+
 pub fn write_output(output: &Output) {
-    #[derive(Serialize, Deserialize, Debug)]
-    struct Out {
-        placement: Vec<XY>,
-    }
-    #[derive(Serialize, Deserialize, Debug)]
-    struct XY {
-        x: f64,
-        y: f64,
-    }
     let out = Out {
         placement: output.iter().map(|p| XY { x: p.0, y: p.1 }).collect(),
     };
     serde_json::to_writer(std::io::stdout(), &out).unwrap();
+}
+
+pub fn parse_output(s: &str) -> Output {
+    let out: Out = serde_json::from_str(s).unwrap();
+    out.placement.into_iter().map(|p| P(p.x, p.y)).collect()
 }
 
 use std::ops::*;
