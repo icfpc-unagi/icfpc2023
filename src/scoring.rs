@@ -43,7 +43,7 @@ pub fn is_blocked_by_someone(
 ) -> bool {
     let musician_pos = output[musician_id];
     let attendee_pos = input.pos[attendee_id];
-    for i in 0..input.n_musicians() {
+    for i in 0..output.len() {
         if i == musician_id {
             continue;
         }
