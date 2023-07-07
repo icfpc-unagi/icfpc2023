@@ -14,10 +14,10 @@ static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub enum SubmissionStatus {
-    Processing(),
+    Processing,
     // Score must be an integer but it has floating point in json for some reason.
     Success(#[serde(deserialize_with = "parse_u64_via_f64")] u64),
-    Failures(String),
+    Failure(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -159,4 +159,43 @@ where
 {
     let value: f64 = serde::de::Deserialize::deserialize(deserializer)?;
     Ok(value as u64)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_json_submissions() {
+        let json = r#"
+          {
+            "Success": [
+              {
+                "_id": "xxxx",
+                "problem_id": 1,
+                "submitted_at": "2023-07-07T14:50:28.397437731Z",
+                "score": "Processing"
+              },
+              {
+                "_id": "yyyy",
+                "problem_id": 2,
+                "submitted_at": "2023-07-07T14:50:28.397437731Z",
+                "score": {
+                  "Success": 0
+                }
+              },
+              {
+                "_id": "zzzz",
+                "problem_id": 3,
+                "submitted_at": "2023-07-07T14:50:28.397437731Z",
+                "score": {
+                  "Failure": "error message"
+                }
+              }
+            ]
+          }
+        "#;
+        let parsed: super::Response<Vec<super::Submission>> = serde_json::from_str(json).unwrap();
+        if let super::Response::Success(parsed) = parsed {
+            assert_eq!(parsed.len(), 3);
+        }
+    }
 }
