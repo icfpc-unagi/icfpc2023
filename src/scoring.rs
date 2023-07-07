@@ -1,4 +1,5 @@
 use super::*;
+use std::f64::consts::PI;
 
 pub const EXAMPLE_INPUT: &str = r#"
 {
@@ -29,22 +30,33 @@ pub const EXAMPLE_OUTPUT: &str = r#"
     }
 "#;
 
-pub fn is_blocked(input: &Input, output: &Output, musician_id: usize, attendee_id: usize) -> bool {
+pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
+    let d2 = P::dist2_sp((musician, attendee), blocking_musician);
+    d2 <= 25.0
+}
+
+pub fn is_blocked_by_someone(
+    input: &Input,
+    output: &Output,
+    musician_id: usize,
+    attendee_id: usize,
+) -> bool {
     let musician_pos = output[musician_id];
     let attendee_pos = input.pos[attendee_id];
-
     for i in 0..input.n_musicians() {
         if i == musician_id {
             continue;
         }
-
-        let d2 = P::dist2_sp((musician_pos, attendee_pos), output[i]);
-        if d2 <= 25.0 {
+        if is_blocked(musician_pos, attendee_pos, output[i]) {
             return true;
         }
     }
 
     return false;
+}
+
+pub fn score_fn(taste: f64, d2: f64) -> i64 {
+    (1_000_000.0 * taste / d2).ceil() as i64
 }
 
 pub fn compute_score_for_pair(
@@ -53,13 +65,12 @@ pub fn compute_score_for_pair(
     musician_id: usize,
     attendee_id: usize,
 ) -> i64 {
-    if is_blocked(input, output, musician_id, attendee_id) {
+    if is_blocked_by_someone(input, output, musician_id, attendee_id) {
         return 0;
     } else {
         let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
-        // dbg!(&attendee_id, &musician_id, &input.tastes.len());
         let instrument_id = input.musicians[musician_id];
-        return (1_000_000.0 * input.tastes[attendee_id][instrument_id] / d2).ceil() as i64;
+        return score_fn(input.tastes[attendee_id][instrument_id], d2);
     }
 }
 
@@ -147,7 +158,7 @@ pub fn compute_score_for_instruments(input: &Input, positions: &Vec<P>) -> Vec<V
     for pos_id in 0..positions.len() {
         let mut bs = vec![false; input.n_attendees()];
         for attendee_id in 0..input.n_attendees() {
-            bs[attendee_id] = is_blocked(input, positions, pos_id, attendee_id);
+            bs[attendee_id] = is_blocked_by_someone(input, positions, pos_id, attendee_id);
         }
 
         for instrument_id in 0..input.n_instruments() {
@@ -182,8 +193,8 @@ pub fn compute_score_for_a_musician_fast(
 ) -> (i64, Vec<i64>) {
     let eps = 1e-5;
     let p = output[musician_id];
-
     let mut events = vec![];
+
     for i in 0..input.n_musicians() {
         if i == musician_id {
             continue;
@@ -191,16 +202,23 @@ pub fn compute_score_for_a_musician_fast(
 
         let v = output[i] - p;
         let th = v.1.atan2(v.0);
-        dbg!(th);
-
         let dth = (5.0 / v.abs2().sqrt()).asin();
-        dbg!(dth);
 
-        events.push((th - dth, Event::MusicianEnter(i)));
-        events.push((th + dth, Event::MusicianLeave(i)));
+        // 一旦コンサバにして、後で正確なチェックをする
+        let th0 = th - dth - eps;
+        let th1 = th + dth + eps;
 
-        // TODO: minus plus
-        // TODO: eps
+        events.push((th0, Event::MusicianEnter(i)));
+        events.push((th1, Event::MusicianLeave(i)));
+
+        if th0 < -PI {
+            events.push((th0 + 2.0 * PI, Event::MusicianEnter(i)));
+            events.push((th1 + 2.0 * PI, Event::MusicianLeave(i)));
+        }
+        if th1 > PI {
+            events.push((th0 - 2.0 * PI, Event::MusicianEnter(i)));
+            events.push((th1 - 2.0 * PI, Event::MusicianLeave(i)));
+        }
     }
 
     for i in 0..input.n_attendees() {
@@ -210,11 +228,10 @@ pub fn compute_score_for_a_musician_fast(
     }
 
     events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-    dbg!(&events);
-
     let mut score = 0;
     let mut attendee_scores = vec![0; input.n_attendees()];
     let mut active_musicians = std::collections::HashSet::new();
+
     for (_, e) in events {
         match e {
             Event::MusicianEnter(i) => {
@@ -225,8 +242,8 @@ pub fn compute_score_for_a_musician_fast(
             }
             Event::Attendee(attendee_id) => {
                 let mut f = false;
-                for musician_id in &active_musicians {
-                    f |= is_blocked(input, output, *musician_id, attendee_id);
+                for i in &active_musicians {
+                    f |= is_blocked(p, input.pos[attendee_id], output[*i]);
                     if f {
                         break;
                     }
@@ -234,10 +251,9 @@ pub fn compute_score_for_a_musician_fast(
                 if !f {
                     let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
                     let instrument_id = input.musicians[musician_id];
-                    let s =
-                        (1_000_000.0 * input.tastes[attendee_id][instrument_id] / d2).ceil() as i64;
+                    let s = score_fn(input.tastes[attendee_id][instrument_id], d2);
                     score += s;
-                    attendee_scores[attendee_id] += s;
+                    attendee_scores[attendee_id] = s;
                 }
             }
         }
