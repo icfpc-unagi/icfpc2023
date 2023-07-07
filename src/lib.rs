@@ -193,3 +193,5 @@ impl P {
 pub mod mcf;
 
 pub mod vis;
+
+pub mod input_stats;

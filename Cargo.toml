@@ -22,6 +22,9 @@ svg = "0.13.1"
 anyhow = "1.0.71"
 glob = "0.3.0"
 clap = { version = "4.3", features = ["derive"] }
+aes-gcm = "0.9"
+aead = "0.3"
+hex = "0.4"
 
 [profile.release]
 debug = true
