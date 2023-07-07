@@ -2,6 +2,8 @@ pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
 
+pub mod api;
+
 pub trait SetMinMax {
     fn setmin(&mut self, v: Self) -> bool;
     fn setmax(&mut self, v: Self) -> bool;
