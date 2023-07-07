@@ -28,6 +28,7 @@ pub struct Submission {
     submitted_at: String,
     score: SubmissionStatus,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Problem {
     _id: String,
@@ -57,7 +58,7 @@ pub async fn get_number_of_problems() -> Result<u32> {
 
 /// Returns the problem with the given ID.
 /// Authentication is not required.
-pub async fn get_problem(problem_id: u32) -> Result<Problem> {
+pub async fn get_raw_problem(problem_id: u32) -> Result<String> {
     let res = CLIENT
         .get(format!("{}/problem?problem_id={}", API_BASE, problem_id))
         .send()
@@ -65,11 +66,20 @@ pub async fn get_problem(problem_id: u32) -> Result<Problem> {
     eprintln!("Status: {}", res.status());
     let problem_response: Response<String> = res.json().await?;
     match problem_response {
-        Response::Success(problem) => {
-            let problem: Problem = serde_json::from_str(&problem)?;
+        Response::Success(problem) => Ok(problem),
+        Response::Failure(error) => Err(anyhow!(error)),
+    }
+}
+
+/// Returns the problem with the given ID.
+/// Authentication is not required.
+pub async fn get_problem(problem_id: u32) -> Result<JsonConcert> {
+    match get_raw_problem(problem_id).await {
+        Ok(problem) => {
+            let problem: JsonConcert = serde_json::from_str(&problem)?;
             Ok(problem)
         }
-        Response::Failure(error) => Err(anyhow!(error)),
+        Err(e) => Err(e),
     }
 }
 
