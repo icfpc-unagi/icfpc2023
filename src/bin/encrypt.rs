@@ -1,6 +1,6 @@
 use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
 use aes_gcm::Aes128Gcm;
-use hex::{encode, decode};
+use hex::{encode};
 use rand::Rng;
 use std::env;
 

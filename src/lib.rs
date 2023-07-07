@@ -2,6 +2,8 @@ pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
 
+pub mod secret;
+
 #[cfg(feature = "tokio")]
 #[cfg(feature = "reqwest")]
 pub mod api;

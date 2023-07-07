@@ -1,3 +1,5 @@
+use crate::*;
+
 use anyhow::anyhow;
 use anyhow::Result;
 use once_cell::sync::Lazy;
@@ -8,7 +10,7 @@ use serde::Serialize;
 const API_BASE: &str = "https://api.icfpcontest.com";
 
 static TOKEN: Lazy<String> =
-    Lazy::new(|| std::env::var("ICFPC2023_API_TOKEN").expect("ICFPC2023_API_TOKEN must be set"));
+    Lazy::new(|| secret::api_token().expect("UNAGI_PASSWORD must be set"));
 static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
