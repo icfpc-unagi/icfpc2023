@@ -104,7 +104,7 @@ pub fn vis(input: &Input, out: &Output, color_type: i32) -> (i64, String, String
                 ),
         );
     }
-    for i in 0..input.musicians.len() {
+    for i in 0..out.len() {
         doc = doc.add(
             Group::new()
                 .add(Title::new().add(Text::new(format!(
