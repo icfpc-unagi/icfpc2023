@@ -1,21 +1,31 @@
 use anyhow::{anyhow, Result};
+use clap::Parser;
 use icfpc2023::api;
 use std::fs::File;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+#[derive(Parser, Debug)]
+struct Cli {
+    /// Path to output directory
+    #[arg(short = 'o', long, default_value = "problems/")]
+    output_dir: PathBuf,
+
+    #[arg(short = 'w', long)]
+    overwrite: bool,
+}
 
 /// Downloads all problems and writes them to files under problems/.
 #[tokio::main]
 async fn main() -> Result<()> {
+    let args = Cli::parse();
+
     let number_of_problems = api::get_number_of_problems().await?;
     eprintln!("There are {} problems found in total.", number_of_problems);
 
-    let output_dir = "problems/";
-
     for problem_id in 1..=number_of_problems {
-        let output_path = &format!("{}problem-{}.json", output_dir, problem_id);
-        let output_path = Path::new(output_path);
-        match download_and_write_problem(&output_path, problem_id).await {
+        let output_path = args.output_dir.join(format!("problem-{}.json", problem_id));
+        match download_and_write_problem(&output_path, problem_id, args.overwrite).await {
             Ok(_) => {
                 eprintln!(
                     "Successfully downloaded and wrote data for problem_id={} to {}",
@@ -32,9 +42,13 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn download_and_write_problem(output_path: &Path, problem_id: u32) -> Result<()> {
+async fn download_and_write_problem(
+    output_path: &Path,
+    problem_id: u32,
+    overwrite: bool,
+) -> Result<()> {
     // Skip if the file already exists.
-    if output_path.exists() {
+    if !overwrite && output_path.exists() {
         return Err(anyhow!(
             "File for problem_id={} ({}) already exists. Skipping...",
             problem_id,
