@@ -6,18 +6,18 @@ fn main() {
     let input = read_input();
     let stage_wh = input.stage1 - input.stage0;
     let stage_area = stage_wh.0 * stage_wh.1;
-    let num_musician = input.n_musicians();
-    let num_attendee = input.n_attendees();
-    let num_instruments = BTreeSet::from_iter(input.musicians.clone()).len();
-    assert_eq!(num_instruments, input.n_instruments());
-    assert_eq!(num_instruments, input.musicians.iter().max().unwrap() + 1);
+    let n_musicians = input.n_musicians();
+    let n_attendees = input.n_attendees();
+    let n_instruments = BTreeSet::from_iter(input.musicians.clone()).len();
+    assert_eq!(n_instruments, input.n_instruments());
+    assert_eq!(n_instruments, input.musicians.iter().max().unwrap() + 1);
 
-    let area_per_musician = stage_area / num_musician as f64;
-    let num_musician_per_instrument =
+    let area_per_musician = stage_area / n_musicians as f64;
+    let n_musicians_per_instrument =
         input
             .musicians
             .iter()
-            .fold(vec![0; num_instruments], |mut acc, &m| {
+            .fold(vec![0; n_instruments], |mut acc, &m| {
                 acc[m] += 1;
                 acc
             });
@@ -25,29 +25,16 @@ fn main() {
     let all_tastes = input.tastes.iter().flatten().copied().collect::<Vec<_>>();
 
     let musicians_info = MusiciansInfo {
-        num_musician,
+        n_musicians,
         area_per_musician,
-        num_instruments,
-        stats_musician_per_instrument: Stats::from_iter(&num_musician_per_instrument),
+        n_instruments,
+        stats_musician_per_instrument: Stats::from_iter(&n_musicians_per_instrument),
     };
     let attendees_info = AttendeesInfo {
-        num_attendee,
+        n_attendees,
         stats_tastes: Stats::from_iter(&all_tastes),
     };
-    println!("{:?}", (musicians_info, attendees_info))
-    // println!(
-    //     "{:?}",
-    //     (
-    //         num_musician,
-    //         num_attendee,
-    //         num_instruments,
-    //         area_per_musician,
-    //         Stats::from_iter(&num_musician_per_instrument).to_string(),
-    //         Stats::from_iter(&all_tastes).to_string(),
-    //         // mean_and_std(&num_musician_per_instrument),
-    //         // mean_and_std(&all_tastes)
-    //     )
-    // );
+    println!("{:?}", (musicians_info, attendees_info));
 }
 
 struct Stats {
@@ -98,16 +85,16 @@ where
 #[derive(Debug)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
 struct MusiciansInfo {
-    num_musician: usize,
+    n_musicians: usize,
     area_per_musician: f64,
-    num_instruments: usize,
+    n_instruments: usize,
     stats_musician_per_instrument: Stats,
 }
 
 #[derive(Debug)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
 struct AttendeesInfo {
-    num_attendee: usize,
+    n_attendees: usize,
     stats_tastes: Stats,
 }
 
