@@ -38,7 +38,7 @@ RUN touch ./src/lib.rs \
 FROM ubuntu:22.04 AS server
 COPY --from=vis /www /www
 COPY --from=service /app/www /app/www
+COPY static /www/static
 WORKDIR /app
 ENV PORT 8080
 CMD ["./www"]
-
