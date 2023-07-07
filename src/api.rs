@@ -108,7 +108,11 @@ pub async fn get_scoreboard() -> Result<Scoreboard> {
 }
 
 pub async fn get_userboard() -> Result<Vec<Option<u64>>> {
-    let res = CLIENT.get(format!("{}/userboard", API_BASE)).send().await?;
+    let res = CLIENT
+        .get(format!("{}/userboard", API_BASE))
+        .header(AUTHORIZATION, format!("Bearer {}", *TOKEN))
+        .send()
+        .await?;
     eprintln!("Status: {}", res.status());
     #[derive(Deserialize)]
 
