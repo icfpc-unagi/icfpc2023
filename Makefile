@@ -39,8 +39,8 @@ rebase:
 
 .PHONY: test/rust
 test/rust: test/rust/vis
-	cargo test --features=local 
-	cargo build --features=local --bins
+	cargo test
+	cargo build --bins
 
 test/rust/vis:
   # TODO: Consider using --chrome that requires chrome installed on CI.

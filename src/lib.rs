@@ -2,7 +2,7 @@ pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "local")]
+#[cfg(feature = "default")]
 pub mod api;
 
 pub trait SetMinMax {
