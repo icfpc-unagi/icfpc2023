@@ -2,7 +2,8 @@ pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "local")]
+#[cfg(feature = "tokio")]
+#[cfg(feature = "reqwest")]
 pub mod api;
 
 pub trait SetMinMax {
@@ -35,7 +36,7 @@ macro_rules! mat {
     ($e:expr; $d:expr $(; $ds:expr)+) => { vec![mat![$e $(; $ds)*]; $d] };
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct P(pub f64, pub f64);
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -77,7 +78,7 @@ struct JsonConcert {
     room_height: f64,
     stage_width: f64,
     stage_height: f64,
-    stage_bottom_left: (f64, f64),
+    stage_bottom_left: P,
     musicians: Vec<usize>,
     attendees: Vec<JsonAttendee>,
 }
@@ -95,7 +96,7 @@ pub fn parse_input(s: &str) -> Input {
     let json: JsonConcert = serde_json::from_str(s).unwrap();
     Input {
         room: P(json.room_width, json.room_height),
-        stage0: P(json.stage_bottom_left.0, json.stage_bottom_left.1),
+        stage0: json.stage_bottom_left,
         stage1: P(
             json.stage_bottom_left.0 + json.stage_width,
             json.stage_bottom_left.1 + json.stage_height,
