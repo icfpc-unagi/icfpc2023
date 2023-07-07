@@ -84,7 +84,7 @@ pub fn parse_input(s: &str) -> Input {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Out {
-    placement: Vec<XY>,
+    placements: Vec<XY>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -95,14 +95,14 @@ struct XY {
 
 pub fn write_output(output: &Output) {
     let out = Out {
-        placement: output.iter().map(|p| XY { x: p.0, y: p.1 }).collect(),
+        placements: output.iter().map(|p| XY { x: p.0, y: p.1 }).collect(),
     };
     serde_json::to_writer(std::io::stdout(), &out).unwrap();
 }
 
 pub fn parse_output(s: &str) -> Output {
     let out: Out = serde_json::from_str(s).unwrap();
-    out.placement.into_iter().map(|p| P(p.x, p.y)).collect()
+    out.placements.into_iter().map(|p| P(p.x, p.y)).collect()
 }
 
 use std::ops::*;
