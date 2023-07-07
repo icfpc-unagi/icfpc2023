@@ -144,6 +144,7 @@ pub async fn submit(problem_id: u32, placements: &Output) -> Result<u32> {
     submit_raw(problem_id, &contents).await
 }
 
+/// Submits a solution and returns the submission ID.
 pub async fn submit_raw(problem_id: u32, contents: &str) -> Result<u32> {
     #[derive(Serialize)]
     struct SubmissionRequest<'a> {
