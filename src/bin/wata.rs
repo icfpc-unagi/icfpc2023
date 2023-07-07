@@ -343,7 +343,9 @@ fn main() {
     eprintln!("{:.3}: {}", get_time(), best_score);
     const T0: f64 = 1e-2;
     const T1: f64 = 1e-6;
-    const TL: f64 = 600.0;
+    let TL: f64 = std::env::var("TL")
+        .map(|a| a.parse().unwrap())
+        .unwrap_or(600.0);
     let stime = get_time();
     for iter in 0.. {
         let i1 = rng.gen_range(0, cand.len());
