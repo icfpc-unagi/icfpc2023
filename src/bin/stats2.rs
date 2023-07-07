@@ -22,13 +22,16 @@ fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Bo
     //     .from_writer(writer);
     let mut keys: Option<Vec<String>> = None;
     for path in paths {
+        let mut data = vec![serde_json::json!({"id": extract_number_from_path(&path)})];
         let input = read_input_from_file(&path);
         // let data = get_stats(&input);
         let (musicians_info, attendees_info) = get_stats(&input);
-        // let mut data: serde_json::Map<String, serde_json::Value> = flatten1(musicians_info)?;
-        // data.extend(flatten2(attendees_info)?);
-        let mut data = flatten(serde_json::to_value(&musicians_info)?);
-        data.extend( flatten(serde_json::to_value(&attendees_info)?));
+        data.extend([
+            serde_json::to_value(&musicians_info)?,
+            serde_json::to_value(&attendees_info)?,
+        ]);
+        // dbg!(&data);
+        let data: serde_json::Map<String, serde_json::Value> = data.into_iter().flat_map(|x| flatten(x).into_iter()).collect();
         if let Some(keys) = &keys {
             assert!(keys.iter().zip(data.keys()).all(|(k1, k2)| k1 == k2));
         } else {
@@ -36,19 +39,6 @@ fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Bo
             println!("{}", keys.clone().unwrap().join("\t"));
         }
         println!("{}", data.values().join("\t"));
-            // dbg!(flat_data.keys().collect_vec());
-            // dbg!(flat_data.values().collect_vec());    
-        // let (keys, values) = flat_data.as_object().unwrap().iter().cloned().unzip();
-        // tsv_writer.serialize(&flat_data)?;
-        // println!("{}", flat_data);
-        // if write_header {
-        //     println!(
-        //         "id\t#Mus\t#Att\tMus/Att\tMusArea\tMusInst\tMusInstStats\tAttTasteStats"
-        //     ); //todo
-        //     write_header = false;
-        // }
-        // println!("{}\t{}\t{}\t{}\t{}\t{}")
-        // println!("{:?}", (musicians_info, attendees_info));
     }
     Ok(())
 }
