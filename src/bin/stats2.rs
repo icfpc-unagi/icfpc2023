@@ -11,10 +11,17 @@ fn main() {
     main1(paths).unwrap();
 }
 
-fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Box<dyn std::error::Error>> {
+fn main1(
+    paths: Vec<String>, /*, writer: impl std::io::Write */
+) -> Result<(), Box<dyn std::error::Error>> {
     let flattener = flatten_json_object::Flattener::new();
     let flatten = |json| {
-        flattener.flatten(&json).unwrap().as_object().unwrap().clone()
+        flattener
+            .flatten(&json)
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .clone()
     };
 
     // let mut tsv_writer = csv::WriterBuilder::new()
@@ -22,7 +29,7 @@ fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Bo
     //     .from_writer(writer);
     let mut keys: Option<Vec<String>> = None;
     for path in paths {
-        let mut data = vec![serde_json::json!({"id": extract_number_from_path(&path)})];
+        let mut data = vec![serde_json::json!({ "id": extract_number_from_path(&path) })];
         let input = read_input_from_file(&path);
         // let data = get_stats(&input);
         let (musicians_info, attendees_info) = get_stats(&input);
@@ -31,7 +38,10 @@ fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Bo
             serde_json::to_value(&attendees_info)?,
         ]);
         // dbg!(&data);
-        let data: serde_json::Map<String, serde_json::Value> = data.into_iter().flat_map(|x| flatten(x).into_iter()).collect();
+        let data: serde_json::Map<String, serde_json::Value> = data
+            .into_iter()
+            .flat_map(|x| flatten(x).into_iter())
+            .collect();
         if let Some(keys) = &keys {
             assert!(keys.iter().zip(data.keys()).all(|(k1, k2)| k1 == k2));
         } else {
@@ -43,7 +53,7 @@ fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Bo
     Ok(())
 }
 
-// fn write_row<W, T>(&mut csv_writer: csv::Writer<W>, value: T) -> Result<(), Box<dyn std::error::Error>> 
+// fn write_row<W, T>(&mut csv_writer: csv::Writer<W>, value: T) -> Result<(), Box<dyn std::error::Error>>
 // where T: Serialize,
 //       W: std::io::Write,
 // {
@@ -51,7 +61,6 @@ fn main1(paths: Vec<String> /*, writer: impl std::io::Write */) -> Result<(), Bo
 //     csv_writer.serialize(flattener.flatten(&json))?;
 //     Ok(())
 // }
-
 
 // from bin/stats.rs
 fn extract_number_from_path(path: &str) -> i32 {
