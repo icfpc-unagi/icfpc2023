@@ -16,12 +16,29 @@ RUN mkdir -p ./src ./vis/src \
     && rm -rf ./src ./vis/src
 COPY src /app/src
 COPY vis/src /app/vis/src
-COPY vis/index.html /www/index.html
+COPY vis/index.html /www/visualizer.html
 RUN touch ./src/lib.rs ./vis/src/lib.rs \
     && cd ./vis \
     && wasm-pack build --target web \
     && cp ./pkg/*.js ./pkg/*.wasm /www/
 
-FROM nginx
-RUN rm --rf /var/www/html || true
-COPY --from=vis /www /usr/share/nginx/html
+FROM rust-builder AS service
+COPY Cargo.toml /app/Cargo.toml
+WORKDIR /app
+RUN mkdir -p ./src \
+    && touch ./src/lib.rs \
+    && cargo vendor \
+    && cargo build --release \
+    && rm -rf ./src
+COPY src /app/src
+RUN touch ./src/lib.rs \
+    && cargo build --release --bin www \
+    && cp ./target/release/www /app/
+
+FROM ubuntu:22.04 AS server
+COPY --from=vis /www /www
+COPY --from=service /app/www /app/www
+COPY static /www/static
+WORKDIR /app
+ENV PORT 8080
+CMD ["./www"]

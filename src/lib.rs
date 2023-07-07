@@ -2,6 +2,8 @@ pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
 
+pub mod secret;
+
 #[cfg(feature = "tokio")]
 #[cfg(feature = "reqwest")]
 pub mod api;
@@ -87,7 +89,7 @@ struct JsonAttendee {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct JsonConcert {
+pub struct JsonConcert {
     room_width: f64,
     room_height: f64,
     stage_width: f64,
