@@ -38,9 +38,13 @@ rebase:
 ###############################################################################
 
 .PHONY: test/rust
-test/rust:
-	cargo test --features local
-	cargo build --features local --bins
+test/rust: test/rust/vis
+	cargo test
+	cargo build --bins
+
+test/rust/vis:
+  # TODO: Consider using --chrome that requires chrome installed on CI.
+	cd vis && wasm-pack test --node
 
 .PHONY: test/secrets
 test/secrets: secrets
