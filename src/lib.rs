@@ -196,3 +196,5 @@ pub mod mcf;
 pub mod vis;
 
 pub mod input_stats;
+
+pub mod secret;
