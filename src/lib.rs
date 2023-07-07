@@ -129,6 +129,11 @@ pub fn parse_output(s: &str) -> Output {
     out.placements.into_iter().map(|p| P(p.x, p.y)).collect()
 }
 
+pub fn read_output_from_file(path: &str) -> Output {
+    let content = std::fs::read_to_string(path).expect("Failed to read file");
+    parse_output(&content)
+}
+
 use std::ops::*;
 
 impl Add for P {

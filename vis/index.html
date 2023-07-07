@@ -31,7 +31,7 @@
   <p>
     <label>
       color_type:
-      <select id="color_type">
+      <select id="color_type" onchange="visualize()">
         <option value="0">楽器ID</option>
         <option value="1">スコア</option>
       </select>
@@ -85,7 +85,6 @@
       const t = document.getElementById("turn").value;
       const select = document.getElementById("color_type");
       const color_type = parseInt(select.options[select.selectedIndex].value);
-      console.log(color_type);
       try {
         const ret = vis(input, output, t, color_type);
         document.getElementById("score").innerHTML = "Score = " + ret.score;
