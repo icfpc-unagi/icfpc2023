@@ -128,7 +128,7 @@ pub fn compute_score_for_musician(input: &Input, output: &Output) -> Vec<i64> {
 
 pub fn compute_score_for_attendees(input: &Input, output: &Output) -> Vec<i64> {
     if !is_valid_output(input, output) {
-        return vec![0; input.n_musicians()];
+        return vec![0; input.n_attendees()];
     }
 
     return (0..input.n_attendees())
