@@ -3,7 +3,6 @@ use crate::*;
 use anyhow::anyhow;
 use anyhow::Result;
 use once_cell::sync::Lazy;
-use reqwest::header::AUTHORIZATION;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -37,7 +36,11 @@ enum Response<T> {
 /// Returns the number of problems in the contest.
 /// Authentication is not required.
 pub async fn get_number_of_problems() -> Result<u32> {
-    let res = CLIENT.get(format!("{}/problems", API_BASE)).send().await?;
+    let res = CLIENT
+        .get(format!("{}/problems", API_BASE))
+        .send()
+        .await?
+        .error_for_status()?;
     eprintln!("Status: {}", res.status());
     #[derive(Deserialize)]
     struct ProblemsResponse {
@@ -53,7 +56,8 @@ pub async fn get_raw_problem(problem_id: u32) -> Result<String> {
     let res = CLIENT
         .get(format!("{}/problem?problem_id={}", API_BASE, problem_id))
         .send()
-        .await?;
+        .await?
+        .error_for_status()?;
     eprintln!("Status: {}", res.status());
     let problem_response: Response<String> = res.json().await?;
     match problem_response {
@@ -89,7 +93,8 @@ pub async fn get_scoreboard() -> Result<Scoreboard> {
     let res = CLIENT
         .get(format!("{}/scoreboard", API_BASE))
         .send()
-        .await?;
+        .await?
+        .error_for_status()?;
     eprintln!("Status: {}", res.status());
     Ok(res.json().await?)
 }
@@ -97,9 +102,10 @@ pub async fn get_scoreboard() -> Result<Scoreboard> {
 pub async fn get_userboard() -> Result<Vec<Option<u64>>> {
     let res = CLIENT
         .get(format!("{}/userboard", API_BASE))
-        .header(AUTHORIZATION, format!("Bearer {}", *TOKEN))
+        .bearer_auth(&*TOKEN)
         .send()
-        .await?;
+        .await?
+        .error_for_status()?;
     eprintln!("Status: {}", res.status());
     #[derive(Deserialize)]
 
@@ -120,9 +126,10 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
             "{}/submissions?offset={}&limit={}",
             API_BASE, offset, limit
         ))
-        .header(AUTHORIZATION, format!("Bearer {}", *TOKEN))
+        .bearer_auth(&*TOKEN)
         .send()
-        .await?;
+        .await?
+        .error_for_status()?;
     eprintln!("Status: {}", res.status());
     let submissions: Response<Vec<Submission>> = res.json().await?;
     match submissions {
@@ -132,7 +139,7 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
 }
 
 /// Submits a solution and returns the submission ID.
-pub async fn submit(problem_id: u32, placements: &Output) -> Result<u32> {
+pub async fn submit(problem_id: u32, placements: &Output) -> Result<String> {
     #[derive(Serialize)]
     struct Solution {
         placements: Vec<XY>,
@@ -145,7 +152,7 @@ pub async fn submit(problem_id: u32, placements: &Output) -> Result<u32> {
 }
 
 /// Submits a solution and returns the submission ID.
-pub async fn submit_raw(problem_id: u32, contents: &str) -> Result<u32> {
+pub async fn submit_raw(problem_id: u32, contents: &str) -> Result<String> {
     #[derive(Serialize)]
     struct SubmissionRequest<'a> {
         problem_id: u32,
@@ -153,16 +160,16 @@ pub async fn submit_raw(problem_id: u32, contents: &str) -> Result<u32> {
     }
     let request = SubmissionRequest {
         problem_id,
-        contents: contents,
+        contents,
     };
     let res = CLIENT
         .post(format!("{}/submission", API_BASE))
-        .header(AUTHORIZATION, format!("Bearer {}", *TOKEN))
-        .body(serde_json::to_vec(&request)?)
+        .bearer_auth(&*TOKEN)
+        .json(&request)
         .send()
-        .await?;
-    eprintln!("Status: {}", res.status());
-    let submission_id: u32 = res.text().await?.parse()?;
+        .await?
+        .error_for_status()?;
+    let submission_id = res.text().await?;
     Ok(submission_id)
 }
 
