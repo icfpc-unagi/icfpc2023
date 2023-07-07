@@ -139,3 +139,126 @@ pub fn compute_score_for_attendees(input: &Input, output: &Output) -> Vec<i64> {
         })
         .collect();
 }
+
+/// score[pos_id][instrument_id]
+pub fn compute_score_for_instruments(input: &Input, positions: &Vec<P>) -> Vec<Vec<i64>> {
+    let mut score = vec![vec![0; input.n_instruments()]; positions.len()];
+
+    for pos_id in 0..positions.len() {
+        let mut bs = vec![false; input.n_attendees()];
+        for attendee_id in 0..input.n_attendees() {
+            bs[attendee_id] = is_blocked(input, positions, pos_id, attendee_id);
+        }
+
+        for instrument_id in 0..input.n_instruments() {
+            for attendee_id in 0..input.n_attendees() {
+                if !bs[attendee_id] {
+                    let d2 = (input.pos[attendee_id] - positions[pos_id]).abs2();
+                    score[pos_id][instrument_id] +=
+                        (1_000_000.0 * input.tastes[attendee_id][instrument_id] / d2).ceil() as i64;
+                }
+            }
+        }
+    }
+
+    score
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// fast
+///////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug)]
+enum Event {
+    MusicianEnter(usize),
+    MusicianLeave(usize),
+    Attendee(usize),
+}
+
+pub fn compute_score_for_a_musician_fast(
+    input: &Input,
+    output: &Output,
+    musician_id: usize,
+) -> (i64, Vec<i64>) {
+    let eps = 1e-5;
+    let p = output[musician_id];
+
+    let mut events = vec![];
+    for i in 0..input.n_musicians() {
+        if i == musician_id {
+            continue;
+        }
+
+        let v = output[i] - p;
+        let th = v.1.atan2(v.0);
+        dbg!(th);
+
+        let dth = (5.0 / v.abs2().sqrt()).asin();
+        dbg!(dth);
+
+        events.push((th - dth, Event::MusicianEnter(i)));
+        events.push((th + dth, Event::MusicianLeave(i)));
+
+        // TODO: minus plus
+        // TODO: eps
+    }
+
+    for i in 0..input.n_attendees() {
+        let v = input.pos[i] - p;
+        let th = v.1.atan2(v.0);
+        events.push((th, Event::Attendee(i)));
+    }
+
+    events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    dbg!(&events);
+
+    let mut score = 0;
+    let mut attendee_scores = vec![0; input.n_attendees()];
+    let mut active_musicians = std::collections::HashSet::new();
+    for (_, e) in events {
+        match e {
+            Event::MusicianEnter(i) => {
+                active_musicians.insert(i);
+            }
+            Event::MusicianLeave(i) => {
+                active_musicians.remove(&i);
+            }
+            Event::Attendee(attendee_id) => {
+                let mut f = false;
+                for musician_id in &active_musicians {
+                    f |= is_blocked(input, output, *musician_id, attendee_id);
+                    if f {
+                        break;
+                    }
+                }
+                if !f {
+                    let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
+                    let instrument_id = input.musicians[musician_id];
+                    let s =
+                        (1_000_000.0 * input.tastes[attendee_id][instrument_id] / d2).ceil() as i64;
+                    score += s;
+                    attendee_scores[attendee_id] += s;
+                }
+            }
+        }
+    }
+
+    (score, attendee_scores)
+}
+
+/// Returns (score, musician_scores, attendee_scores)
+pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
+    let mut score_total = 0;
+    let mut score_musician = vec![0; input.n_musicians()];
+    let mut score_attendee = vec![0; input.n_attendees()];
+    for musician_id in 0..input.n_musicians() {
+        let (s, sm) = compute_score_for_a_musician_fast(input, output, musician_id);
+        score_total += s;
+        score_musician[musician_id] = s;
+        for attendee_id in 0..input.n_attendees() {
+            score_attendee[attendee_id] += sm[attendee_id];
+        }
+    }
+
+    (score_total, score_musician, score_attendee)
+}
