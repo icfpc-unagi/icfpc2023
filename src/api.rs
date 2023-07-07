@@ -9,8 +9,7 @@ use serde::Serialize;
 
 const API_BASE: &str = "https://api.icfpcontest.com";
 
-static TOKEN: Lazy<String> =
-    Lazy::new(|| secret::api_token().expect("UNAGI_PASSWORD must be set"));
+static TOKEN: Lazy<String> = Lazy::new(|| secret::api_token().expect("UNAGI_PASSWORD must be set"));
 static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -23,14 +22,6 @@ pub enum SubmissionStatus {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Submission {
-    _id: String,
-    problem_id: usize,
-    submitted_at: String,
-    score: SubmissionStatus,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-pub struct Problem {
     _id: String,
     problem_id: usize,
     submitted_at: String,
@@ -74,13 +65,9 @@ pub async fn get_raw_problem(problem_id: u32) -> Result<String> {
 /// Returns the problem with the given ID.
 /// Authentication is not required.
 pub async fn get_problem(problem_id: u32) -> Result<JsonConcert> {
-    match get_raw_problem(problem_id).await {
-        Ok(problem) => {
-            let problem: JsonConcert = serde_json::from_str(&problem)?;
-            Ok(problem)
-        }
-        Err(e) => Err(e),
-    }
+    let problem = get_raw_problem(problem_id).await?;
+    let problem: JsonConcert = serde_json::from_str(&problem)?;
+    Ok(problem)
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
