@@ -1,5 +1,34 @@
 use super::*;
 
+const EXAMPLE_INPUT: &str = r#"
+{
+"room_width": 2000.0,
+"room_height": 5000.0,
+"stage_width": 1000.0,
+"stage_height": 200.0,
+"stage_bottom_left": [500.0, 0.0],
+"musicians": [0, 1, 0],
+"attendees": [
+{ "x": 100.0, "y": 500.0, "tastes": [1000.0, -1000.0
+] },
+{ "x": 200.0, "y": 1000.0, "tastes": [200.0, 200.0]
+},
+{ "x": 1100.0, "y": 800.0, "tastes": [800.0, 1500.0]
+}
+]
+}
+"#;
+
+const EXAMPLE_OUTPUT: &str = r#"
+{
+    "placements": [
+    {"x": 590.0, "y": 10.0 },
+    {"x": 1100.0, "y": 100.0 },
+    {"x": 1100.0, "y": 150.0 }
+    ]
+    }
+"#;
+
 pub fn is_blocked(input: &Input, output: &Output, musician_id: usize, attendee_id: usize) -> bool {
     let musician_pos = output[musician_id];
     let attendee_pos = input.pos[attendee_id];
