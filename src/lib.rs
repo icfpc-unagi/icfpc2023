@@ -93,3 +93,59 @@ pub fn write_output(output: &Output) {
     };
     serde_json::to_writer(std::io::stdout(), &out).unwrap();
 }
+
+use std::ops::*;
+
+impl Add for P {
+    type Output = P;
+    fn add(self, a: P) -> P {
+        P(self.0 + a.0, self.1 + a.1)
+    }
+}
+
+impl Sub for P {
+    type Output = P;
+    fn sub(self, a: P) -> P {
+        P(self.0 - a.0, self.1 - a.1)
+    }
+}
+
+impl Mul<f64> for P {
+    type Output = P;
+    fn mul(self, a: f64) -> P {
+        P(self.0 * a, self.1 * a)
+    }
+}
+
+impl P {
+    pub fn dot(self, a: P) -> f64 {
+        (self.0 * a.0) + (self.1 * a.1)
+    }
+    pub fn det(self, a: P) -> f64 {
+        (self.0 * a.1) - (self.1 * a.0)
+    }
+    pub fn abs2(self) -> f64 {
+        self.dot(self)
+    }
+    pub fn rot(self) -> P {
+        P(-self.1, self.0)
+    }
+}
+
+impl P {
+    /// Square distance between segment and point.
+    pub fn dist2_sp((p1, p2): (P, P), q: P) -> f64 {
+        if (p2 - p1).dot(q - p1) <= 0.0 {
+            (q - p1).abs2()
+        } else if (p1 - p2).dot(q - p2) <= 0.0 {
+            (q - p2).abs2()
+        } else {
+            P::dist2_lp((p1, p2), q)
+        }
+    }
+    /// Square distance between line and point.
+    pub fn dist2_lp((p1, p2): (P, P), q: P) -> f64 {
+        let det = (p2 - p1).det(q - p1);
+        det * det / (p2 - p1).abs2()
+    }
+}
