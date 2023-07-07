@@ -36,6 +36,20 @@ macro_rules! mat {
     ($e:expr; $d:expr $(; $ds:expr)+) => { vec![mat![$e $(; $ds)*]; $d] };
 }
 
+pub fn get_time() -> f64 {
+    static mut STIME: f64 = -1.0;
+    let t = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap();
+    let ms = t.as_secs() as f64 + t.subsec_nanos() as f64 * 1e-9;
+    unsafe {
+        if STIME < 0.0 {
+            STIME = ms;
+        }
+        ms - STIME
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct P(pub f64, pub f64);
 
@@ -158,6 +172,14 @@ impl Mul<f64> for P {
     }
 }
 
+impl Eq for P {}
+
+impl Ord for P {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 impl P {
     pub fn dot(self, a: P) -> f64 {
         (self.0 * a.0) + (self.1 * a.1)
@@ -171,9 +193,6 @@ impl P {
     pub fn rot(self) -> P {
         P(-self.1, self.0)
     }
-}
-
-impl P {
     /// Square distance between segment and point.
     pub fn dist2_sp((p1, p2): (P, P), q: P) -> f64 {
         if (p2 - p1).dot(q - p1) <= 0.0 {
@@ -188,6 +207,36 @@ impl P {
     pub fn dist2_lp((p1, p2): (P, P), q: P) -> f64 {
         let det = (p2 - p1).det(q - p1);
         det * det / (p2 - p1).abs2()
+    }
+    pub fn abs(self) -> f64 {
+        self.abs2().sqrt()
+    }
+    /// [p1側, p2側].
+    pub fn pi_cl((c, r): (P, f64), (p1, p2): (P, P)) -> Vec<P> {
+        let v = p2 - p1;
+        let q1 = p1 + v * (v.dot(c - p1) / v.abs2());
+        let d = r * r - (q1 - c).abs2();
+        if d < 0.0 {
+            return vec![];
+        }
+        let q2 = v * (d / v.abs2()).sqrt();
+        vec![q1 - q2, q1 + q2]
+    }
+    /// c1->c2の [右側, 左側].
+    pub fn pi_cc((c1, r1): (P, f64), (c2, r2): (P, f64)) -> Vec<P> {
+        let v = c2 - c1;
+        let d = v.abs2().sqrt();
+        if d <= 0.0 {
+            return vec![];
+        }
+        let x = (r1 * r1 - r2 * r2 + d * d) / (d + d);
+        let y = r1 * r1 - x * x;
+        if y < 0.0 {
+            return vec![];
+        }
+        let q1 = c1 + v * (x / d);
+        let q2 = v.rot() * (y.sqrt() / d);
+        vec![q1 - q2, q1 + q2]
     }
 }
 
