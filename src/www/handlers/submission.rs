@@ -54,7 +54,7 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
             // TODO: Cache problem data
             let input: Input = api::get_problem(problem_id).await.unwrap().into();
             let output = parse_output(&submission.contents);
-            let svg = vis::vis(&input, &output, info.color_type);
+            let svg = vis::vis(&input, &output, info.color_type, !0);
             write!(&mut buf, "{}", svg.2);
             write!(
                 &mut buf,
