@@ -2,8 +2,7 @@ use std::{fs::File, path::Path};
 
 use anyhow::Result;
 use clap::Parser;
-use icfpc2023::{api::*, *};
-use itertools::*;
+use icfpc2023::{api::*};
 use std::io::*;
 
 #[derive(Parser, Debug)]

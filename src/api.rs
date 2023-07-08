@@ -1,16 +1,10 @@
-use crate::www::handlers::submission;
 use crate::*;
 
 use anyhow::anyhow;
 use anyhow::Result;
-use itertools::Itertools;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
-use std::cmp::Ordering;
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
 
 const API_BASE: &str = "https://api.icfpcontest.com";
 

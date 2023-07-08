@@ -1,6 +1,6 @@
 use crate::*;
 
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder};
 
 pub async fn handler() -> impl Responder {
     let mut buf = String::new();
@@ -27,7 +27,7 @@ GROUP BY
     problem_id
 ORDER BY
     problem_id", mysql::Params::Empty, |row| {
-        let submission_id: i64 = row.get("submission_id").unwrap();
+        let _submission_id: i64 = row.get("submission_id").unwrap();
         let official_id: Option<String> = row.get("official_id").unwrap();
         let problem_id: i64 = row.get("problem_id").unwrap();
         let submission_score: Option<i64> = row.get("submission_score").unwrap();

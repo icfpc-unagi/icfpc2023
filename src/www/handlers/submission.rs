@@ -27,17 +27,17 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
                 &mut buf,
                 "<h1>Submission ID: {}</h1>",
                 submission.submission._id
-            );
+            ).unwrap();
             write!(
                 &mut buf,
                 "<ul><li>Problem ID: {}</li>",
                 submission.submission.problem_id
-            );
+            ).unwrap();
             write!(
                 &mut buf,
                 "<li>Submitted at: {}</li>",
                 submission.submission.submitted_at
-            );
+            ).unwrap();
             let score_str = match &submission.submission.score {
                 api::SubmissionStatus::Processing => {
                     format!("Pending")
@@ -49,18 +49,18 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
                     format!("{}", e)
                 }
             };
-            write!(&mut buf, "<li>Score: {}</li>", score_str);
+            write!(&mut buf, "<li>Score: {}</li>", score_str).unwrap();
             let problem_id = submission.submission.problem_id;
             // TODO: Cache problem data
             let input: Input = api::get_problem(problem_id).await.unwrap().into();
             let output = parse_output(&submission.contents);
             let svg = vis::vis(&input, &output, info.color_type, !0);
-            write!(&mut buf, "{}", svg.2);
+            write!(&mut buf, "{}", svg.2).unwrap();
             write!(
                 &mut buf,
                 "<pre style=\"white-space: pre-wrap;\"><code>{}</code></pre>",
                 submission.contents
-            );
+            ).unwrap();
         }
         Err(e) => {
             return HttpResponse::InternalServerError()

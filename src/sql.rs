@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use anyhow::Result;
 use mysql::prelude::*;
 use mysql::*;
