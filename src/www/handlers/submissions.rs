@@ -24,7 +24,7 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
     s.push_str("<table>");
     match api::get_submissions(info.offset, info.limit).await {
         Ok(submissions) => {
-            for (i, submission) in submissions.iter().enumerate() {
+            for submission in submissions {
                 let mut score_str = String::new();
                 match &submission.score {
                     api::SubmissionStatus::Processing => {
