@@ -1,4 +1,5 @@
 use icfpc2023::api;
+use icfpc2023::www;
 use actix_files::Files;
 use actix_web::{web, App, HttpServer, Responder, HttpResponse};
 use std::env;
@@ -152,6 +153,7 @@ async fn main() -> std::io::Result<()> {
             .route("/visualizer", web::get().to(visualizer))
             .route("/submissions", web::get().to(submissions::handler))
             .route("/submission", web::get().to(submission::handler))
+            .route("/visualize", web::get().to(www::handlers::visualize::handler))
             .service(Files::new("/", "/www"))
     })
     .bind(bind_address)?

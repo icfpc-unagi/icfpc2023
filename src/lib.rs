@@ -8,6 +8,10 @@ pub mod secret;
 #[cfg(feature = "reqwest")]
 pub mod api;
 
+#[cfg(feature = "tokio")]
+#[cfg(feature = "reqwest")]
+pub mod www;
+
 pub trait SetMinMax {
     fn setmin(&mut self, v: Self) -> bool;
     fn setmax(&mut self, v: Self) -> bool;
