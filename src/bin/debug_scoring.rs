@@ -1,6 +1,5 @@
 #![allow(unused_imports)]
-use icfpc2023::{self, compute_score};
-use icfpc2023::{Input, Output, P};
+use icfpc2023::*;
 
 use glob::glob;
 use std::path::Path;
@@ -28,6 +27,11 @@ where
 }
 
 fn main() {
+    let input = icfpc2023::parse_input_with_version(icfpc2023::EXAMPLE_INPUT, Version::Two);
+    let output = icfpc2023::parse_output(icfpc2023::EXAMPLE_OUTPUT);
+    dbg!(icfpc2023::compute_score(&input, &output));
+
+    /*
     let input = icfpc2023::read_input_from_file("../Dropbox/ICFPC2023/problems/problem-2.json");
     let output = icfpc2023::read_output_from_file(
         "../Dropbox/ICFPC2023/chokudai-out1/2.json",
@@ -57,6 +61,7 @@ fn main() {
     dbg!(scorerer.score);
     dbg!(compute_score(&input, &output));
     return;
+    */
 
     /*
     //let output = icfpc2023::read_output_from_file();

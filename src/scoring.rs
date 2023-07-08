@@ -16,7 +16,8 @@ pub const EXAMPLE_INPUT: &str = r#"
 },
 { "x": 1100.0, "y": 800.0, "tastes": [800.0, 1500.0]
 }
-]
+],
+"pillars": []
 }
 "#;
 
@@ -115,6 +116,21 @@ pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> boo
     true
 }
 
+pub fn compute_closeness_factor(input: &Input, output: &Output, musician_id: usize) -> f64 {
+    if input.version == Version::One {
+        return 1.0;
+    }
+
+    let mut q = 1.0;
+    for i in 0..input.n_musicians() {
+        if i == musician_id || input.musicians[i] != input.musicians[musician_id] {
+            continue;
+        }
+        q += 1.0 / (output[musician_id] - output[i]).abs2().sqrt();
+    }
+    q
+}
+
 pub fn compute_score(input: &Input, output: &Output) -> i64 {
     if !is_valid_output(input, output, true) {
         return 0;
@@ -122,8 +138,10 @@ pub fn compute_score(input: &Input, output: &Output) -> i64 {
 
     let mut score = 0;
     for musician_id in 0..input.n_musicians() {
+        let closeness_factor = compute_closeness_factor(input, output, musician_id);
         for attendee_id in 0..input.n_attendees() {
-            score += compute_score_for_pair(input, output, musician_id, attendee_id);
+            let pair_score = compute_score_for_pair(input, output, musician_id, attendee_id);
+            score += (closeness_factor * pair_score as f64).ceil() as i64;
         }
     }
     score
