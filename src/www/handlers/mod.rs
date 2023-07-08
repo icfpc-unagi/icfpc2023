@@ -4,6 +4,7 @@ pub mod template;
 pub mod visualize;
 pub mod submission;
 pub mod submissions;
+pub mod my_userboard;
 
 use actix_web::{HttpResponse, Responder};
 

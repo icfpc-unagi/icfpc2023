@@ -15,7 +15,7 @@ pub mod api;
 pub mod www;
 
 #[cfg(feature = "mysql")]
-pub mod mysql;
+pub mod sql;
 
 pub trait SetMinMax {
     fn setmin(&mut self, v: Self) -> bool;
