@@ -118,6 +118,19 @@ impl Problem {
     }
 }
 
+impl From<Problem> for Input {
+    fn from(p: Problem) -> Self {
+        Input {
+            room: p.room_size(),
+            stage0: p.stage_bottom_left,
+            stage1: p.stage_bottom_left + p.stage_size(),
+            musicians: p.musicians,
+            pos: p.attendees.iter().map(|a| P(a.x, a.y)).collect(),
+            tastes: p.attendees.into_iter().map(|a| a.tastes).collect(),
+        }
+    }
+}
+
 pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
@@ -129,20 +142,27 @@ pub fn read_input_from_file(path: &str) -> Input {
 
 pub fn parse_input(s: &str) -> Input {
     let json: Problem = serde_json::from_str(s).unwrap();
-    Input {
-        room: json.room_size(),
-        stage0: json.stage_bottom_left,
-        stage1: json.stage_bottom_left + json.stage_size(),
-        musicians: json.musicians,
-        pos: json.attendees.iter().map(|a| P(a.x, a.y)).collect(),
-        tastes: json.attendees.into_iter().map(|a| a.tastes).collect(),
-    }
+    json.into()
 }
 
 /// Corresponds to the output json format.
 #[derive(Serialize, Deserialize, Debug)]
 struct Solution {
     placements: Vec<XY>,
+}
+
+impl From<&Output> for Solution {
+    fn from(output: &Output) -> Self {
+        Solution {
+            placements: output.iter().map(|p| p.into()).collect(),
+        }
+    }
+}
+
+impl From<&Solution> for Output {
+    fn from(solution: &Solution) -> Self {
+        solution.placements.iter().map(|p| P(p.x, p.y)).collect()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -164,9 +184,7 @@ impl Into<P> for XY {
 }
 
 pub fn write_output(output: &Output) {
-    let out = Solution {
-        placements: output.iter().map(|p| p.into()).collect(),
-    };
+    let out: Solution = output.into();
     serde_json::to_writer(std::io::stdout(), &out).unwrap();
 }
 

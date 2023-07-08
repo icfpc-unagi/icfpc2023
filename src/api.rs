@@ -28,7 +28,7 @@ pub enum SubmissionStatus {
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Submission {
     pub _id: String,
-    pub problem_id: usize,
+    pub problem_id: u32,
     pub submitted_at: String,
     pub score: SubmissionStatus,
     // NOTE: This field is not documented in the API spec.
