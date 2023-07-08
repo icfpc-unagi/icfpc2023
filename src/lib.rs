@@ -145,6 +145,19 @@ impl Problem {
 
 impl From<Problem> for Input {
     fn from(p: Problem) -> Self {
+        let pillars = p
+            .pillars
+            .iter()
+            .map(|p| (p.center, p.radius))
+            .collect::<Vec<_>>();
+        // We can assume that `pillers not empty` equals `full round problem with closeness scoring`.
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127235665067790398
+        let version_guessed_from_input = if pillars.is_empty() {
+            Version::One
+        } else {
+            Version::Two
+        };
+
         Input {
             room: p.room_size(),
             stage0: p.stage_bottom_left,
@@ -152,12 +165,8 @@ impl From<Problem> for Input {
             musicians: p.musicians,
             pos: p.attendees.iter().map(|a| P(a.x, a.y)).collect(),
             tastes: p.attendees.into_iter().map(|a| a.tastes).collect(),
-            pillars: p
-                .pillars
-                .into_iter()
-                .map(|p| (p.center, p.radius))
-                .collect(),
-            version: Version::One,
+            pillars,
+            version: version_guessed_from_input,
             problem_id: None,
         }
     }
@@ -170,7 +179,7 @@ pub fn problem_id_from_path(path: &str) -> i32 {
     num_str.parse::<i32>().unwrap()
 }
 
-#[deprecated]
+// #[deprecated] // コンパイル時警告はかえって治安悪化。
 pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
@@ -183,33 +192,28 @@ pub fn read_input_from_file(path: &str) -> Input {
     input
 }
 
-#[deprecated]
+// #[deprecated] // コンパイル時警告はかえって治安悪化。
 pub fn parse_input(s: &str) -> Input {
     eprintln!(
         "{}\n!!!!!! D E P R E C A T E D !!!!!!!\n{}",
         "=".repeat(80),
         "=".repeat(80),
     );
-    parse_input_with_version(s, Version::One)
+    // parse_input_with_version(s, Version::One)
+    let json: Problem = serde_json::from_str(s).unwrap();
+    json.into()
 }
 
 pub fn parse_input_with_version(s: &str, version: Version) -> Input {
     let json: Problem = serde_json::from_str(s).unwrap();
     let mut input: Input = json.into();
-    input.version = version;
-    // We can assume that `pillers not empty` equals `full round problem with closeness scoring`.
-    // So that conflicts with the given version, report warning to stderr.
-    // https://discord.com/channels/1118159165060292668/1126853058186444942/1127235665067790398
-    let version_guessed_from_input = if input.pillars.is_empty() {
-        Version::One
-    } else {
-        Version::Two
-    };
-    if version_guessed_from_input != version {
+    // If conflicts with the given version, report warning to stderr.
+    if input.version != version {
         eprintln!(
             "WARNING: Version mismatch: version {:?} guessed from the input, but version {:?} given",
-            version_guessed_from_input, version
+            input.version, version
         );
+        input.version = version;
     }
     input
 }
