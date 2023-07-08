@@ -186,7 +186,10 @@ async fn main() -> std::io::Result<()> {
             .route("/", web::get().to(index))
             .route("/visualizer", web::get().to(visualizer))
             .route("/submissions", web::get().to(submissions::handler))
-            .route("/submission", web::get().to(submission::handler))
+            .route(
+                "/submission",
+                web::get().to(www::handlers::submission::handler),
+            )
             .route(
                 "/visualize",
                 web::get().to(www::handlers::visualize::handler),
