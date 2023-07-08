@@ -31,7 +31,7 @@
   <p>
     <label>
       color_type:
-      <select id="color_type" onchange="visualize()">
+      <select id="color_type" onchange="visualize(-1)">
         <option value="0">楽器ID</option>
         <option value="1">スコア</option>
       </select>
@@ -79,14 +79,14 @@
     }
     window.generate = generate;
 
-    function visualize() {
+    function visualize(id) {
       const input = document.getElementById("input").value;
       const output = document.getElementById("output").value;
       const t = document.getElementById("turn").value;
       const select = document.getElementById("color_type");
       const color_type = parseInt(select.options[select.selectedIndex].value);
       try {
-        const ret = vis(input, output, t, color_type);
+        const ret = vis(input, output, t, color_type, id);
         document.getElementById("score").innerHTML = "Score = " + ret.score;
         if (ret.error != "") {
           document.getElementById("score").innerHTML += " <font color='red'>(" + ret.error + ")</font>";
@@ -104,7 +104,7 @@
       const new_turn = Math.min(Math.max(0, t), max_turn);
       document.getElementById("turn").value = new_turn;
       document.getElementById("t_bar").value = new_turn;
-      visualize();
+      visualize(-1);
     }
     window.update_t = update_t;
 
@@ -168,7 +168,7 @@
       const t = document.getElementById("turn").value;
       const select = document.getElementById("color_type");
       const color_type = parseInt(select.options[select.selectedIndex].value);
-      const svgData = vis(input, output, t, color_type).svg;
+      const svgData = vis(input, output, t, color_type, -1).svg;
       const svg = new DOMParser().parseFromString(svgData, "image/svg+xml").getElementById("vis");
       const canvas = document.createElement("canvas");
       canvas.width = svg.width.baseVal.value;
