@@ -246,48 +246,48 @@ pub fn get_candidate(inp:&Input, start:&Vec<i32>) -> Vec<P>{
     let add_l = vec![0.01, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0,6.0,7.0,8.0,r3, 9.0];
     
     for add in add_l {
-                //y=0
-                for x in (inp.stage0.0 as i32 + 10)..(inp.stage1.0 as i32 - 10)  {
-                    let nx =  x as f64;
-                    let ny =  inp.stage0.1 + 10.0 + add;
-                    
-                    if !check_all_cand(&inp, &candidate, P(nx,ny)){
-                        continue;
-                    }
-                    candidate.push(P(nx, ny));
+            //y=0
+            for x in (inp.stage0.0 as i32 + 10)..(inp.stage1.0 as i32 - 10)  {
+                let nx =  x as f64;
+                let ny =  inp.stage0.1 + 10.0 + add;
+                
+                if !check_all_cand(&inp, &candidate, P(nx,ny)){
+                    continue;
                 }
-        
-                //x=0
-                for y in (inp.stage0.1 as i32 + 10)..(inp.stage1.1 as i32 - 10) {
-                    let nx =  inp.stage0.0 + 10.0 + add;
-                    let ny =  y as f64;
-        
-                    if !check_all_cand(&inp, &candidate, P(nx,ny)){
-                        continue;
-                    }
-        
-                    candidate.push(P(nx, ny));
-                }
-
-
-        //y=maxy
-        for x in (inp.stage0.0 as i32 + 10)..(inp.stage1.0 as i32 - 10)  {
-            let nx =  x as f64;
-            let ny =  inp.stage1.1 - 10.0 - add;
-            
-            if !check_all_cand(&inp, &candidate, P(nx,ny)){
-                continue;
+                candidate.push(P(nx, ny));
             }
-            candidate.push(P(nx, ny));
-        }
+    
+            //x=0
+            for y in (inp.stage0.1 as i32 + 10)..(inp.stage1.1 as i32 - 10) {
+                let nx =  inp.stage0.0 + 10.0 + add;
+                let ny =  y as f64;
+    
+                if !check_all_cand(&inp, &candidate, P(nx,ny)){
+                    continue;
+                }
+    
+                candidate.push(P(nx, ny));
+            }
 
-        //x=maxx
-        for y in (inp.stage0.1 as i32 + 10)..(inp.stage1.1 as i32 - 10) {
-            let nx =  inp.stage1.0 - 10.0 - add;
-            let ny =  y as f64;
 
-            if !check_all_cand(&inp, &candidate, P(nx,ny)){
-                continue;
+            //y=maxy
+            for x in (inp.stage0.0 as i32 + 10)..(inp.stage1.0 as i32 - 10)  {
+                let nx =  x as f64;
+                let ny =  inp.stage1.1 - 10.0 - add;
+                
+                if !check_all_cand(&inp, &candidate, P(nx,ny)){
+                    continue;
+                }
+                candidate.push(P(nx, ny));
+            }
+
+            //x=maxx
+            for y in (inp.stage0.1 as i32 + 10)..(inp.stage1.1 as i32 - 10) {
+                let nx =  inp.stage1.0 - 10.0 - add;
+                let ny =  y as f64;
+
+                if !check_all_cand(&inp, &candidate, P(nx,ny)){
+                    continue;
             }
 
             candidate.push(P(nx, ny));
