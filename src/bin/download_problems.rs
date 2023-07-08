@@ -13,6 +13,9 @@ struct Cli {
 
     #[arg(short = 'w', long)]
     overwrite: bool,
+
+    #[arg(short, long, default_value_t = true)]
+    cdn: bool,
 }
 
 /// Downloads all problems and writes them to files under problems/.
@@ -25,7 +28,7 @@ async fn main() -> Result<()> {
 
     for problem_id in 1..=number_of_problems {
         let output_path = args.output_dir.join(format!("problem-{}.json", problem_id));
-        match download_and_write_problem(&output_path, problem_id, args.overwrite).await {
+        match download_and_write_problem(&output_path, problem_id, args.overwrite, args.cdn).await {
             Ok(_) => {
                 eprintln!(
                     "Successfully downloaded and wrote data for problem_id={} to {}",
@@ -46,6 +49,7 @@ async fn download_and_write_problem(
     output_path: &Path,
     problem_id: u32,
     overwrite: bool,
+    cdn: bool,
 ) -> Result<()> {
     // Skip if the file already exists.
     if !overwrite && output_path.exists() {
@@ -57,7 +61,11 @@ async fn download_and_write_problem(
     }
 
     // Download the problem.
-    let raw_problem = api::get_raw_problem(problem_id).await?;
+    let raw_problem = if cdn {
+        api::get_raw_problem_cdn(problem_id).await?
+    } else {
+        api::get_raw_problem(problem_id).await?
+    };
 
     // Canonicalize the JSON.
     let parsed: serde_json::Value = serde_json::from_str(&raw_problem)?;

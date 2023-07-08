@@ -72,10 +72,23 @@ pub async fn get_raw_problem(problem_id: u32) -> Result<String> {
     }
 }
 
+// Returns the problem but from CDN.
+pub async fn get_raw_problem_cdn(problem_id: u32) -> Result<String> {
+    let res = CLIENT
+        .get(format!(
+            "https://cdn.icfpcontest.com/problems/{}.json",
+            problem_id
+        ))
+        .send()
+        .await?
+        .error_for_status()?;
+    Ok(res.text().await?)
+}
+
 /// Returns the problem with the given ID.
 /// Authentication is not required.
 pub async fn get_problem(problem_id: u32) -> Result<Problem> {
-    let problem = get_raw_problem(problem_id).await?;
+    let problem = get_raw_problem_cdn(problem_id).await?;
     let problem: Problem = serde_json::from_str(&problem)?;
     Ok(problem)
 }
