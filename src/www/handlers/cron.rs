@@ -143,5 +143,17 @@ pub async fn handler() -> impl Responder {
             buf.push_str(&format!("Failed to update submissions: {}\n", e));
         }
     }
+    match update_official_problens().await {
+        Ok(ids) => {
+            if ids.len() == 0 {
+                buf.push_str("No problems to update\n");
+            } else {
+                buf.push_str(&format!("Added problems: {:?}\n", ids));
+            }
+        }
+        Err(e) => {
+            buf.push_str(&format!("Failed to update problems: {}\n", e));
+        }
+    }
     HttpResponse::Ok().content_type("text/plain").body(buf)
 }
