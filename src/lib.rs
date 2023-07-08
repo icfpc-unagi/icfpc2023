@@ -72,7 +72,7 @@ pub struct Input {
     pub musicians: Vec<usize>,
     pub pos: Vec<P>,
     pub tastes: Vec<Vec<f64>>,
-    pub pillars: Vec<Pillar>,
+    pub pillars: Vec<(P, f64)>,
 }
 
 impl Input {
@@ -134,7 +134,11 @@ impl From<Problem> for Input {
             musicians: p.musicians,
             pos: p.attendees.iter().map(|a| P(a.x, a.y)).collect(),
             tastes: p.attendees.into_iter().map(|a| a.tastes).collect(),
-            pillars: p.pillars,
+            pillars: p
+                .pillars
+                .into_iter()
+                .map(|p| (p.center, p.radius))
+                .collect(),
         }
     }
 }
