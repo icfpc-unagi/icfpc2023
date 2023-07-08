@@ -90,8 +90,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
                 .set("y", 0)
                 .set("width", 1.0 / musician_scores.len() as f64)
                 .set("height", normalized)
-                .set("fill", "blue")
-                .set("title", format!("Musician {}: {}", i, musician_scores[i])),
+                .set("fill", "blue"),
         );
     }
     write!(&mut buf, "{}", musicians_svg)?;
@@ -123,8 +122,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
                 .set("y", 0)
                 .set("width", 1.0 / attendee_scores.len() as f64)
                 .set("height", normalized)
-                .set("fill", "red")
-                .set("title", format!("Attendee {}: {}", i, attendee_scores[i])),
+                .set("fill", "red"),
         );
     }
     write!(&mut buf, "{}", attendees_svg)?;
