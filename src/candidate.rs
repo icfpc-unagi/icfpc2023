@@ -9,7 +9,13 @@ pub fn get_all_candidate(inp:&Input) -> Vec<P>{
 
     let mut ret = vec![];
     for i in 0..3{
-        let r2 = get_candidate(inp, i);
+
+        let mut start = vec![];
+        for _ in 0..inp.pos.len() {
+            start.push(i);
+        }
+
+        let r2 = get_candidate(inp, &start);
         for r in r2{
             ret.push(r);
         }
@@ -17,14 +23,14 @@ pub fn get_all_candidate(inp:&Input) -> Vec<P>{
     ret
 }
 
-pub fn get_candidate2(inp:&Input, start: i32) -> Vec<P>{
+pub fn get_candidate2(inp:&Input, start: &Vec<i32>) -> Vec<P>{
     let ret = get_candidate(inp, start);
     let ret = set_more_candidate(inp, ret);
     return ret;
 }
 
 
-pub fn get_candidate(inp:&Input, start:i32) -> Vec<P>{
+pub fn get_candidate(inp:&Input, start:&Vec<i32>) -> Vec<P>{
     let mut candidate = Vec::new();
 
     let mut heap = BinaryHeap::new(); 
@@ -56,7 +62,7 @@ pub fn get_candidate(inp:&Input, start:i32) -> Vec<P>{
         if inp.pos[i].1 > inp.stage1.1{
             pattern += 8;
         }
-        heap.push(((-dist as f64 * 100000.0 / maxpower) as i64, pattern, 0, i, start));
+        heap.push(((-dist as f64 * 100000.0 / maxpower) as i64, pattern, 0, i, start[i]));
     }
 
     let r3 = 5.0 * 1.73205 + 0.1;
@@ -154,10 +160,10 @@ pub fn get_candidate(inp:&Input, start:i32) -> Vec<P>{
                         }
                     }
                     //dbg!(p2);
-                    heap.push((dist - 1100, pattern, num + 1, id, chal_type));
+                    heap.push((dist - 100, pattern, num + 1, id, chal_type));
                 }
                 else{
-                    heap.push((dist - 1000, pattern, num, id, 1));
+                    heap.push((dist - 10, pattern, num, id, 1));
                 }
             }
             else{
