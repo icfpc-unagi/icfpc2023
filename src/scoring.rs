@@ -101,10 +101,12 @@ pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> boo
     for i in 0..input.n_musicians() {
         for j in 0..i {
             if (output[i] - output[j]).abs2() < 100.0 {
-                eprintln!(
-                    "Musicians too close: {} and {} ({:?}, {:?})",
-                    j, i, output[j], output[i]
-                );
+                if print_error {
+                    eprintln!(
+                        "Musicians too close: {} and {} ({:?}, {:?})",
+                        j, i, output[j], output[i]
+                    );
+                }
                 return false;
             }
         }
