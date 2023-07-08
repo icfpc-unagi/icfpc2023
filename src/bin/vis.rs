@@ -12,6 +12,9 @@ struct Cli {
     /// color_type
     #[clap(long = "color_type")]
     c: Option<i32>,
+    /// focus
+    #[clap(long = "focus")]
+    f: Option<usize>,
 }
 
 fn main() {
@@ -22,7 +25,7 @@ fn main() {
         .map(|f| read_output_from_file(&f))
         .unwrap_or(vec![]);
     let color_type = cli.c.unwrap_or(1);
-    let svg = vis::vis(&input, &output, color_type);
+    let svg = vis::vis(&input, &output, color_type, cli.f.unwrap_or(!0));
     eprintln!("Score = {}", svg.0);
     println!("{}", svg.2);
 }

@@ -74,9 +74,11 @@ pub fn compute_score_for_pair(
     }
 }
 
-pub fn is_valid_output(input: &Input, output: &Output) -> bool {
+pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> bool {
     if output.len() != input.n_musicians() {
-        eprintln!("Number of musicians is wrong");
+        if print_error {
+            eprintln!("Number of musicians is wrong");
+        }
         return false;
     }
 
@@ -88,7 +90,9 @@ pub fn is_valid_output(input: &Input, output: &Output) -> bool {
             || p.1 < input.stage0.1 + 10.0
             || p.1 > input.stage1.1 - 10.0
         {
-            eprintln!("Musician {} out of stage bbox: {:?}", i, &p);
+            if print_error {
+                eprintln!("Musician {} out of stage bbox: {:?}", i, &p);
+            }
             return false;
         }
     }
@@ -96,11 +100,13 @@ pub fn is_valid_output(input: &Input, output: &Output) -> bool {
     // musician VS musician
     for i in 0..input.n_musicians() {
         for j in 0..i {
-            if (output[i] - output[j]).abs2() <= 25.0 {
-                eprintln!(
-                    "Musicians too close: {} and {} ({:?}, {:?})",
-                    j, i, output[j], output[i]
-                );
+            if (output[i] - output[j]).abs2() < 100.0 {
+                if print_error {
+                    eprintln!(
+                        "Musicians too close: {} and {} ({:?}, {:?})",
+                        j, i, output[j], output[i]
+                    );
+                }
                 return false;
             }
         }
@@ -110,7 +116,7 @@ pub fn is_valid_output(input: &Input, output: &Output) -> bool {
 }
 
 pub fn compute_score(input: &Input, output: &Output) -> i64 {
-    if !is_valid_output(input, output) {
+    if !is_valid_output(input, output, true) {
         return 0;
     }
 
@@ -124,7 +130,7 @@ pub fn compute_score(input: &Input, output: &Output) -> i64 {
 }
 
 pub fn compute_score_for_musician(input: &Input, output: &Output) -> Vec<i64> {
-    if !is_valid_output(input, output) {
+    if !is_valid_output(input, output, true) {
         return vec![0; input.n_musicians()];
     }
 
@@ -138,7 +144,7 @@ pub fn compute_score_for_musician(input: &Input, output: &Output) -> Vec<i64> {
 }
 
 pub fn compute_score_for_attendees(input: &Input, output: &Output) -> Vec<i64> {
-    if !is_valid_output(input, output) {
+    if !is_valid_output(input, output, true) {
         return vec![0; input.n_attendees()];
     }
 
@@ -264,7 +270,7 @@ pub fn compute_score_for_a_musician_fast(
 
 /// Returns (score, musician_scores, attendee_scores)
 pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
-    if !is_valid_output(input, output) {
+    if !is_valid_output(input, output, true) {
         return (
             0,
             vec![0; input.n_musicians()],
@@ -305,6 +311,14 @@ impl Scorerer {
             musician_pos: vec![None; input.n_musicians()],
             n_blocking_musicians: vec![vec![0; input.n_attendees()]; input.n_musicians()],
         }
+    }
+
+    pub fn new_with_output(input: &Input, output: &Output) -> Self {
+        let mut scorerer = Self::new(input);
+        for musician_id in 0..input.n_musicians() {
+            scorerer.add_musician(musician_id, output[musician_id]);
+        }
+        scorerer
     }
 
     fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> i64 {

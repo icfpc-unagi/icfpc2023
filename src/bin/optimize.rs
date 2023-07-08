@@ -11,7 +11,11 @@ fn main() {
         }
     }
     let (score, to) = icfpc2023::mcf::weighted_matching(&ws);
-    eprintln!("{} -> {}", compute_score_fast(&input, &output).0, score);
+    let old_score = compute_score_fast(&input, &output).0;
+    eprintln!("{} -> {}", old_score, score);
+    if old_score < score {
+        eprintln!("Update!!!!!!!!!!!!!!!!!!");
+    }
     let mut out = vec![];
     for i in 0..input.musicians.len() {
         out.push(output[to[i]]);

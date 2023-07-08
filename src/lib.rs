@@ -1,6 +1,8 @@
 pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufWriter;
 
 pub mod secret;
 
@@ -116,6 +118,19 @@ impl Problem {
     }
 }
 
+impl From<Problem> for Input {
+    fn from(p: Problem) -> Self {
+        Input {
+            room: p.room_size(),
+            stage0: p.stage_bottom_left,
+            stage1: p.stage_bottom_left + p.stage_size(),
+            musicians: p.musicians,
+            pos: p.attendees.iter().map(|a| P(a.x, a.y)).collect(),
+            tastes: p.attendees.into_iter().map(|a| a.tastes).collect(),
+        }
+    }
+}
+
 pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
@@ -127,20 +142,27 @@ pub fn read_input_from_file(path: &str) -> Input {
 
 pub fn parse_input(s: &str) -> Input {
     let json: Problem = serde_json::from_str(s).unwrap();
-    Input {
-        room: json.room_size(),
-        stage0: json.stage_bottom_left,
-        stage1: json.stage_bottom_left + json.stage_size(),
-        musicians: json.musicians,
-        pos: json.attendees.iter().map(|a| P(a.x, a.y)).collect(),
-        tastes: json.attendees.into_iter().map(|a| a.tastes).collect(),
-    }
+    json.into()
 }
 
 /// Corresponds to the output json format.
 #[derive(Serialize, Deserialize, Debug)]
 struct Solution {
     placements: Vec<XY>,
+}
+
+impl From<&Output> for Solution {
+    fn from(output: &Output) -> Self {
+        Solution {
+            placements: output.iter().map(|p| p.into()).collect(),
+        }
+    }
+}
+
+impl From<&Solution> for Output {
+    fn from(solution: &Solution) -> Self {
+        solution.placements.iter().map(|p| P(p.x, p.y)).collect()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -162,10 +184,17 @@ impl Into<P> for XY {
 }
 
 pub fn write_output(output: &Output) {
+    let out: Solution = output.into();
+    serde_json::to_writer(std::io::stdout(), &out).unwrap();
+}
+
+pub fn write_output_to_file(output: &Output, file_name: &str) {
     let out = Solution {
         placements: output.iter().map(|p| p.into()).collect(),
     };
-    serde_json::to_writer(std::io::stdout(), &out).unwrap();
+    let file = File::create(file_name).expect("unable to create file");
+    let writer = BufWriter::new(file);
+    serde_json::to_writer(writer, &out).expect("unable to write data");
 }
 
 pub fn parse_output(s: &str) -> Output {
@@ -249,6 +278,14 @@ impl P {
     pub fn abs(self) -> f64 {
         self.abs2().sqrt()
     }
+    pub fn pi_ll((p1, p2): (P, P), (q1, q2): (P, P)) -> Option<P> {
+        let d = (q2 - q1).det(p2 - p1);
+        if d == 0.0 {
+            return None;
+        }
+        let r = p1 * d + (p2 - p1) * (q2 - q1).det(q1 - p1);
+        Some(P(r.0 / d, r.1 / d))
+    }
     /// [p1側, p2側].
     pub fn pi_cl((c, r): (P, f64), (p1, p2): (P, P)) -> Vec<P> {
         let v = p2 - p1;
@@ -276,6 +313,18 @@ impl P {
         let q2 = v.rot() * (y.sqrt() / d);
         vec![q1 - q2, q1 + q2]
     }
+    /// 接線の接点. c->p の [右側, 左側]
+    pub fn tan_cp((c, r): (P, f64), p: P) -> Vec<P> {
+        let v = p - c;
+        let d2 = v.abs2();
+        let y = d2 - r * r;
+        if y < 0.0 {
+            return vec![];
+        }
+        let q1 = c + v * (r * r / d2);
+        let q2 = v.rot() * (r * y.sqrt() / d2);
+        vec![q1 - q2, q1 + q2]
+    }
 }
 
 pub mod mcf;
@@ -285,6 +334,8 @@ pub mod vis;
 pub mod input_stats;
 
 pub mod candidate;
+
+pub mod bigint_scoring;
 
 #[cfg(test)]
 mod tests {

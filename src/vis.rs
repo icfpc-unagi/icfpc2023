@@ -3,7 +3,7 @@
 use crate::*;
 
 use svg::node::{
-    element::{Circle, Group, Rectangle, Title},
+    element::{Circle, Group, Line, Rectangle, Title},
     Text,
 };
 
@@ -43,7 +43,7 @@ pub fn rect(x: f64, y: f64, w: f64, h: f64, fill: &str) -> Rectangle {
         .set("fill", fill)
 }
 
-pub fn vis(input: &Input, out: &Output, color_type: i32) -> (i64, String, String) {
+pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, String, String) {
     let room = (
         input.pos.iter().map(|a| a.0.ceil() as usize).max().unwrap() as f64 + 10.0,
         input.pos.iter().map(|a| a.1.ceil() as usize).max().unwrap() as f64 + 10.0,
@@ -126,9 +126,30 @@ pub fn vis(input: &Input, out: &Output, color_type: i32) -> (i64, String, String
                                 ),
                                 _ => unimplemented!(),
                             },
-                        ),
+                        )
+                        .set("onclick", format!("visualize({})", i)),
                 ),
         )
+    }
+    if focus != !0 {
+        let mut max = 0;
+        for i in 0..input.n_attendees() {
+            max.setmax(compute_score_for_pair(input, out, focus, i));
+        }
+        for i in 0..input.n_attendees() {
+            let score = compute_score_for_pair(input, out, focus, i);
+            if score != 0 {
+                doc = doc.add(
+                    Line::new()
+                        .set("x1", out[focus].0 * mul)
+                        .set("y1", out[focus].1 * mul)
+                        .set("x2", input.pos[i].0 * mul)
+                        .set("y2", input.pos[i].1 * mul)
+                        .set("stroke", color(0.5 + 0.5 * score as f64 / max as f64))
+                        .set("stroke-width", 2),
+                )
+            }
+        }
     }
     (score, String::new(), doc.to_string())
 }
