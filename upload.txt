@@ -1,0 +1,165 @@
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":1,"contents":$(jq -Rs . < out/1.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":2,"contents":$(jq -Rs . < out/2.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":3,"contents":$(jq -Rs . < out/3.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":4,"contents":$(jq -Rs . < out/4.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":5,"contents":$(jq -Rs . < out/5.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":6,"contents":$(jq -Rs . < out/6.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":7,"contents":$(jq -Rs . < out/7.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":8,"contents":$(jq -Rs . < out/8.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":9,"contents":$(jq -Rs . < out/9.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":10,"contents":$(jq -Rs . < out/10.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":11,"contents":$(jq -Rs . < out/11.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":12,"contents":$(jq -Rs . < out/12.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":13,"contents":$(jq -Rs . < out/13.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":14,"contents":$(jq -Rs . < out/14.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":15,"contents":$(jq -Rs . < out/15.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":16,"contents":$(jq -Rs . < out/16.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":17,"contents":$(jq -Rs . < out/17.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":18,"contents":$(jq -Rs . < out/18.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":19,"contents":$(jq -Rs . < out/19.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":20,"contents":$(jq -Rs . < out/20.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":21,"contents":$(jq -Rs . < out/21.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":22,"contents":$(jq -Rs . < out/22.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":23,"contents":$(jq -Rs . < out/23.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":24,"contents":$(jq -Rs . < out/24.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":25,"contents":$(jq -Rs . < out/25.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":26,"contents":$(jq -Rs . < out/26.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":27,"contents":$(jq -Rs . < out/27.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":28,"contents":$(jq -Rs . < out/28.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":29,"contents":$(jq -Rs . < out/29.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":30,"contents":$(jq -Rs . < out/30.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":31,"contents":$(jq -Rs . < out/31.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":32,"contents":$(jq -Rs . < out/32.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":33,"contents":$(jq -Rs . < out/33.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":34,"contents":$(jq -Rs . < out/34.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":35,"contents":$(jq -Rs . < out/35.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":36,"contents":$(jq -Rs . < out/36.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":37,"contents":$(jq -Rs . < out/37.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":38,"contents":$(jq -Rs . < out/38.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":39,"contents":$(jq -Rs . < out/39.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":40,"contents":$(jq -Rs . < out/40.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":41,"contents":$(jq -Rs . < out/41.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":42,"contents":$(jq -Rs . < out/42.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":43,"contents":$(jq -Rs . < out/43.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":44,"contents":$(jq -Rs . < out/44.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":45,"contents":$(jq -Rs . < out/45.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":46,"contents":$(jq -Rs . < out/46.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":47,"contents":$(jq -Rs . < out/47.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":48,"contents":$(jq -Rs . < out/48.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":49,"contents":$(jq -Rs . < out/49.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":50,"contents":$(jq -Rs . < out/50.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":51,"contents":$(jq -Rs . < out/51.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":52,"contents":$(jq -Rs . < out/52.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":53,"contents":$(jq -Rs . < out/53.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":54,"contents":$(jq -Rs . < out/54.json )}
+EOF
+curl -vvv -X POST --http1.1 -H "Content-Type: application/json" -H "User-Agent: Mozilla/5.0" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI2NGE3ZTUzYmNlYTQ5YjFjNDkxYmJkNjQiLCJpYXQiOjE2ODg3MjQ3OTUsImV4cCI6MTY5ODcyNDc5NX0.4binlYqmkGRBR2KS0wHchN4XM9RNxxMxz0tmeF9-Sxc" -d @- https://api.icfpcontest.com/submission <<EOF
+{"problem_id":55,"contents":$(jq -Rs . < out/55.json )}
+EOF

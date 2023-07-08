@@ -207,6 +207,12 @@ impl P {
     pub fn rot(self) -> P {
         P(-self.1, self.0)
     }
+    pub fn rot60(self) -> P{
+        P(self.0 * 0.5 - self.1 * ((3.0 as f64).sqrt()) / 2.0, self.0 *  ((3.0 as f64).sqrt()) / 2.0 + self.1 / 2.0)
+    }
+}
+
+impl P {
     /// Square distance between segment and point.
     pub fn dist2_sp((p1, p2): (P, P), q: P) -> f64 {
         if (p2 - p1).dot(q - p1) <= 0.0 {
@@ -259,3 +265,5 @@ pub mod mcf;
 pub mod vis;
 
 pub mod input_stats;
+
+pub mod candidate;

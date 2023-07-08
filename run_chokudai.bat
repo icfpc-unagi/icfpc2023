@@ -43,3 +43,14 @@ cargo run -r --package icfpc2023 --bin chokudai < problems/problem-42.json > out
 cargo run -r --package icfpc2023 --bin chokudai < problems/problem-43.json > out/43.json
 cargo run -r --package icfpc2023 --bin chokudai < problems/problem-44.json > out/44.json
 cargo run -r --package icfpc2023 --bin chokudai < problems/problem-45.json > out/45.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-46.json > out/46.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-47.json > out/47.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-48.json > out/48.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-49.json > out/49.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-50.json > out/50.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-51.json > out/51.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-52.json > out/52.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-53.json > out/53.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-54.json > out/54.json
+cargo run -r --package icfpc2023 --bin chokudai < problems/problem-55.json > out/55.json
+
