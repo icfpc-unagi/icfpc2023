@@ -220,3 +220,121 @@ fn compute_score_for_pair(
         return score_fn(&input.tastes[attendee_id][instrument_id], d2);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// fast
+///////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug)]
+enum Event {
+    MusicianEnter(usize),
+    MusicianLeave(usize),
+    Attendee(usize),
+}
+
+fn compute_score_for_a_musician_fast(
+    input: &Input,
+    output: &Output,
+    big_input: &BigInput,
+    big_output: &BigOutput,
+    musician_id: usize,
+) -> (i64, Vec<i64>) {
+    const PI: f64 = std::f64::consts::PI;
+    let eps = 1e-5;
+    let p = output[musician_id];
+    let big_p = &big_output[musician_id];
+    let mut events = vec![];
+
+    for i in 0..input.n_musicians() {
+        if i == musician_id {
+            continue;
+        }
+
+        let v = output[i] - p;
+        let th = v.1.atan2(v.0);
+        let dth = (5.0 / v.abs2().sqrt()).asin();
+
+        // 一旦コンサバにして、後で正確なチェックをする
+        let th0 = th - dth - eps;
+        let th1 = th + dth + eps;
+
+        events.push((th0, Event::MusicianEnter(i)));
+        events.push((th1, Event::MusicianLeave(i)));
+
+        if th0 < -PI {
+            events.push((th0 + 2.0 * PI, Event::MusicianEnter(i)));
+            events.push((th1 + 2.0 * PI, Event::MusicianLeave(i)));
+        }
+        if th1 > PI {
+            events.push((th0 - 2.0 * PI, Event::MusicianEnter(i)));
+            events.push((th1 - 2.0 * PI, Event::MusicianLeave(i)));
+        }
+    }
+
+    for i in 0..input.n_attendees() {
+        let v = input.pos[i] - p;
+        let th = v.1.atan2(v.0);
+        events.push((th, Event::Attendee(i)));
+    }
+
+    events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    let mut score = 0;
+    let mut attendee_scores = vec![0; input.n_attendees()];
+    let mut active_musicians = std::collections::HashSet::new();
+
+    for (_, e) in events {
+        match e {
+            Event::MusicianEnter(i) => {
+                active_musicians.insert(i);
+            }
+            Event::MusicianLeave(i) => {
+                active_musicians.remove(&i);
+            }
+            Event::Attendee(attendee_id) => {
+                let mut f = false;
+                for i in &active_musicians {
+                    f |= is_blocked(big_p, &big_input.pos[attendee_id], &big_output[*i]);
+                    if f {
+                        break;
+                    }
+                }
+                if !f {
+                    let d2 = (&big_input.pos[attendee_id] - &big_output[musician_id]).abs2();
+                    let instrument_id = input.musicians[musician_id];
+                    let s = score_fn(&big_input.tastes[attendee_id][instrument_id], d2);
+                    score += s;
+                    attendee_scores[attendee_id] = s;
+                }
+            }
+        }
+    }
+
+    (score, attendee_scores)
+}
+
+/// Returns (score, musician_scores, attendee_scores)
+pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
+    let big_input = BigInput::from(input.clone());
+    let big_output = output.iter().cloned().map(BigP::from).collect::<Vec<_>>();
+    if !is_valid_output(&big_input, &big_output) {
+        return (
+            0,
+            vec![0; input.n_musicians()],
+            vec![0; input.n_attendees()],
+        );
+    }
+
+    let mut score_total = 0;
+    let mut score_musician = vec![0; input.n_musicians()];
+    let mut score_attendee = vec![0; input.n_attendees()];
+    for musician_id in 0..input.n_musicians() {
+        let (s, sm) = compute_score_for_a_musician_fast(input, output, &big_input, &big_output, musician_id);
+        score_total += s;
+        score_musician[musician_id] = s;
+        for attendee_id in 0..input.n_attendees() {
+            score_attendee[attendee_id] += sm[attendee_id];
+        }
+    }
+
+    (score_total, score_musician, score_attendee)
+}
