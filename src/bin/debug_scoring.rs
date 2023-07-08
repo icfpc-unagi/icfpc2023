@@ -8,6 +8,7 @@ use std::str::FromStr;
 
 use std::time::{Duration, Instant};
 
+#[allow(dead_code)]
 fn measure_average_execution_time<F>(f: F, iterations: usize)
 where
     F: Fn() -> (),
