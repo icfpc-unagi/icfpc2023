@@ -43,6 +43,8 @@ pub fn rect(x: f64, y: f64, w: f64, h: f64, fill: &str) -> Rectangle {
         .set("fill", fill)
 }
 
+
+/// Returns (score, ?, svg)
 pub fn vis(input: &Input, out: &Output, color_type: i32) -> (i64, String, String) {
     let room = (
         input.pos.iter().map(|a| a.0.ceil() as usize).max().unwrap() as f64 + 10.0,
