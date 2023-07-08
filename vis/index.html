@@ -67,14 +67,44 @@
     async function run() {
       await init();
       // seed0 = gen("0");
-      generate();
+      await generate();
     }
     run();
 
-    function generate() {
-      const seed = document.getElementById("seed").value;
-      // const input = gen(seed);
-      // document.getElementById("input").value = input;
+    // Fetches problem from CDN.
+    // @param {string} id Problem ID
+    // @returns {Promise<string>} Problem contents as string
+    async function gen(id) {
+      const resp = await fetch(`https://cdn.icfpcontest.com/problems/${id}.json`)
+      if (!resp.ok) throw new Error(`Failed to fetch problem ${id}: ${resp.status} ${resp.statusText}`)
+      return await resp.text()
+    }
+
+    async function generate() {
+      const seed = document.getElementById("seed");
+      const input = document.getElementById("input");
+      // Reset as its value changed.
+      seed.setCustomValidity("")
+      // Avoid concurrent requests not to fall into a bad state.
+      if (input.disabled) return
+      try {
+        // Lock to keep unchanged while requesting.
+        seed.disabled = true
+        input.disabled = true
+        // Request problem async.
+        input.value = await gen(seed.value)
+      } catch (e) {
+        // Set custom validity to show error message.
+        // This is reset above when seed.value changes.
+        seed.setCustomValidity(e.message)
+      } finally {
+        // Release when done either successfully or not.
+        seed.disabled = false
+        input.disabled = false
+        // Show error message if any.
+        // This has to be done after re-enabling the input.
+        seed.reportValidity()
+      }
       updateOutput();
     }
     window.generate = generate;
