@@ -368,7 +368,8 @@ fn main() {
             break;
         }
         //let T = T0.powf(1.0 - t) * T1.powf(t);
-        if rng.gen_range(0, cand.len() * input.n_instruments()) == 0 {
+        if rng.gen_range(0, 1000) == 0 {
+            // if rng.gen_range(0, cand.len() * input.n_instruments()) == 0 {
             let mut pos = vec![];
             for i in 0..cand.len() {
                 if state.insts[i] != !0 {
