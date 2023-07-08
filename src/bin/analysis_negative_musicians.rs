@@ -9,13 +9,17 @@ fn main() {
         "Problem", "Score", "TotalPos", "TotalNeg", "NPos", "NNeg", "AvgPos", "AvgNeg"
     );
 
-    for i in 1..45 {
+    for i in 13..15 {
         // println!("{}\nProblem {}", "-".repeat(80), i);
         let input_path = format!("../Dropbox/ICFPC2023/problems/problem-{}.json", i);
-        let output_path = format!("../Dropbox/ICFPC2023/chokudai-out1/{}.json", i);
+        // let output_path = format!("../Dropbox/ICFPC2023/chokudai-out2/{}.json", i);
+        let output_path = format!("../Downloads/out{}.json", i);
 
         let input = read_input_from_file(&input_path);
         let output = read_output_from_file(&output_path);
+        if output.is_empty() {
+            continue;
+        }
 
         let mut total_score_pos = 0;
         let mut total_score_neg = 0;

@@ -26,7 +26,7 @@ fn compute_score_with_distance_limit(
     output: &Output,
     dist_limit: f64,
 ) -> (i64, i64) {
-    if !is_valid_output(input, output) {
+    if !is_valid_output(input, output, true) {
         return (0, 0);
     }
 
