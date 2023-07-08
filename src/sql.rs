@@ -1,6 +1,7 @@
 use anyhow::Result;
 use mysql::prelude::*;
 use mysql::*;
+use mysql;
 use once_cell::sync::Lazy;
 use std::env;
 
@@ -12,12 +13,12 @@ static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
     pool
 });
 
-pub fn select<T, P>(query: &str, params: P, f: impl FnMut(Row) -> T) -> Result<Vec<T>>
+pub fn select<T, P>(query: &str, params: P, mut f: impl FnMut(Row) -> T) -> Result<Vec<T>>
 where
     P: Into<Params>,
 {
     let mut conn = CLIENT.get_conn()?;
-    let selected_data: Vec<T> = conn.exec_map(query, params, f)?;
+    let selected_data: Vec<T> = conn.exec_map(query, params, move |r| f(Row{row: r}))?;
     Ok(selected_data)
 }
 
@@ -60,4 +61,45 @@ where
     let params: Vec<Params> = values.iter().map(|v| v.into()).collect();
     conn.exec_batch(query, params)?;
     Ok(conn.affected_rows())
+}
+
+pub struct Row {
+    row: mysql::Row
+}
+
+impl Row {
+    pub fn get<T>(&self, name: &str) -> Result<T>
+    where
+        T: FromValue,
+    {
+        let idx = name.idx(&*self.row.columns())
+            .ok_or_else(|| anyhow::anyhow!("Column {} is not found", name))?;
+        match self.row.get_opt::<mysql::Value, usize>(idx) {
+            Some(Ok(value)) => match value {
+                mysql::Value::NULL => return Err(anyhow::anyhow!("{} is null", name)),
+                x => mysql::from_value_opt::<T>(x.clone())
+                    .map_err(|e| anyhow::anyhow!("{}: {}", name, e)),
+            },
+            Some(Err(e)) => return Err(anyhow::anyhow!("{}: {}", name, e)),
+            None => return Err(anyhow::anyhow!("{} is null", name)),
+        }
+    }
+
+    pub fn get_option<T>(&self, name: &str) -> Result<Option<T>>
+    where
+        T: FromValue,
+    {
+        let idx = name.idx(&*self.row.columns())
+            .ok_or_else(|| anyhow::anyhow!("Column {} is not found", name))?;
+        match self.row.get_opt::<mysql::Value, usize>(idx) {
+            Some(Ok(value)) => match value {
+                mysql::Value::NULL => Ok(None),
+                x => mysql::from_value_opt::<T>(x.clone())
+                    .map_err(|e| anyhow::anyhow!("{}: {}", name, e))
+                    .map(Some),
+            },
+            Some(Err(e)) => return Err(anyhow::anyhow!("{}: {}", name, e)),
+            None => Ok(None),
+        }
+    }
 }
