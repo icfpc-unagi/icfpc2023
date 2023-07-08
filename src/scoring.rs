@@ -101,12 +101,10 @@ pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> boo
     for i in 0..input.n_musicians() {
         for j in 0..i {
             if (output[i] - output[j]).abs2() < 100.0 {
-                if print_error {
-                    eprintln!(
-                        "Musicians too close: {} and {} ({:?}, {:?})",
-                        j, i, output[j], output[i]
-                    );
-                }
+                eprintln!(
+                    "Musicians too close: {} and {} ({:?}, {:?})",
+                    j, i, output[j], output[i]
+                );
                 return false;
             }
         }
@@ -270,7 +268,7 @@ pub fn compute_score_for_a_musician_fast(
 
 /// Returns (score, musician_scores, attendee_scores)
 pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
-    if !is_valid_output(input, output) {
+    if !is_valid_output(input, output, true) {
         return (
             0,
             vec![0; input.n_musicians()],

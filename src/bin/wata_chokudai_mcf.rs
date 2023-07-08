@@ -88,39 +88,39 @@ fn compute_cand(input: &Input) -> Vec<P> {
         let mut tmp = vec![];
         if p.0 < stage0.0 {
             tmp.push(P(stage0.0, p.1));
-            tmp.push(P(stage0.0 + f64::sqrt(3.0) * 5.0, p.1));
+            tmp.push(P(stage0.0 + f64::sqrt(3.0) * 5.0 + EPS, p.1));
             for k in 1..=K {
                 tmp.push(P(stage0.0, p.1 - 10.0 * k as f64));
                 tmp.push(P(stage0.0, p.1 + 10.0 * k as f64));
-                tmp.push(P(stage0.0, p.1 - 5.0 - EPS - 10.0 * k as f64));
-                tmp.push(P(stage0.0, p.1 + 5.0 + EPS + 10.0 * k as f64));
+                tmp.push(P(stage0.0, p.1 - 5.0 - 10.0 * k as f64));
+                tmp.push(P(stage0.0, p.1 + 5.0 + 10.0 * k as f64));
             }
         } else if p.0 > stage1.0 {
             tmp.push(P(stage1.0, p.1));
-            tmp.push(P(stage1.0 - f64::sqrt(3.0) * 5.0, p.1));
+            tmp.push(P(stage1.0 - f64::sqrt(3.0) * 5.0 - EPS, p.1));
             for k in 1..=K {
                 tmp.push(P(stage1.0, p.1 - 10.0 * k as f64));
                 tmp.push(P(stage1.0, p.1 + 10.0 * k as f64));
-                tmp.push(P(stage1.0, p.1 - 5.0 - EPS - 10.0 * k as f64));
-                tmp.push(P(stage1.0, p.1 + 5.0 + EPS + 10.0 * k as f64));
+                tmp.push(P(stage1.0, p.1 - 5.0 - 10.0 * k as f64));
+                tmp.push(P(stage1.0, p.1 + 5.0 + 10.0 * k as f64));
             }
         } else if p.1 <= stage0.1 {
             tmp.push(P(p.0, stage0.1));
-            tmp.push(P(p.0, stage0.1 + f64::sqrt(3.0) * 5.0));
+            tmp.push(P(p.0, stage0.1 + f64::sqrt(3.0) * 5.0 + EPS));
             for k in 1..=K {
                 tmp.push(P(p.0 - 10.0 * k as f64, stage0.1));
                 tmp.push(P(p.0 + 10.0 * k as f64, stage0.1));
-                tmp.push(P(p.0 - 5.0 - EPS - 10.0 * k as f64, stage0.1));
-                tmp.push(P(p.0 + 5.0 + EPS + 10.0 * k as f64, stage0.1));
+                tmp.push(P(p.0 - 5.0 - 10.0 * k as f64, stage0.1));
+                tmp.push(P(p.0 + 5.0 + 10.0 * k as f64, stage0.1));
             }
         } else {
             tmp.push(P(p.0, stage1.1));
-            tmp.push(P(p.0, stage1.1 - f64::sqrt(3.0) * 5.0));
+            tmp.push(P(p.0, stage1.1 - f64::sqrt(3.0) * 5.0 - EPS));
             for k in 1..=K {
                 tmp.push(P(p.0 - 10.0 * k as f64, stage1.1));
                 tmp.push(P(p.0 + 10.0 * k as f64, stage1.1));
-                tmp.push(P(p.0 - 5.0 - EPS - 10.0 * k as f64, stage1.1));
-                tmp.push(P(p.0 + 5.0 + EPS + 10.0 * k as f64, stage1.1));
+                tmp.push(P(p.0 - 5.0 - 10.0 * k as f64, stage1.1));
+                tmp.push(P(p.0 + 5.0 + 10.0 * k as f64, stage1.1));
             }
         }
         for q in tmp {
@@ -325,7 +325,7 @@ fn main() {
             for j in 0..cand.len() {
                 if (cand[i] - cand[j]).abs2() >= 100.0 {
                     for k in 0..input.pos.len() {
-                        if P::dist2_sp((cand[j], input.pos[k]), cand[i]) <= 25.0 {
+                        if P::dist2_sp((cand[j], input.pos[k]), cand[i]) < 25.0 {
                             tmp.push((j, k));
                         }
                     }
@@ -368,42 +368,74 @@ fn main() {
             break;
         }
         //let T = T0.powf(1.0 - t) * T1.powf(t);
-        let i2 = if rng.gen_bool(0.1) {
-            rng.gen_range(0, cand.len())
-        } else {
-            near[i1].choose(&mut rng).unwrap().1
-        };
-        if state.insts[i2] == !0 {
-            if let Some(diff) = state.mov(&input, &cand, &block, &conflict, i1, i2) {
-                sum += diff.abs() as f64;
-                cnt += 1;
-
-
-                let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t)* (1.0 - t);
-                if T <= 1.0{
-                    T = 1.0;
-                }
-
-                if diff >= 0 || rng.gen_bool((diff as f64 / T).exp()) {
-                } else {
-                    state.mov(&input, &cand, &block, &conflict, i2, i1).unwrap();
+        if rng.gen_range(0, 1000) == 0 {
+            // if rng.gen_range(0, cand.len() * input.n_instruments()) == 0 {
+            let mut pos = vec![];
+            for i in 0..cand.len() {
+                if state.insts[i] != !0 {
+                    pos.push(i);
                 }
             }
-        } else {
-            if let Some(diff) = state.swap_inst(&input, &cand, i1, i2) {
-                sum += diff.abs() as f64;
-                cnt += 1;
-
-                let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t)* (1.0 - t);
-                if T <= 1.0{
-                    T = 1.0;
+            let mut score_pos_inst = mat![0; pos.len(); input.n_instruments()];
+            for i in 0..pos.len() {
+                for j in 0..input.n_attendees() {
+                    if state.block_count[pos[i]][j] == 0 {
+                        for k in 0..input.n_instruments() {
+                            score_pos_inst[i][k] += score1(&input, cand[pos[i]], k, j);
+                        }
+                    }
                 }
+            }
+            assert_eq!(input.n_musicians(), pos.len());
+            let mut ws = mat![0; input.musicians.len(); pos.len()];
+            for i in 0..input.musicians.len() {
+                for j in 0..pos.len() {
+                    ws[i][j] = score_pos_inst[j][input.musicians[i]];
+                }
+            }
+            let (score, to) = icfpc2023::mcf::weighted_matching(&ws);
+            eprintln!("{} -> {}", state.score, score);
+            state.score = score;
+            for i in 0..pos.len() {
+                state.insts[pos[to[i]]] = input.musicians[i];
+            }
+        } else {
+            let i2 = if rng.gen_bool(0.1) {
+                rng.gen_range(0, cand.len())
+            } else {
+                near[i1].choose(&mut rng).unwrap().1
+            };
+            if state.insts[i2] == !0 {
+                if let Some(diff) = state.mov(&input, &cand, &block, &conflict, i1, i2) {
+                    sum += diff.abs() as f64;
+                    cnt += 1;
 
-                if diff >= 0 || rng.gen_bool((diff as f64 / T).exp()) {
-                } else {
-                    state.swap_inst(&input, &cand, i1, i2).unwrap();
+                    let ave = sum / cnt as f64;
+                    let mut T = ave * (1.0 - t) * (1.0 - t);
+                    if T <= 1.0 {
+                        T = 1.0;
+                    }
+
+                    if diff >= 0 || rng.gen_bool((diff as f64 / T).exp()) {
+                    } else {
+                        state.mov(&input, &cand, &block, &conflict, i2, i1).unwrap();
+                    }
+                }
+            } else {
+                if let Some(diff) = state.swap_inst(&input, &cand, i1, i2) {
+                    sum += diff.abs() as f64;
+                    cnt += 1;
+
+                    let ave = sum / cnt as f64;
+                    let mut T = ave * (1.0 - t) * (1.0 - t);
+                    if T <= 1.0 {
+                        T = 1.0;
+                    }
+
+                    if diff >= 0 || rng.gen_bool((diff as f64 / T).exp()) {
+                    } else {
+                        state.swap_inst(&input, &cand, i1, i2).unwrap();
+                    }
                 }
             }
         }

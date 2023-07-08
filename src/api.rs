@@ -1,10 +1,16 @@
+use crate::www::handlers::submission;
 use crate::*;
 
 use anyhow::anyhow;
 use anyhow::Result;
+use itertools::Itertools;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
+use std::cmp::Ordering;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 const API_BASE: &str = "https://api.icfpcontest.com";
 
@@ -14,9 +20,9 @@ static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub enum SubmissionStatus {
     Processing,
+    Failure(String),
     // Score must be an integer but it has floating point in json for some reason.
     Success(#[serde(deserialize_with = "parse_u64_via_f64")] u64),
-    Failure(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -49,7 +55,6 @@ pub async fn get_number_of_problems() -> Result<u32> {
         .send()
         .await?
         .error_for_status()?;
-    eprintln!("Status: {}", res.status());
     #[derive(Deserialize)]
     struct ProblemsResponse {
         number_of_problems: u32,
@@ -66,7 +71,6 @@ pub async fn get_raw_problem(problem_id: u32) -> Result<String> {
         .send()
         .await?
         .error_for_status()?;
-    eprintln!("Status: {}", res.status());
     let problem_response: Response<String> = res.json().await?;
     match problem_response {
         Response::Success(problem) => Ok(problem),
@@ -103,10 +107,10 @@ pub async fn get_scoreboard() -> Result<Scoreboard> {
         .send()
         .await?
         .error_for_status()?;
-    eprintln!("Status: {}", res.status());
     Ok(res.json().await?)
 }
 
+/// Returns the user's highest scores for all problems or None if no scored submissions.
 pub async fn get_userboard() -> Result<Vec<Option<u64>>> {
     let res = CLIENT
         .get(format!("{}/userboard", API_BASE))
@@ -114,7 +118,6 @@ pub async fn get_userboard() -> Result<Vec<Option<u64>>> {
         .send()
         .await?
         .error_for_status()?;
-    eprintln!("Status: {}", res.status());
     #[derive(Deserialize)]
 
     struct Userboard {
@@ -138,7 +141,6 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
         .send()
         .await?
         .error_for_status()?;
-    eprintln!("Status: {}", res.status());
     let submissions: Response<Vec<Submission>> = res.json().await?;
     match submissions {
         Response::Success(submissions) => Ok(submissions),
@@ -148,11 +150,13 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
 
 pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
     let res = CLIENT
-        .get(format!("{}/submission?submission_id={}", API_BASE, submission_id))
+        .get(format!(
+            "{}/submission?submission_id={}",
+            API_BASE, submission_id
+        ))
         .bearer_auth(&*TOKEN)
         .send()
         .await?;
-    eprintln!("Status: {}", res.status());
     let submission: Response<SubmissionResponse> = res.json().await?;
     match submission {
         Response::Success(submission) => Ok(submission),

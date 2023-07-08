@@ -25,6 +25,7 @@ pub fn get_all_candidate(inp:&Input) -> Vec<P>{
 
 pub fn get_candidate2(inp:&Input, start: &Vec<i32>) -> Vec<P>{
     let ret = get_candidate(inp, start);
+    dbg!(ret.len());
     let ret = set_more_candidate(inp, ret);
     return ret;
 }
@@ -188,16 +189,16 @@ pub fn get_candidate(inp:&Input, start:&Vec<i32>) -> Vec<P>{
 
 
             if pattern == 2{
-                ps = vec![P(inp.pos[id].0 + (5.01 + 10.0 * num as f64), inp.stage0.1 + 10.0), P(inp.pos[id].0 - (5.01 + 10.0 * num as f64), inp.stage0.1 + 10.0)];
+                ps = vec![P(inp.pos[id].0 + (5.00 + 10.0 * num as f64), inp.stage0.1 + 10.0), P(inp.pos[id].0 - (5.00 + 10.0 * num as f64), inp.stage0.1 + 10.0)];
             }
             else if pattern == 8{
-                ps = vec![P(inp.pos[id].0 + (5.01 + 10.0 * num as f64), inp.stage1.1 - 10.0), P(inp.pos[id].0 - (5.01 + 10.0 * num as f64), inp.stage1.1 - 10.0)];
+                ps = vec![P(inp.pos[id].0 + (5.00 + 10.0 * num as f64), inp.stage1.1 - 10.0), P(inp.pos[id].0 - (5.00 + 10.0 * num as f64), inp.stage1.1 - 10.0)];
             }
             else if pattern == 1{
-                ps = vec![P(inp.stage0.0 + 10.0, inp.pos[id].1 + (5.01 + 10.0 * num as f64)), P(inp.stage0.0 + 10.0, inp.pos[id].1 - (5.01 + 10.0 * num as f64))];
+                ps = vec![P(inp.stage0.0 + 10.0, inp.pos[id].1 + (5.00 + 10.0 * num as f64)), P(inp.stage0.0 + 10.0, inp.pos[id].1 - (5.00 + 10.0 * num as f64))];
             }
             else if pattern == 4{
-                ps = vec![P(inp.stage1.0 - 10.0, inp.pos[id].1 + (5.01 + 10.0 * num as f64)), P(inp.stage1.0 - 10.0, inp.pos[id].1 - (5.01 + 10.0 * num as f64))];
+                ps = vec![P(inp.stage1.0 - 10.0, inp.pos[id].1 + (5.00 + 10.0 * num as f64)), P(inp.stage1.0 - 10.0, inp.pos[id].1 - (5.00 + 10.0 * num as f64))];
             }
 
             for p in ps{
@@ -304,7 +305,7 @@ fn set_more_candidate(inp:&Input, candidate:Vec<P>) -> Vec<P>{
     let stage_y = ((inp.stage1.1 - inp.stage0.1) / 10.0) as usize;
     for x in 2..stage_x - 1  {
         for y in 2..stage_y - 1 {
-            if candidate.len() < inp.musicians.len() * 2 {
+            if ret.len() < inp.musicians.len() * 4 / 3 {
                 let nx =  inp.stage0.0 + (x as f64) * 10.0;
                 let ny =  inp.stage0.1 + (y as f64) * 10.0;
                 if check_all_cand(&inp, &ret, P(nx,ny)){

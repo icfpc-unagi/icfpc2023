@@ -2,7 +2,7 @@
 use std::{collections::BinaryHeap, net::SocketAddr};
 
 use aead::NewAead;
-use icfpc2023::{self, Input, read_input, P, mcf::weighted_matching, write_output, compute_score, compute_score_for_instruments, compute_score_for_a_musician_fast, compute_score_fast, candidate::get_candidate2};
+use icfpc2023::{self, Input, read_input, P, mcf::weighted_matching, write_output, compute_score, compute_score_for_instruments, compute_score_for_a_musician_fast, compute_score_fast, candidate::get_candidate2, get_time};
 use rand::Rng;
 
 fn main() {
@@ -10,8 +10,8 @@ fn main() {
     let inp = read_input();
 
     let mut start = vec![];
-    for i in 0..inp.pos.len() {
-        start.push(2);
+    for _i in 0..inp.pos.len() {
+        start.push(1);
     }
 
     let mut best_score = 0;
@@ -20,23 +20,55 @@ fn main() {
 
     let mut rng = rand::thread_rng();
 
+    let tl: f64 = std::env::var("TL")
+        .map(|a| a.parse().unwrap())
+        .unwrap_or(600.0);
+    let stime = get_time();
+
+    let mut iter = 0;
+
     loop {
+
+        
+        let t = (get_time() - stime) / tl;
+        if t >= 1.0 {
+            eprintln!("Iter = {}", iter);
+            break;
+        }
+
         start = best_start.clone();
         let mut next_start = start.clone();
-        for i in 0..inp.pos.len() {
-            if rng.gen_range(0, 4) == 0{
-                next_start[i] = rng.gen_range(0, 3);   
-            }
-            else{
-                next_start[i] = best_start[i];
+        let mut chflag = false;
+
+        if iter != 0 {
+            for i in 0..inp.pos.len() {
+                if rng.gen_range(0, inp.pos.len()) <= 100{
+                    next_start[i] = rng.gen_range(0, 3);  
+                    chflag = true; 
+                }
+                else{
+                    next_start[i] = best_start[i];
+                }
             }
         }
+        else {
+            chflag = true;
+        }
+        if ! chflag{
+            continue;
+        }
+        iter += 1;
+
+
 
         let candidate = get_candidate2(&inp, &next_start);
 
         let pos_to_music = compute_score_for_instruments(&inp, &candidate);
 
+
         dbg!(candidate.len());
+
+        
 
         let mut ar = Vec::new();
         for i in 0..inp.musicians.len() {
@@ -52,13 +84,30 @@ fn main() {
         for i in 0..inp.musicians.len() {
             ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
         }
+
+        let score = ans.0;
+
+        dbg!(score);
+        if score > best_score{
+            best_ret = ret.clone();
+            best_score = score;
+            best_start = next_start.clone();
+            eprintln!("OK!");
+        }
+        //write_output(&best_ret);
+    }
+    dbg!(compute_score_fast(&inp, &best_ret).0);
+
+    {
+
     
-        dbg!(ans.0);
-        dbg!(compute_score_fast(&inp, &ret).0);
+        //dbg!(ans.0);
+        //dbg!(compute_score_fast(&inp, &ret).0);
+        
 
         let mut cand2 = Vec::new();
         for i in 0..inp.musicians.len() {
-            cand2.push(candidate[ans.1[i]]);
+            cand2.push(best_ret[i]);
             //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
             //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
         }
@@ -84,16 +133,12 @@ fn main() {
         }
 
         let score = compute_score_fast(&inp, &ret).0;
-        dbg!(score);
-        if score > best_score{
-            best_ret = ret.clone();
-            best_score = score;
-            best_start = next_start.clone();
-            eprintln!("OK!");
-        }
-        write_output(&best_ret);
 
+        best_ret = ret;
+        
+        dbg!(score);
     }
+
 
     write_output(&best_ret);
 
