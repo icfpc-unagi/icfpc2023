@@ -5,6 +5,7 @@ use crate::Input;
 pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo, PillarsInfo) {
     let stage_wh = input.stage1 - input.stage0;
     let stage_area = stage_wh.0 * stage_wh.1;
+    let stage_border_len = 2.0 * (stage_wh.0 + stage_wh.1);
     let n_musicians = input.n_musicians();
     let n_attendees = input.n_attendees();
     let n_instruments = input.n_instruments();
@@ -12,6 +13,7 @@ pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo, PillarsInfo) {
     // assert_eq!(n_instruments, input.musicians.iter().max().unwrap() + 1);
 
     let area_per_musician = stage_area / n_musicians as f64;
+    let border_len_per_musician = stage_border_len / n_musicians as f64;
     let n_musicians_per_instrument =
         input
             .musicians
@@ -26,6 +28,7 @@ pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo, PillarsInfo) {
     let musicians_info = MusiciansInfo {
         n_musicians,
         area_per_musician,
+        border_len_per_musician,
         n_instruments,
         stats_musicians_per_instrument: n_musicians_per_instrument.iter().copied().collect(),
     };
@@ -116,6 +119,7 @@ pub struct MusiciansInfo {
     // #[serde(rename = "Mus")]
     pub n_musicians: usize,
     pub area_per_musician: f64,
+    pub border_len_per_musician: f64,
     pub n_instruments: usize,
     // #[serde(with = "stats1")]
     pub stats_musicians_per_instrument: Stats,
