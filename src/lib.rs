@@ -64,7 +64,7 @@ pub fn get_time() -> f64 {
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct P(pub f64, pub f64);
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum Version {
     One,
     Two,
@@ -170,6 +170,7 @@ pub fn problem_id_from_path(path: &str) -> i32 {
     num_str.parse::<i32>().unwrap()
 }
 
+#[deprecated]
 pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
@@ -182,8 +183,9 @@ pub fn read_input_from_file(path: &str) -> Input {
     input
 }
 
+#[deprecated]
 pub fn parse_input(s: &str) -> Input {
-    println!(
+    eprintln!(
         "{}\n!!!!!! D E P R E C A T E D !!!!!!!\n{}",
         "=".repeat(80),
         "=".repeat(80),
@@ -195,6 +197,20 @@ pub fn parse_input_with_version(s: &str, version: Version) -> Input {
     let json: Problem = serde_json::from_str(s).unwrap();
     let mut input: Input = json.into();
     input.version = version;
+    // We can assume that `pillers not empty` equals `full round problem with closeness scoring`.
+    // So that conflicts with the given version, report warning to stderr.
+    // https://discord.com/channels/1118159165060292668/1126853058186444942/1127235665067790398
+    let version_guessed_from_input = if input.pillars.is_empty() {
+        Version::One
+    } else {
+        Version::Two
+    };
+    if version_guessed_from_input != version {
+        eprintln!(
+            "WARNING: Version mismatch: version {:?} guessed from the input, but version {:?} given",
+            version_guessed_from_input, version
+        );
+    }
     input
 }
 
@@ -402,3 +418,5 @@ mod tests {
         assert_eq!(original, &converted);
     }
 }
+
+pub mod candidate_tree;

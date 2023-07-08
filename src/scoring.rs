@@ -21,6 +21,33 @@ pub const EXAMPLE_INPUT: &str = r#"
 }
 "#;
 
+pub const EXAMPLE_INPUT2: &str = r#"
+{
+    "room_width": 2000.0,
+    "room_height": 5000.0,
+    "stage_width": 1000.0,
+    "stage_height": 200.0,
+    "stage_bottom_left": [500.0, 0.0],
+    "musicians": [0, 1, 0],
+    "attendees": [{
+            "x": 100.0,
+            "y": 500.0,
+            "tastes": [1000.0, -1000.0]
+        }, {
+            "x": 200.0,
+            "y": 1000.0,
+            "tastes": [200.0, 200.0]
+        },
+        {
+            "x": 1100.0,
+            "y": 800.0,
+            "tastes": [800.0, 1500.0]
+        }
+    ],
+  "pillars": [{ "center": [345.0, 255.0], "radius": 4.0}]
+}
+"#;
+
 pub const EXAMPLE_OUTPUT: &str = r#"
 {
     "placements": [
@@ -31,28 +58,32 @@ pub const EXAMPLE_OUTPUT: &str = r#"
     }
 "#;
 
-pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
+pub fn is_blocked_by_circle(musician: P, attendee: P, circle: (P, f64)) -> bool {
     // for horizontal/vertical segments, the distance is often exactly 5.0. avoid rounding errors.
     if musician.1 == attendee.1 {
         let min = musician.0.min(attendee.0);
         let max = musician.0.max(attendee.0);
-        let v = blocking_musician.0;
+        let v = circle.0 .0;
         if min <= v && v <= max {
-            let w = blocking_musician.1 - musician.1;
-            return -5.0 < w && w < 5.0;
+            let w = circle.0 .1 - musician.1;
+            return -circle.1 < w && w < circle.1;
         }
     }
     if musician.0 == attendee.0 {
         let min = musician.1.min(attendee.1);
         let max = musician.1.max(attendee.1);
-        let v = blocking_musician.1;
+        let v = circle.0 .1;
         if min <= v && v <= max {
-            let w = blocking_musician.0 - musician.0;
-            return -5.0 < w && w < 5.0;
+            let w = circle.0 .0 - musician.0;
+            return -circle.1 < w && w < circle.1;
         }
     }
-    let d2 = P::dist2_sp((musician, attendee), blocking_musician);
-    d2 < 25.0
+    let d2 = P::dist2_sp((musician, attendee), circle.0);
+    d2 < circle.1 * circle.1
+}
+
+pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
+    is_blocked_by_circle(musician, attendee, (blocking_musician, 5.0))
 }
 
 pub fn is_blocked_by_someone(
@@ -71,12 +102,19 @@ pub fn is_blocked_by_someone(
             return true;
         }
     }
+    for pillar in &input.pillars {
+        if is_blocked_by_circle(musician_pos, attendee_pos, *pillar) {
+            return true;
+        }
+    }
 
     return false;
 }
 
 pub fn score_fn(taste: f64, d2: f64) -> i64 {
-    (1_000_000.0 * taste / d2).ceil() as i64
+    // なぜかsqrtして2乗するとジャッジに完全に一致する
+    let d = d2.sqrt();
+    (1_000_000.0 * taste / (d * d)).ceil() as i64
 }
 
 pub fn compute_score_for_pair(
@@ -150,48 +188,42 @@ pub fn compute_closeness_factor(input: &Input, output: &Output, musician_id: usi
     q
 }
 
-pub fn compute_score(input: &Input, output: &Output) -> i64 {
+pub fn compute_score_naive(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
     if !is_valid_output(input, output, true) {
-        return 0;
+        return (
+            0,
+            vec![0; input.n_musicians()],
+            vec![0; input.n_attendees()],
+        );
     }
 
-    let mut score = 0;
+    let mut score_total = 0;
+    let mut score_musician = vec![0; input.n_musicians()];
+    let mut score_attendee = vec![0; input.n_attendees()];
+
     for musician_id in 0..input.n_musicians() {
         let closeness_factor = compute_closeness_factor(input, output, musician_id);
         for attendee_id in 0..input.n_attendees() {
             let pair_score = compute_score_for_pair(input, output, musician_id, attendee_id);
-            score += (closeness_factor * pair_score as f64).ceil() as i64;
+            let score = (closeness_factor * pair_score as f64).ceil() as i64;
+            score_total += score;
+            score_musician[musician_id] += score;
+            score_attendee[attendee_id] += score;
         }
     }
-    score
+    (score_total, score_musician, score_attendee)
+}
+
+pub fn compute_score(input: &Input, output: &Output) -> i64 {
+    compute_score_naive(input, output).0
 }
 
 pub fn compute_score_for_musician(input: &Input, output: &Output) -> Vec<i64> {
-    if !is_valid_output(input, output, true) {
-        return vec![0; input.n_musicians()];
-    }
-
-    return (0..input.n_musicians())
-        .map(|musician_id| {
-            (0..input.n_attendees())
-                .map(|attendee_id| compute_score_for_pair(input, output, musician_id, attendee_id))
-                .sum()
-        })
-        .collect();
+    compute_score_naive(input, output).1
 }
 
 pub fn compute_score_for_attendees(input: &Input, output: &Output) -> Vec<i64> {
-    if !is_valid_output(input, output, true) {
-        return vec![0; input.n_attendees()];
-    }
-
-    return (0..input.n_attendees())
-        .map(|attendee_id| {
-            (0..input.n_musicians())
-                .map(|musician_id| compute_score_for_pair(input, output, musician_id, attendee_id))
-                .sum()
-        })
-        .collect();
+    compute_score_naive(input, output).2
 }
 
 /// score[pos_id][instrument_id]
@@ -224,8 +256,8 @@ pub fn compute_score_for_instruments(input: &Input, positions: &Vec<P>) -> Vec<V
 
 #[derive(Debug)]
 enum Event {
-    MusicianEnter(usize),
-    MusicianLeave(usize),
+    CircleEnter(usize),
+    CircleLeave(usize),
     Attendee(usize),
 }
 
@@ -238,55 +270,65 @@ pub fn compute_score_for_a_musician_fast(
     let p = output[musician_id];
     let mut events = vec![];
 
-    for i in 0..input.n_musicians() {
-        if i == musician_id {
-            continue;
-        }
+    let circles: Vec<_> = output
+        .iter()
+        .enumerate()
+        .filter_map(|(i, p)| {
+            if i == musician_id {
+                None
+            } else {
+                Some((*p, 5.0))
+            }
+        })
+        .chain(input.pillars.clone().into_iter())
+        .collect();
+    assert_eq!(circles.len(), input.n_musicians() - 1 + input.pillars.len());
 
-        let v = output[i] - p;
+    for (i, c) in circles.iter().enumerate() {
+        let v = c.0 - p;
         let th = v.1.atan2(v.0);
-        let dth = (5.0 / v.abs2().sqrt()).asin();
+        let dth = (c.1 / v.abs2().sqrt()).asin();
 
         // 一旦コンサバにして、後で正確なチェックをする
         let th0 = th - dth - eps;
         let th1 = th + dth + eps;
 
-        events.push((th0, Event::MusicianEnter(i)));
-        events.push((th1, Event::MusicianLeave(i)));
+        events.push((th0, Event::CircleEnter(i)));
+        events.push((th1, Event::CircleLeave(i)));
 
         if th0 < -PI {
-            events.push((th0 + 2.0 * PI, Event::MusicianEnter(i)));
-            events.push((th1 + 2.0 * PI, Event::MusicianLeave(i)));
+            events.push((th0 + 2.0 * PI, Event::CircleEnter(i)));
+            events.push((th1 + 2.0 * PI, Event::CircleLeave(i)));
         }
         if th1 > PI {
-            events.push((th0 - 2.0 * PI, Event::MusicianEnter(i)));
-            events.push((th1 - 2.0 * PI, Event::MusicianLeave(i)));
+            events.push((th0 - 2.0 * PI, Event::CircleEnter(i)));
+            events.push((th1 - 2.0 * PI, Event::CircleLeave(i)));
         }
     }
-
     for i in 0..input.n_attendees() {
         let v = input.pos[i] - p;
         let th = v.1.atan2(v.0);
         events.push((th, Event::Attendee(i)));
     }
-
     events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    let closeness_factor = compute_closeness_factor(input, output, musician_id);
     let mut score = 0;
     let mut attendee_scores = vec![0; input.n_attendees()];
-    let mut active_musicians = std::collections::HashSet::new();
+    let mut active_circles = std::collections::HashSet::new();
 
     for (_, e) in events {
         match e {
-            Event::MusicianEnter(i) => {
-                active_musicians.insert(i);
+            Event::CircleEnter(i) => {
+                active_circles.insert(i);
             }
-            Event::MusicianLeave(i) => {
-                active_musicians.remove(&i);
+            Event::CircleLeave(i) => {
+                active_circles.remove(&i);
             }
             Event::Attendee(attendee_id) => {
                 let mut f = false;
-                for i in &active_musicians {
-                    f |= is_blocked(p, input.pos[attendee_id], output[*i]);
+                for i in &active_circles {
+                    f |= is_blocked_by_circle(p, input.pos[attendee_id], circles[*i]);
                     if f {
                         break;
                     }
@@ -295,6 +337,7 @@ pub fn compute_score_for_a_musician_fast(
                     let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
                     let instrument_id = input.musicians[musician_id];
                     let s = score_fn(input.tastes[attendee_id][instrument_id], d2);
+                    let s = (closeness_factor * s as f64).ceil() as i64;
                     score += s;
                     attendee_scores[attendee_id] = s;
                 }
@@ -493,5 +536,76 @@ impl Scorerer {
         }
 
         score_diff
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_example_ver1_naive() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
+        let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
+        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(compute_score(&input, &output), 5343);
+    }
+
+    #[test]
+    fn test_example_ver1_fast() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
+        let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
+        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
+    fn test_example_ver2_naive() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(compute_score(&input, &output), 5357);
+    }
+
+    #[test]
+    fn test_example_ver2_fast() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
+    fn test_example2_naive() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(compute_score(&input, &output), 3270);
+    }
+
+    #[test]
+    fn test_example2_fast() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
+    fn test_problem2_64a93f468c4efca8cb0a9c65() {
+        let input = read_input_from_file("./problems/problem-2.json");
+        let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
+        let result_naive = compute_score_fast(&input, &output);
+        assert_eq!(result_naive.0, 1502807685);
+        assert_eq!(result_naive, compute_score_naive(&input, &output));
     }
 }

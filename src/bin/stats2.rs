@@ -84,7 +84,7 @@ fn main1_old(
         let mut data = vec![serde_json::json!({ "id": extract_number_from_path(&path) })];
         let input = read_input_from_file(&path);
         // let data = get_stats(&input);
-        let (musicians_info, attendees_info) = get_stats(&input);
+        let (musicians_info, attendees_info, _) = get_stats(&input);
         data.extend([
             serde_json::to_value(&musicians_info)?,
             serde_json::to_value(&attendees_info)?,

@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::Input;
 
-pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo) {
+pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo, PillarsInfo) {
     let stage_wh = input.stage1 - input.stage0;
     let stage_area = stage_wh.0 * stage_wh.1;
     let n_musicians = input.n_musicians();
@@ -27,18 +27,23 @@ pub fn get_stats(input: &Input) -> (MusiciansInfo, AttendeesInfo) {
         n_musicians,
         area_per_musician,
         n_instruments,
-        stats_musicians_per_instrument: Stats::from_iter(&n_musicians_per_instrument),
+        stats_musicians_per_instrument: n_musicians_per_instrument.iter().copied().collect(),
     };
     let attendees_info = AttendeesInfo {
         n_attendees,
-        stats_tastes: Stats::from_iter(&all_tastes),
+        stats_tastes: all_tastes.iter().copied().collect(),
+    };
+    let pillars_info = PillarsInfo {
+        n_pillars: input.pillars.len(),
+        stats_radius: input.pillars.iter().map(|&(_, r)| r).collect(),
     };
     // println!("{:?}", (musicians_info, attendees_info));
-    (musicians_info, attendees_info)
+    (musicians_info, attendees_info, pillars_info)
 }
 
 #[derive(Serialize)]
 pub struct Stats {
+    n: usize,
     pub mean: f64,
     pub std: f64,
     pub min: f64,
@@ -47,6 +52,9 @@ pub struct Stats {
 
 impl Stats {
     fn to_string(&self) -> String {
+        if self.n == 0 {
+            return "N/A".to_string();
+        }
         format!(
             "{} ± {} ({} .. {})",
             self.mean as f32, self.std as f32, self.min, self.max
@@ -60,21 +68,17 @@ impl std::fmt::Debug for Stats {
     }
 }
 
-impl<'a, T> FromIterator<&'a T> for Stats
+impl<T> FromIterator<T> for Stats
 where
-    T: Copy + 'a,
     f64: From<T>,
 {
-    fn from_iter<I: IntoIterator<Item = &'a T>>(iter: I) -> Self {
-        let data = iter
-            .into_iter()
-            .copied()
-            .map(|x| f64::from(x))
-            .collect::<Vec<_>>();
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let data = iter.into_iter().map(|x| f64::from(x)).collect::<Vec<_>>();
         let (mean, std) = mean_and_std(&data);
         let min = data.iter().copied().fold(f64::INFINITY, f64::min);
         let max = data.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         Self {
+            n: data.len(),
             mean,
             std,
             min,
@@ -82,6 +86,29 @@ where
         }
     }
 }
+
+// impl<'a, T> FromIterator<&'a T> for Stats
+// where
+//     T: Copy + 'a,
+//     f64: From<T>,
+// {
+//     fn from_iter<I: IntoIterator<Item = &'a T>>(iter: I) -> Self {
+//         let data = iter
+//             .into_iter()
+//             .copied()
+//             .map(|x| f64::from(x))
+//             .collect::<Vec<_>>();
+//         let (mean, std) = mean_and_std(&data);
+//         let min = data.iter().copied().fold(f64::INFINITY, f64::min);
+//         let max = data.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+//         Self {
+//             mean,
+//             std,
+//             min,
+//             max,
+//         }
+//     }
+// }
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)] // has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
@@ -133,6 +160,12 @@ pub struct MusiciansInfo {
 pub struct AttendeesInfo {
     pub n_attendees: usize,
     pub stats_tastes: Stats,
+}
+
+#[derive(Debug)]
+pub struct PillarsInfo {
+    pub n_pillars: usize,
+    pub stats_radius: Stats,
 }
 
 fn mean_and_std<T: Copy + Into<f64>>(data: &[T]) -> (f64, f64) {

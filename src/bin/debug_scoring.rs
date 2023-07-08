@@ -27,9 +27,21 @@ where
 }
 
 fn main() {
+    let input = icfpc2023::read_input_from_file("../Dropbox/ICFPC2023/problems/problem-2.json");
+    let output = icfpc2023::read_output_from_file(
+        "problems/out-2-64a93f468c4efca8cb0a9c65.json",
+        //"../Dropbox/ICFPC2023/chokudai-out1/2.json",
+        //"../Dropbox/ICFPC2023/chokudai-out1/1.json",
+        //"..//Downloads/submission-p1-2023-07-07T17_29_13.529879303Z.json",
+        // "..//Downloads/submission-p45-2023-07-07T15_26_09.822142655Z.json",
+    );
+    dbg!(icfpc2023::compute_score(&input, &output));
+
+    /*
     let input = icfpc2023::parse_input_with_version(icfpc2023::EXAMPLE_INPUT, Version::Two);
     let output = icfpc2023::parse_output(icfpc2023::EXAMPLE_OUTPUT);
     dbg!(icfpc2023::compute_score(&input, &output));
+    */
 
     /*
     let input = icfpc2023::read_input_from_file("../Dropbox/ICFPC2023/problems/problem-2.json");

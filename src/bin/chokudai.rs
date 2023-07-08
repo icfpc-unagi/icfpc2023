@@ -67,9 +67,6 @@ fn main() {
 
 
         dbg!(candidate.len());
-
-        
-
         let mut ar = Vec::new();
         for i in 0..inp.musicians.len() {
             let mut br = Vec::new();
@@ -87,6 +84,9 @@ fn main() {
 
         let score = ans.0;
 
+        
+
+
         dbg!(score);
         if score > best_score{
             best_ret = ret.clone();
@@ -96,7 +96,6 @@ fn main() {
         }
         //write_output(&best_ret);
     }
-    dbg!(compute_score_fast(&inp, &best_ret).0);
 
     {
 

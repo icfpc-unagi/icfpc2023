@@ -61,11 +61,13 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
         .set("viewBox", (-5, -5, W + 10, H + 10))
         .set("width", W + 10)
         .set("height", H + 10);
+    // Room
     doc = doc.add(
         rect(0.0, 0.0, room.0 * mul, room.1 * mul, "white")
             .set("stroke-width", 1)
             .set("stroke", "black"),
     );
+    // Stage
     doc = doc.add(
         rect(
             input.stage0.0 * mul,
@@ -78,6 +80,7 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
         .set("stroke", "black"),
     );
     let t = input.tastes[0].len();
+    // Attendees
     for i in 0..input.pos.len() {
         doc = doc.add(
             Group::new()
@@ -112,6 +115,7 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
                 ),
         );
     }
+    // Musicians
     for i in 0..out.len() {
         doc = doc.add(
             Group::new()
@@ -148,6 +152,7 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
                 .set("fill", "gray"),
         )
     }
+    // Focus on musician
     if focus != !0 {
         let mut max = 0;
         let mut list = vec![];
