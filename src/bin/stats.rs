@@ -38,7 +38,10 @@ fn compute_density(input: &Input) -> f64 {
 }
 
 fn main() {
-    let paths = get_sorted_problem_paths("../Dropbox/ICFPC2023/problems/problem-*.json");
+    let mut paths = get_sorted_problem_paths("../Dropbox/ICFPC2023/problems/problem-*.json");
+    if paths.is_empty() {
+        paths = get_sorted_problem_paths("/problems/problem-*.json");
+    }
 
     println!("id\t#Mus\t#Att\t#Inst\tDensity");
     for path in paths {

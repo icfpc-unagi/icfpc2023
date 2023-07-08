@@ -170,6 +170,7 @@ pub fn problem_id_from_path(path: &str) -> i32 {
     num_str.parse::<i32>().unwrap()
 }
 
+#[deprecated]
 pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
@@ -182,6 +183,7 @@ pub fn read_input_from_file(path: &str) -> Input {
     input
 }
 
+#[deprecated]
 pub fn parse_input(s: &str) -> Input {
     println!(
         "{}\n!!!!!! D E P R E C A T E D !!!!!!!\n{}",
