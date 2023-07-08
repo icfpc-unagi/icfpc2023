@@ -254,8 +254,8 @@ pub fn compute_score_for_instruments(input: &Input, positions: &Vec<P>) -> Vec<V
 
 #[derive(Debug)]
 enum Event {
-    MusicianEnter(usize),
-    MusicianLeave(usize),
+    CircleEnter(usize),
+    CircleLeave(usize),
     Attendee(usize),
 }
 
@@ -268,57 +268,65 @@ pub fn compute_score_for_a_musician_fast(
     let p = output[musician_id];
     let mut events = vec![];
 
-    let closeness_factor = compute_closeness_factor(input, output, musician_id);
+    let circles: Vec<_> = output
+        .iter()
+        .enumerate()
+        .filter_map(|(i, p)| {
+            if i == musician_id {
+                None
+            } else {
+                Some((*p, 5.0))
+            }
+        })
+        .chain(input.pillars.clone().into_iter())
+        .collect();
+    assert_eq!(circles.len(), input.n_musicians() - 1 + input.pillars.len());
 
-    for i in 0..input.n_musicians() {
-        if i == musician_id {
-            continue;
-        }
-
-        let v = output[i] - p;
+    for (i, c) in circles.iter().enumerate() {
+        let v = c.0 - p;
         let th = v.1.atan2(v.0);
-        let dth = (5.0 / v.abs2().sqrt()).asin();
+        let dth = (c.1 / v.abs2().sqrt()).asin();
 
         // 一旦コンサバにして、後で正確なチェックをする
         let th0 = th - dth - eps;
         let th1 = th + dth + eps;
 
-        events.push((th0, Event::MusicianEnter(i)));
-        events.push((th1, Event::MusicianLeave(i)));
+        events.push((th0, Event::CircleEnter(i)));
+        events.push((th1, Event::CircleLeave(i)));
 
         if th0 < -PI {
-            events.push((th0 + 2.0 * PI, Event::MusicianEnter(i)));
-            events.push((th1 + 2.0 * PI, Event::MusicianLeave(i)));
+            events.push((th0 + 2.0 * PI, Event::CircleEnter(i)));
+            events.push((th1 + 2.0 * PI, Event::CircleLeave(i)));
         }
         if th1 > PI {
-            events.push((th0 - 2.0 * PI, Event::MusicianEnter(i)));
-            events.push((th1 - 2.0 * PI, Event::MusicianLeave(i)));
+            events.push((th0 - 2.0 * PI, Event::CircleEnter(i)));
+            events.push((th1 - 2.0 * PI, Event::CircleLeave(i)));
         }
     }
-
     for i in 0..input.n_attendees() {
         let v = input.pos[i] - p;
         let th = v.1.atan2(v.0);
         events.push((th, Event::Attendee(i)));
     }
-
     events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    let closeness_factor = compute_closeness_factor(input, output, musician_id);
     let mut score = 0;
     let mut attendee_scores = vec![0; input.n_attendees()];
-    let mut active_musicians = std::collections::HashSet::new();
+    let mut active_circles = std::collections::HashSet::new();
 
     for (_, e) in events {
         match e {
-            Event::MusicianEnter(i) => {
-                active_musicians.insert(i);
+            Event::CircleEnter(i) => {
+                active_circles.insert(i);
             }
-            Event::MusicianLeave(i) => {
-                active_musicians.remove(&i);
+            Event::CircleLeave(i) => {
+                active_circles.remove(&i);
             }
             Event::Attendee(attendee_id) => {
                 let mut f = false;
-                for i in &active_musicians {
-                    f |= is_blocked(p, input.pos[attendee_id], output[*i]);
+                for i in &active_circles {
+                    f |= is_blocked_by_circle(p, input.pos[attendee_id], circles[*i]);
                     if f {
                         break;
                     }
@@ -577,5 +585,16 @@ mod tests {
         let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
         let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
         assert_eq!(compute_score(&input, &output), 3270);
+    }
+
+    #[test]
+    fn test_example2_fast() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
     }
 }
