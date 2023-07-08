@@ -5,6 +5,7 @@ pub mod visualize;
 pub mod submission;
 pub mod submissions;
 pub mod my_userboard;
+pub mod cron;
 
 use actix_web::{HttpResponse, Responder};
 

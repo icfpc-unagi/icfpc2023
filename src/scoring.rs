@@ -32,6 +32,25 @@ pub const EXAMPLE_OUTPUT: &str = r#"
 "#;
 
 pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
+    // for horizontal/vertical segments, the distance is often exactly 5.0. avoid rounding errors.
+    if musician.1 == attendee.1 {
+        let min = musician.0.min(attendee.0);
+        let max = musician.0.max(attendee.0);
+        let v = blocking_musician.0;
+        if min <= v && v <= max {
+            let w = blocking_musician.1 - musician.1;
+            return -5.0 < w && w < 5.0;
+        }
+    }
+    if musician.0 == attendee.0 {
+        let min = musician.1.min(attendee.1);
+        let max = musician.1.max(attendee.1);
+        let v = blocking_musician.1;
+        if min <= v && v <= max {
+            let w = blocking_musician.0 - musician.0;
+            return -5.0 < w && w < 5.0;
+        }
+    }
     let d2 = P::dist2_sp((musician, attendee), blocking_musician);
     d2 < 25.0
 }

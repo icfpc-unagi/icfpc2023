@@ -293,7 +293,13 @@ fn compute_score_for_a_musician_fast(
             Event::Attendee(attendee_id) => {
                 let mut f = false;
                 for i in &active_musicians {
-                    f |= is_blocked(big_p, &big_input.pos[attendee_id], &big_output[*i]);
+                    let blocked_fast = crate::is_blocked(p, input.pos[attendee_id], output[*i]);
+                    let blocked = is_blocked(big_p, &big_input.pos[attendee_id], &big_output[*i]);
+                    if blocked != blocked_fast {
+                        eprintln!("blocked_fast = {}, blocked = {}", blocked_fast, blocked);
+                        dbg!((p, input.pos[attendee_id], output[*i]));
+                    }
+                    f |= blocked;
                     if f {
                         break;
                     }

@@ -27,6 +27,10 @@ async fn main() -> std::io::Result<()> {
                 "/my_userboard",
                 web::get().to(www::handlers::my_userboard::handler),
             )
+            .route(
+                "/cron",
+                web::get().to(www::handlers::cron::handler),
+            )
             .service(Files::new("/", "/www"))
     })
     .bind(bind_address)?
