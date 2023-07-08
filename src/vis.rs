@@ -89,16 +89,24 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
                     Circle::new()
                         .set("cx", input.pos[i].0 * mul)
                         .set("cy", input.pos[i].1 * mul)
-                        .set("r", 2)
+                        .set("r", 3.0 * mul)
                         .set(
                             "fill",
-                            match color_type {
-                                0 => "black".to_owned(),
-                                1 => color(
-                                    0.5 + 0.5 * score_attendees[i] as f64
-                                        / score_attendees_max as f64,
-                                ),
-                                _ => unimplemented!(),
+                            if focus != !0 {
+                                color(
+                                    0.5 + 0.5
+                                        * input.tastes[i][input.musicians[focus]] as f64
+                                        * 0.001,
+                                )
+                            } else {
+                                match color_type {
+                                    0 => "black".to_owned(),
+                                    1 => color(
+                                        0.5 + 0.5 * score_attendees[i] as f64
+                                            / score_attendees_max as f64,
+                                    ),
+                                    _ => unimplemented!(),
+                                }
                             },
                         ),
                 ),
@@ -131,24 +139,37 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
                 ),
         )
     }
+    for &(c, r) in &input.pillars {
+        doc = doc.add(
+            Circle::new()
+                .set("cx", c.0 * mul)
+                .set("cy", c.1 * mul)
+                .set("r", r * mul)
+                .set("fill", "gray"),
+        )
+    }
     if focus != !0 {
         let mut max = 0;
-        for i in 0..input.n_attendees() {
-            max.setmax(compute_score_for_pair(input, out, focus, i));
-        }
+        let mut list = vec![];
         for i in 0..input.n_attendees() {
             let score = compute_score_for_pair(input, out, focus, i);
+            max.setmax(score.abs());
             if score != 0 {
-                doc = doc.add(
-                    Line::new()
-                        .set("x1", out[focus].0 * mul)
-                        .set("y1", out[focus].1 * mul)
-                        .set("x2", input.pos[i].0 * mul)
-                        .set("y2", input.pos[i].1 * mul)
-                        .set("stroke", color(0.5 + 0.5 * score as f64 / max as f64))
-                        .set("stroke-width", 2),
-                )
+                list.push((score, i));
             }
+        }
+        list.sort_by_key(|a| a.0.abs());
+        for (score, i) in list {
+            doc = doc.add(
+                Line::new()
+                    .set("x1", out[focus].0 * mul)
+                    .set("y1", out[focus].1 * mul)
+                    .set("x2", input.pos[i].0 * mul)
+                    .set("y2", input.pos[i].1 * mul)
+                    .set("stroke", color(0.5 + 0.5 * score as f64 / max as f64))
+                    .set("stroke-width", 1)
+                    .set("stroke-opacity", 0.5),
+            )
         }
     }
     (score, String::new(), doc.to_string())

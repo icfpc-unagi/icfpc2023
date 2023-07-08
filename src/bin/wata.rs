@@ -320,7 +320,7 @@ fn main() {
             for j in 0..cand.len() {
                 if (cand[i] - cand[j]).abs2() >= 100.0 {
                     for k in 0..input.pos.len() {
-                        if P::dist2_sp((cand[j], input.pos[k]), cand[i]) <= 25.0 {
+                        if is_blocked(cand[j], input.pos[k], cand[i]) {
                             tmp.push((j, k));
                         }
                     }
