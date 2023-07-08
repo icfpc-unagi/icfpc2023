@@ -3,7 +3,7 @@ use icfpc2023;
 use mysql::params;
 
 fn main() {
-    let value: i64 = icfpc2023::mysql::cell(
+    let value: i64 = icfpc2023::sql::cell(
         "SELECT CAST(:a + :b AS SIGNED)",
         params! {"a" => 1, "b" => 20},
     )
