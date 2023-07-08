@@ -112,7 +112,9 @@ pub fn is_blocked_by_someone(
 }
 
 pub fn score_fn(taste: f64, d2: f64) -> i64 {
-    (1_000_000.0 * taste / d2).ceil() as i64
+    // なぜかsqrtして2乗するとジャッジに完全に一致する
+    let d = d2.sqrt();
+    (1_000_000.0 * taste / (d * d)).ceil() as i64
 }
 
 pub fn compute_score_for_pair(
@@ -596,5 +598,14 @@ mod tests {
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
         );
+    }
+
+    #[test]
+    fn test_problem2_64a93f468c4efca8cb0a9c65() {
+        let input = read_input_from_file("./problems/problem-2.json");
+        let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
+        let result_naive = compute_score_fast(&input, &output);
+        assert_eq!(result_naive.0, 1502807685);
+        assert_eq!(result_naive, compute_score_naive(&input, &output));
     }
 }
