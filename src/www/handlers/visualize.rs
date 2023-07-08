@@ -1,9 +1,7 @@
 use crate::*;
 
-use actix_files::Files;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, HttpResponse, Responder};
 use serde::Deserialize;
-use std::env;
 
 #[derive(Deserialize)]
 pub struct Query {
