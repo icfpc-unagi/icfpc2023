@@ -13,13 +13,13 @@ static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
     pool
 });
 
-pub fn select<T, P>(query: &str, params: P, mut f: impl FnMut(Row) -> T) -> Result<Vec<T>>
+pub fn select<P>(query: &str, params: P) -> Result<Vec<Row>>
 where
     P: Into<Params>,
 {
     let mut conn = CLIENT.get_conn()?;
-    let selected_data: Vec<T> = conn.exec_map(query, params, move |r| f(Row { row: r }))?;
-    Ok(selected_data)
+    conn.exec_map(query, params, |r| Row { row: r })
+        .map_err(|e| anyhow::anyhow!("{}", e))
 }
 
 pub fn row<P>(query: &str, params: P) -> Result<Option<Row>>

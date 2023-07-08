@@ -64,21 +64,25 @@ pub async fn update_official_problem(problem_id: u32) -> Result<()> {
     eprintln!("Updating the problem: {}", problem_id);
     let problem = api::get_raw_problem(problem_id).await?;
     dbg!(&problem);
-    sql::exec("
+    sql::exec(
+        "
         DELETE FROM problem_chunks
         WHERE problem_id = :problem_id",
         params! {
             "problem_id" => problem_id + TEMP_ID,
             "temp_id" => &TEMP_ID,
-        })?;
+        },
+    )?;
     for (chunk_index, chunk) in problem
         .as_str()
         .chars()
         .collect::<Vec<char>>()
         .chunks(CHUNK_SIZE)
         .map(|chunk| chunk.into_iter().collect::<String>())
-        .enumerate() {
-        sql::exec("
+        .enumerate()
+    {
+        sql::exec(
+            "
             INSERT INTO problem_chunks(
                 problem_id,
                 problem_chunk_index,
@@ -89,34 +93,43 @@ pub async fn update_official_problem(problem_id: u32) -> Result<()> {
                 :problem_chunk_index,
                 :problem_chunk,
                 CURRENT_TIMESTAMP()
-            )", params! {
+            )",
+            params! {
                 "problem_id" => problem_id + TEMP_ID,
                 "problem_chunk_index" => chunk_index,
                 "problem_chunk" => &chunk,
-            })?;
+            },
+        )?;
     }
-    sql::exec("
+    sql::exec(
+        "
         UPDATE problem_chunks
         SET problem_id = problem_id - :temp_id
         WHERE problem_id = :problem_id OR problem_id = :problem_id + :temp_id",
         params! {
             "problem_id" => problem_id + TEMP_ID,
             "temp_id" => &TEMP_ID,
-        })?;
-    sql::exec("
+        },
+    )?;
+    sql::exec(
+        "
         DELETE FROM problem_chunks
         WHERE problem_id < 0",
-        mysql::Params::Empty)?;
+        mysql::Params::Empty,
+    )?;
     Ok(())
 }
 
 pub async fn update_official_problems() -> Result<Vec<u32>> {
     let mut problem_ids = HashSet::<u32>::new();
-    sql::select("
+    for row in sql::select(
+        "
         SELECT DISTINCT problem_id FROM problem_chunks
-    ", mysql::Params::Empty, |row| {
-        problem_ids.insert(row.get("problem_id").unwrap())
-    })?;
+    ",
+        mysql::Params::Empty,
+    )? {
+        problem_ids.insert(row.get("problem_id")?);
+    }
 
     let mut updated_ids = Vec::new();
     let num_problems = api::get_number_of_problems().await?;
