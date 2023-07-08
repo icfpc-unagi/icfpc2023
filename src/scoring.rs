@@ -21,6 +21,33 @@ pub const EXAMPLE_INPUT: &str = r#"
 }
 "#;
 
+pub const EXAMPLE_INPUT2: &str = r#"
+{
+    "room_width": 2000.0,
+    "room_height": 5000.0,
+    "stage_width": 1000.0,
+    "stage_height": 200.0,
+    "stage_bottom_left": [500.0, 0.0],
+    "musicians": [0, 1, 0],
+    "attendees": [{
+            "x": 100.0,
+            "y": 500.0,
+            "tastes": [1000.0, -1000.0]
+        }, {
+            "x": 200.0,
+            "y": 1000.0,
+            "tastes": [200.0, 200.0]
+        },
+        {
+            "x": 1100.0,
+            "y": 800.0,
+            "tastes": [800.0, 1500.0]
+        }
+    ],
+  "pillars": [{ "center": [345.0, 255.0], "radius": 4.0}]
+}
+"#;
+
 pub const EXAMPLE_OUTPUT: &str = r#"
 {
     "placements": [
@@ -31,28 +58,32 @@ pub const EXAMPLE_OUTPUT: &str = r#"
     }
 "#;
 
-pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
+pub fn is_blocked_by_circle(musician: P, attendee: P, circle: (P, f64)) -> bool {
     // for horizontal/vertical segments, the distance is often exactly 5.0. avoid rounding errors.
     if musician.1 == attendee.1 {
         let min = musician.0.min(attendee.0);
         let max = musician.0.max(attendee.0);
-        let v = blocking_musician.0;
+        let v = circle.0 .0;
         if min <= v && v <= max {
-            let w = blocking_musician.1 - musician.1;
-            return -5.0 < w && w < 5.0;
+            let w = circle.0 .1 - musician.1;
+            return -circle.1 < w && w < circle.1;
         }
     }
     if musician.0 == attendee.0 {
         let min = musician.1.min(attendee.1);
         let max = musician.1.max(attendee.1);
-        let v = blocking_musician.1;
+        let v = circle.0 .1;
         if min <= v && v <= max {
-            let w = blocking_musician.0 - musician.0;
-            return -5.0 < w && w < 5.0;
+            let w = circle.0 .0 - musician.0;
+            return -circle.1 < w && w < circle.1;
         }
     }
-    let d2 = P::dist2_sp((musician, attendee), blocking_musician);
-    d2 < 25.0
+    let d2 = P::dist2_sp((musician, attendee), circle.0);
+    d2 < circle.1 * circle.1
+}
+
+pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
+    is_blocked_by_circle(musician, attendee, (blocking_musician, 5.0))
 }
 
 pub fn is_blocked_by_someone(
@@ -68,6 +99,11 @@ pub fn is_blocked_by_someone(
             continue;
         }
         if is_blocked(musician_pos, attendee_pos, output[i]) {
+            return true;
+        }
+    }
+    for pillar in &input.pillars {
+        if is_blocked_by_circle(musician_pos, attendee_pos, *pillar) {
             return true;
         }
     }
@@ -533,5 +569,13 @@ mod tests {
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
         );
+    }
+
+    #[test]
+    fn test_example2_naive() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(compute_score(&input, &output), 3270);
     }
 }
