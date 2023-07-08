@@ -143,7 +143,7 @@ pub async fn handler() -> impl Responder {
             buf.push_str(&format!("Failed to update submissions: {}\n", e));
         }
     }
-    match update_official_problens().await {
+    match update_official_problems().await {
         Ok(ids) => {
             if ids.len() == 0 {
                 buf.push_str("No problems to update\n");
