@@ -25,7 +25,8 @@ fn default_limit() -> u32 {
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
     let mut buf = String::new();
     buf.push_str("<table>");
-    match sql::select(r#"
+    match sql::select(
+        r#"
 SELECT
     submission_id,
     official_id,
@@ -43,7 +44,8 @@ LIMIT :offset, :limit
         params! {
             "offset" => info.offset,
             "limit" => info.limit
-        }) {
+        },
+    ) {
         Ok(rows) => {
             for row in rows {
                 match || -> Result<String> {
