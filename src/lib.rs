@@ -313,6 +313,18 @@ impl P {
         let q2 = v.rot() * (y.sqrt() / d);
         vec![q1 - q2, q1 + q2]
     }
+    /// 接線の接点. c->p の [右側, 左側]
+    pub fn tan_cp((c, r): (P, f64), p: P) -> Vec<P> {
+        let v = p - c;
+        let d2 = v.abs2();
+        let y = d2 - r * r;
+        if y < 0.0 {
+            return vec![];
+        }
+        let q1 = c + v * (r * r / d2);
+        let q2 = v.rot() * (r * y.sqrt() / d2);
+        vec![q1 - q2, q1 + q2]
+    }
 }
 
 pub mod mcf;
