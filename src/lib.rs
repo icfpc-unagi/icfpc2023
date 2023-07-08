@@ -72,6 +72,7 @@ pub struct Input {
     pub musicians: Vec<usize>,
     pub pos: Vec<P>,
     pub tastes: Vec<Vec<f64>>,
+    pub pillars: Vec<Pillar>,
 }
 
 impl Input {
@@ -96,6 +97,11 @@ struct JsonAttendee {
     y: f64,
     tastes: Vec<f64>,
 }
+#[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Clone)]
+pub struct Pillar {
+    center: P,
+    radius: f64,
+}
 
 /// Corresponds to the input json format.
 #[derive(Serialize, Deserialize, Debug)]
@@ -107,6 +113,7 @@ pub struct Problem {
     stage_bottom_left: P,
     musicians: Vec<usize>,
     attendees: Vec<JsonAttendee>,
+    pillars: Vec<Pillar>,
 }
 
 impl Problem {
@@ -127,6 +134,7 @@ impl From<Problem> for Input {
             musicians: p.musicians,
             pos: p.attendees.iter().map(|a| P(a.x, a.y)).collect(),
             tastes: p.attendees.into_iter().map(|a| a.tastes).collect(),
+            pillars: p.pillars,
         }
     }
 }
