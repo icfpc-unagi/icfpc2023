@@ -134,6 +134,7 @@ fn compute_cand(input: &Input) -> Vec<P> {
     for (_, p) in cand {
         cand_set.insert(p);
         if cand_set.len() >= 10000 {
+            // if cand_set.len() >= 2 * input.musicians.len() {
             break;
         }
     }
