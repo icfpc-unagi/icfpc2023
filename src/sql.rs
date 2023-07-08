@@ -13,45 +13,27 @@ static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
     pool
 });
 
-pub fn select<P>(query: &str, params: P) -> Result<Vec<Row>>
-where
-    P: Into<Params>,
-{
+pub fn select(query: &str, params: impl Into<Params>) -> Result<Vec<Row>> {
     let mut conn = CLIENT.get_conn()?;
     conn.exec_map(query, params, |r| Row { row: r })
-        .map_err(|e| anyhow::anyhow!("{}", e))
+        .map_err(|e| e.into())
 }
 
-pub fn row<P>(query: &str, params: P) -> Result<Option<Row>>
-where
-    P: Into<Params>,
-{
-    let mut conn = CLIENT.get_conn()?;
-    let row = conn
+pub fn row(query: &str, params: impl Into<Params>) -> Result<Option<Row>> {
+    Ok(CLIENT.get_conn()?
         .exec_first(query, params)?
-        .and_then(|r| Some(Row { row: r }));
-    Ok(row)
+        .and_then(|r| Some(Row { row: r })))
 }
 
-pub fn cell<T, P>(query: &str, params: P) -> Result<Option<T>>
-where
-    T: FromValue,
-    P: Into<Params>,
-{
-    match row::<P>(query, params) {
-        Ok(Some(row)) => Ok(row.at(0)?),
-        Ok(None) => Ok(None),
-        Err(e) => Err(e),
+pub fn cell<T: FromValue>(query: &str, params: impl Into<Params>) -> Result<Option<T>> {
+    match row(query, params)? {
+        Some(row) => Ok(Some(row.at(0)?)),
+        None => Ok(None),
     }
 }
 
-pub fn exec<P>(query: &str, params: P) -> Result<()>
-where
-    P: Into<Params>,
-{
-    let mut conn = CLIENT.get_conn()?;
-    conn.exec_drop(query, params)?;
-    Ok(())
+pub fn exec(query: &str, params: impl Into<Params>) -> Result<()> {
+    CLIENT.get_conn()?.exec_drop(query, params).map_err(|e| e.into())
 }
 
 pub fn insert<T>(query: &str, values: &[T]) -> Result<u64>
