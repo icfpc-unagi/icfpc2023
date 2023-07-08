@@ -299,9 +299,17 @@ fn compute_score_for_a_musician_fast(
                     }
                 }
                 if !f {
-                    let d2 = (&big_input.pos[attendee_id] - &big_output[musician_id]).abs2();
+                    // let d2 = (&big_input.pos[attendee_id] - &big_output[musician_id]).abs2();
                     let instrument_id = input.musicians[musician_id];
-                    let s = score_fn(&big_input.tastes[attendee_id][instrument_id], d2);
+                    // let s = score_fn(&big_input.tastes[attendee_id][instrument_id], d2);
+                    // score のところだけ bigint 使っていない疑い!!!!
+                    let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
+                    // しかも sqrt している!!
+                    let d2 = d2.sqrt().powf(2.0);
+                    // 2乗の実装は不明。以下でもテストした範囲の挙動は一致。
+                    // let d = d2.sqrt();
+                    // let d2 = d * d;
+                    let s: i64 = crate::score_fn(input.tastes[attendee_id][instrument_id], d2);
                     score += s;
                     attendee_scores[attendee_id] = s;
                 }
