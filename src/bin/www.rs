@@ -23,6 +23,10 @@ async fn main() -> std::io::Result<()> {
                 "/visualize",
                 web::get().to(www::handlers::visualize::handler),
             )
+            .route(
+                "/my_userboard",
+                web::get().to(www::handlers::my_userboard::handler),
+            )
             .service(Files::new("/", "/www"))
     })
     .bind(bind_address)?

@@ -23,6 +23,7 @@ pub fn new_engine() -> Handlebars<'static> {
 <nav>
 <a href="/"></a>
 <ul>
+<li><a href="/my_userboard">問題一覧</a></li>
 <li><a href="/submissions">提出一覧</a></li>
 <li><a href="/visualizer">可視化</a></li>
 </ul>
