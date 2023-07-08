@@ -40,17 +40,18 @@ fn compute_density(input: &Input) -> f64 {
 fn main() {
     let paths = get_sorted_problem_paths("../Dropbox/ICFPC2023/problems/problem-*.json");
 
-    println!("id\t#Mus\t#Att\t#Inst\tDensity");
+    println!("id\t#Mus\t#Att\t#Inst\tDensity\t#Pil");
     for path in paths {
         let input = icfpc2023::read_input_from_file(&path);
         let problem_id = extract_number_from_path(&path);
         println!(
-            "{}\t{}\t{}\t{}\t{:.2}",
+            "{}\t{}\t{}\t{}\t{:.2}\t{}",
             problem_id,
             input.n_musicians(),
             input.n_attendees(),
             input.n_instruments(),
             compute_density(&input),
+            input.pillars.len(),
         );
     }
 
