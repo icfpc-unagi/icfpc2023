@@ -65,6 +65,22 @@ pub fn get_time() -> f64 {
 pub struct P(pub f64, pub f64);
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Version {
+    One,
+    Two,
+}
+
+impl Version {
+    pub fn from_problem_id(problem_id: i32) -> Self {
+        if problem_id <= 55 {
+            Version::One
+        } else {
+            Version::Two
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Input {
     pub room: P,
     pub stage0: P,
@@ -73,6 +89,8 @@ pub struct Input {
     pub pos: Vec<P>,
     pub tastes: Vec<Vec<f64>>,
     pub pillars: Vec<(P, f64)>,
+    pub version: Version,
+    pub problem_id: Option<i32>,
 }
 
 impl Input {
@@ -139,8 +157,17 @@ impl From<Problem> for Input {
                 .into_iter()
                 .map(|p| (p.center, p.radius))
                 .collect(),
+            version: Version::One,
+            problem_id: None,
         }
     }
+}
+
+pub fn problem_id_from_path(path: &str) -> i32 {
+    let re = regex::Regex::new(r"problems?-([0-9]+)\.json").unwrap();
+    let caps = re.captures(path).unwrap();
+    let num_str = caps.get(1).map_or("", |m| m.as_str());
+    num_str.parse::<i32>().unwrap()
 }
 
 pub fn read_input() -> Input {
@@ -148,13 +175,27 @@ pub fn read_input() -> Input {
 }
 
 pub fn read_input_from_file(path: &str) -> Input {
+    let problem_id = problem_id_from_path(path);
     let content = std::fs::read_to_string(path).expect("Failed to read file");
-    parse_input(&content)
+    let mut input = parse_input_with_version(&content, Version::from_problem_id(problem_id));
+    input.problem_id = Some(problem_id);
+    input
 }
 
 pub fn parse_input(s: &str) -> Input {
+    println!(
+        "{}\n!!!!!! D E P R E C A T E D !!!!!!!\n{}",
+        "=".repeat(80),
+        "=".repeat(80),
+    );
+    parse_input_with_version(s, Version::One)
+}
+
+pub fn parse_input_with_version(s: &str, version: Version) -> Input {
     let json: Problem = serde_json::from_str(s).unwrap();
-    json.into()
+    let mut input: Input = json.into();
+    input.version = version;
+    input
 }
 
 /// Corresponds to the output json format.
