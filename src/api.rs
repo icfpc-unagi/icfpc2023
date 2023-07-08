@@ -21,10 +21,18 @@ pub enum SubmissionStatus {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Submission {
-    _id: String,
-    problem_id: usize,
-    submitted_at: String,
-    score: SubmissionStatus,
+    pub _id: String,
+    pub problem_id: usize,
+    pub submitted_at: String,
+    pub score: SubmissionStatus,
+    // NOTE: This field is not documented in the API spec.
+    pub user_id: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+pub struct SubmissionResponse {
+    pub submission: Submission,
+    pub contents: String,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -134,6 +142,20 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
     let submissions: Response<Vec<Submission>> = res.json().await?;
     match submissions {
         Response::Success(submissions) => Ok(submissions),
+        Response::Failure(error) => Err(anyhow!(error)),
+    }
+}
+
+pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
+    let res = CLIENT
+        .get(format!("{}/submission?submission_id={}", API_BASE, submission_id))
+        .header(AUTHORIZATION, format!("Bearer {}", *TOKEN))
+        .send()
+        .await?;
+    eprintln!("Status: {}", res.status());
+    let submission: Response<SubmissionResponse> = res.json().await?;
+    match submission {
+        Response::Success(submission) => Ok(submission),
         Response::Failure(error) => Err(anyhow!(error)),
     }
 }
