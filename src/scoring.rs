@@ -264,6 +264,14 @@ pub fn compute_score_for_a_musician_fast(
 
 /// Returns (score, musician_scores, attendee_scores)
 pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
+    if !is_valid_output(input, output) {
+        return (
+            0,
+            vec![0; input.n_musicians()],
+            vec![0; input.n_attendees()],
+        );
+    }
+
     let mut score_total = 0;
     let mut score_musician = vec![0; input.n_musicians()];
     let mut score_attendee = vec![0; input.n_attendees()];
