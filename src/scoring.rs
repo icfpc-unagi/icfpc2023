@@ -96,7 +96,7 @@ pub fn is_valid_output(input: &Input, output: &Output) -> bool {
     // musician VS musician
     for i in 0..input.n_musicians() {
         for j in 0..i {
-            if (output[i] - output[j]).abs2() <= 25.0 {
+            if (output[i] - output[j]).abs2() < 100.0 {
                 eprintln!(
                     "Musicians too close: {} and {} ({:?}, {:?})",
                     j, i, output[j], output[i]
