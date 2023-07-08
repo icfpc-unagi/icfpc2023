@@ -104,6 +104,15 @@ pub struct Problem {
     attendees: Vec<JsonAttendee>,
 }
 
+impl Problem {
+    pub fn room_size(&self) -> P {
+        P(self.room_width, self.room_height)
+    }
+    pub fn stage_size(&self) -> P {
+        P(self.stage_width, self.stage_height)
+    }
+}
+
 pub fn read_input() -> Input {
     parse_input(&std::io::read_to_string(std::io::stdin()).unwrap())
 }
@@ -116,12 +125,9 @@ pub fn read_input_from_file(path: &str) -> Input {
 pub fn parse_input(s: &str) -> Input {
     let json: Problem = serde_json::from_str(s).unwrap();
     Input {
-        room: P(json.room_width, json.room_height),
+        room: json.room_size(),
         stage0: json.stage_bottom_left,
-        stage1: P(
-            json.stage_bottom_left.0 + json.stage_width,
-            json.stage_bottom_left.1 + json.stage_height,
-        ),
+        stage1: json.stage_bottom_left + json.stage_size(),
         musicians: json.musicians,
         pos: json.attendees.iter().map(|a| P(a.x, a.y)).collect(),
         tastes: json.attendees.into_iter().map(|a| a.tastes).collect(),
@@ -213,8 +219,11 @@ impl P {
     pub fn rot(self) -> P {
         P(-self.1, self.0)
     }
-    pub fn rot60(self) -> P{
-        P(self.0 * 0.5 - self.1 * ((3.0 as f64).sqrt()) / 2.0, self.0 *  ((3.0 as f64).sqrt()) / 2.0 + self.1 / 2.0)
+    pub fn rot60(self) -> P {
+        P(
+            self.0 * 0.5 - self.1 * ((3.0 as f64).sqrt()) / 2.0,
+            self.0 * ((3.0 as f64).sqrt()) / 2.0 + self.1 / 2.0,
+        )
     }
 }
 
@@ -273,3 +282,16 @@ pub mod vis;
 pub mod input_stats;
 
 pub mod candidate;
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_f64_roundtrip() {
+        // make sure that it doesn't lose precision.
+        // NOTE: It fails without feature "float_roundtrip".
+        let original = "111.99999998999999";
+        let value = serde_json::from_str::<f64>(original).unwrap();
+        let converted = serde_json::to_string(&value).unwrap();
+        assert_eq!(original, &converted);
+    }
+}
