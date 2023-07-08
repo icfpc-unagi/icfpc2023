@@ -20,7 +20,7 @@ DOCKER_REGISTRY = asia-docker.pkg.dev/icfpc-primary/asia
 ###############################################################################
 
 .PHONY: test
-test: test/rust
+test: test/rust test/rust/vis
 
 .PHONY:
 check:
@@ -37,8 +37,8 @@ rebase:
 # Test rules
 ###############################################################################
 
-.PHONY: test/rust
-test/rust: test/rust/vis
+.PHONY: test/rust test/rust/vis
+test/rust:
 	cargo test
 	cargo build --bins
 

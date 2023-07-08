@@ -76,9 +76,9 @@ pub async fn get_raw_problem(problem_id: u32) -> Result<String> {
 
 /// Returns the problem with the given ID.
 /// Authentication is not required.
-pub async fn get_problem(problem_id: u32) -> Result<JsonConcert> {
+pub async fn get_problem(problem_id: u32) -> Result<Problem> {
     let problem = get_raw_problem(problem_id).await?;
-    let problem: JsonConcert = serde_json::from_str(&problem)?;
+    let problem: Problem = serde_json::from_str(&problem)?;
     Ok(problem)
 }
 
@@ -162,10 +162,6 @@ pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
 
 /// Submits a solution and returns the submission ID.
 pub async fn submit(problem_id: u32, placements: &Output) -> Result<String> {
-    #[derive(Serialize)]
-    struct Solution {
-        placements: Vec<XY>,
-    }
     let contents = serde_json::to_string(&Solution {
         placements: placements.iter().map(|p| p.into()).collect(),
     })?;

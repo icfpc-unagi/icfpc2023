@@ -92,8 +92,9 @@ struct JsonAttendee {
     tastes: Vec<f64>,
 }
 
+/// Corresponds to the input json format.
 #[derive(Serialize, Deserialize, Debug)]
-pub struct JsonConcert {
+pub struct Problem {
     room_width: f64,
     room_height: f64,
     stage_width: f64,
@@ -113,7 +114,7 @@ pub fn read_input_from_file(path: &str) -> Input {
 }
 
 pub fn parse_input(s: &str) -> Input {
-    let json: JsonConcert = serde_json::from_str(s).unwrap();
+    let json: Problem = serde_json::from_str(s).unwrap();
     Input {
         room: P(json.room_width, json.room_height),
         stage0: json.stage_bottom_left,
@@ -127,8 +128,9 @@ pub fn parse_input(s: &str) -> Input {
     }
 }
 
+/// Corresponds to the output json format.
 #[derive(Serialize, Deserialize, Debug)]
-struct Out {
+struct Solution {
     placements: Vec<XY>,
 }
 
@@ -151,14 +153,14 @@ impl Into<P> for XY {
 }
 
 pub fn write_output(output: &Output) {
-    let out = Out {
-        placements: output.iter().map(|p| XY { x: p.0, y: p.1 }).collect(),
+    let out = Solution {
+        placements: output.iter().map(|p| p.into()).collect(),
     };
     serde_json::to_writer(std::io::stdout(), &out).unwrap();
 }
 
 pub fn parse_output(s: &str) -> Output {
-    let out: Out = serde_json::from_str(s).unwrap();
+    let out: Solution = serde_json::from_str(s).unwrap();
     out.placements.into_iter().map(|p| P(p.x, p.y)).collect()
 }
 
