@@ -32,7 +32,7 @@ pub const EXAMPLE_OUTPUT: &str = r#"
 
 pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
     let d2 = P::dist2_sp((musician, attendee), blocking_musician);
-    d2 <= 25.0
+    d2 < 25.0
 }
 
 pub fn is_blocked_by_someone(
