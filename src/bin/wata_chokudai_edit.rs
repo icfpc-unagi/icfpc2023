@@ -378,9 +378,10 @@ fn main() {
                 sum += diff.abs() as f64;
                 cnt += 1;
 
+
                 let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t);
-                if T <= 1.0 {
+                let mut T = ave * (1.0 - t)* (1.0 - t);
+                if T <= 1.0{
                     T = 1.0;
                 }
 
@@ -395,8 +396,8 @@ fn main() {
                 cnt += 1;
 
                 let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t);
-                if T <= 1.0 {
+                let mut T = ave * (1.0 - t)* (1.0 - t);
+                if T <= 1.0{
                     T = 1.0;
                 }
 
