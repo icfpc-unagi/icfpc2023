@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::*;
 
 use anyhow::anyhow;
@@ -17,6 +19,16 @@ pub enum SubmissionStatus {
     Failure(String),
     // Score must be an integer but it has floating point in json for some reason.
     Success(#[serde(deserialize_with = "parse_u64_via_f64")] u64),
+}
+
+impl fmt::Display for SubmissionStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SubmissionStatus::Processing => write!(f, "Pending"),
+            SubmissionStatus::Success(score) => write!(f, "{}", score),
+            SubmissionStatus::Failure(e) => write!(f, "{}", e),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]

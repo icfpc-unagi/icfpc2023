@@ -325,7 +325,7 @@ fn main() {
             for j in 0..cand.len() {
                 if (cand[i] - cand[j]).abs2() >= 100.0 {
                     for k in 0..input.pos.len() {
-                        if P::dist2_sp((cand[j], input.pos[k]), cand[i]) <= 25.0 {
+                        if is_blocked(cand[j], input.pos[k], cand[i]) {
                             tmp.push((j, k));
                         }
                     }
@@ -378,10 +378,9 @@ fn main() {
                 sum += diff.abs() as f64;
                 cnt += 1;
 
-
                 let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t)* (1.0 - t);
-                if T <= 1.0{
+                let mut T = ave * (1.0 - t) * (1.0 - t);
+                if T <= 1.0 {
                     T = 1.0;
                 }
 
@@ -396,8 +395,8 @@ fn main() {
                 cnt += 1;
 
                 let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t)* (1.0 - t);
-                if T <= 1.0{
+                let mut T = ave * (1.0 - t) * (1.0 - t);
+                if T <= 1.0 {
                     T = 1.0;
                 }
 
