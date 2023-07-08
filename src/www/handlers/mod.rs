@@ -1,2 +1,2 @@
-pub mod visualize;
 pub mod template;
+pub mod visualize;

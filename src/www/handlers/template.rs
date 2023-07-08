@@ -2,11 +2,14 @@ use handlebars::Handlebars;
 use once_cell::sync::Lazy;
 use serde_json::json;
 
-static ENGINE: Lazy<Handlebars> =  Lazy::new(|| new_engine());
+static ENGINE: Lazy<Handlebars> = Lazy::new(|| new_engine());
 
 pub fn new_engine() -> Handlebars<'static> {
     let mut handlebars = Handlebars::new();
-    handlebars.register_template_string("main", r#"
+    handlebars
+        .register_template_string(
+            "main",
+            r#"
 <html lang="ja">
 <header>
 <meta charset="utf-8">
@@ -30,7 +33,9 @@ pub fn new_engine() -> Handlebars<'static> {
 </article>
 </main>
 </body>
-</html>"#).unwrap();
+</html>"#,
+        )
+        .unwrap();
     handlebars.register_template_string("visualizer", r#"
 <p>
     <label>
@@ -216,27 +221,39 @@ pub fn new_engine() -> Handlebars<'static> {
 }
 
 fn escape_html(s: &str) -> String {
-    s.chars().map(|c| match c {
-        '&' => "&amp;".to_string(),
-        '<' => "&lt;".to_string(),
-        '>' => "&gt;".to_string(),
-        '"' => "&quot;".to_string(),
-        '\'' => "&#x27;".to_string(),
-        '/' => "&#x2F;".to_string(),
-        _ => c.to_string(),
-    }).collect()
+    s.chars()
+        .map(|c| match c {
+            '&' => "&amp;".to_string(),
+            '<' => "&lt;".to_string(),
+            '>' => "&gt;".to_string(),
+            '"' => "&quot;".to_string(),
+            '\'' => "&#x27;".to_string(),
+            '/' => "&#x2F;".to_string(),
+            _ => c.to_string(),
+        })
+        .collect()
 }
 
 pub fn render(contents: &str) -> String {
-    ENGINE.render("main", &json!({
-        "contents": contents,
-    })).unwrap()
+    ENGINE
+        .render(
+            "main",
+            &json!({
+                "contents": contents,
+            }),
+        )
+        .unwrap()
 }
 
 pub fn render_visualize(problem_id: u32, input: &str, output: &str) -> String {
-    ENGINE.render("visualize", &json!({
-        "problem_id": problem_id,
-        "input": escape_html(input),
-        "output": escape_html(output),
-    })).unwrap()
+    ENGINE
+        .render(
+            "visualize",
+            &json!({
+                "problem_id": problem_id,
+                "input": escape_html(input),
+                "output": escape_html(output),
+            }),
+        )
+        .unwrap()
 }
