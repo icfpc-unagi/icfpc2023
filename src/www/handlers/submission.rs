@@ -27,17 +27,20 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
                 &mut buf,
                 "<h1>Submission ID: {}</h1>",
                 submission.submission._id
-            ).unwrap();
+            )
+            .unwrap();
             write!(
                 &mut buf,
                 "<ul><li>Problem ID: {}</li>",
                 submission.submission.problem_id
-            ).unwrap();
+            )
+            .unwrap();
             write!(
                 &mut buf,
                 "<li>Submitted at: {}</li>",
                 submission.submission.submitted_at
-            ).unwrap();
+            )
+            .unwrap();
             let score_str = match &submission.submission.score {
                 api::SubmissionStatus::Processing => {
                     format!("Pending")
@@ -60,7 +63,8 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
                 &mut buf,
                 "<pre style=\"white-space: pre-wrap;\"><code>{}</code></pre>",
                 submission.contents
-            ).unwrap();
+            )
+            .unwrap();
         }
         Err(e) => {
             return HttpResponse::InternalServerError()
