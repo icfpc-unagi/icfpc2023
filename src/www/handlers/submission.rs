@@ -1,9 +1,7 @@
 use crate::*;
 
-use actix_files::Files;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, HttpResponse, Responder};
 use serde::Deserialize;
-use std::env;
 
 #[derive(Deserialize)]
 pub struct Query {
@@ -47,7 +45,7 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
         Err(e) => {
             return HttpResponse::InternalServerError()
                 .content_type("text/html")
-                .body(render(&format!("{}", e)));
+                .body(www::handlers::template::render(&format!("{}", e)));
         }
     }
     HttpResponse::Ok()
