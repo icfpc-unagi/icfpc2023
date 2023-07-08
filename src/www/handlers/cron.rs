@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::*;
 
 use actix_web::{HttpResponse, Responder};
@@ -55,6 +57,78 @@ pub async fn update_official_submissions(offset: u32, limit: u32) -> Result<Vec<
     Ok(ids)
 }
 
+pub async fn update_official_problem(problem_id: u32) -> Result<()> {
+    const CHUNK_SIZE: usize = 1024 * 1024;
+    const TEMP_ID: u32 = 100000;
+
+    eprintln!("Updating the problem: {}", problem_id);
+    let problem = api::get_raw_problem(problem_id).await?;
+    dbg!(&problem);
+    sql::exec("
+        DELETE FROM problem_chunks
+        WHERE problem_id = :problem_id",
+        params! {
+            "problem_id" => problem_id + TEMP_ID,
+            "temp_id" => &TEMP_ID,
+        })?;
+    for (chunk_index, chunk) in problem
+        .as_str()
+        .chars()
+        .collect::<Vec<char>>()
+        .chunks(CHUNK_SIZE)
+        .map(|chunk| chunk.into_iter().collect::<String>())
+        .enumerate() {
+        sql::exec("
+            INSERT INTO problem_chunks(
+                problem_id,
+                problem_chunk_index,
+                problem_chunk,
+                problem_chunk_checked
+            ) VALUES (
+                :problem_id,
+                :problem_chunk_index,
+                :problem_chunk,
+                CURRENT_TIMESTAMP()
+            )", params! {
+                "problem_id" => problem_id + TEMP_ID,
+                "problem_chunk_index" => chunk_index,
+                "problem_chunk" => &chunk,
+            })?;
+    }
+    sql::exec("
+        UPDATE problem_chunks
+        SET problem_id = problem_id - :temp_id
+        WHERE problem_id = :problem_id OR problem_id = :problem_id + :temp_id",
+        params! {
+            "problem_id" => problem_id + TEMP_ID,
+            "temp_id" => &TEMP_ID,
+        })?;
+    sql::exec("
+        DELETE FROM problem_chunks
+        WHERE problem_id < 0",
+        mysql::Params::Empty)?;
+    Ok(())
+}
+
+pub async fn update_official_problems() -> Result<Vec<u32>> {
+    let mut problem_ids = HashSet::<u32>::new();
+    sql::select("
+        SELECT DISTINCT problem_id FROM problem_chunks
+    ", mysql::Params::Empty, |row| {
+        problem_ids.insert(row.get("problem_id").unwrap())
+    })?;
+
+    let mut updated_ids = Vec::new();
+    let num_problems = api::get_number_of_problems().await?;
+    for problem_id in 1..=num_problems {
+        if !problem_ids.contains(&problem_id) {
+            update_official_problem(problem_id).await?;
+            updated_ids.push(problem_id);
+        }
+    }
+    Ok(updated_ids)
+}
+
 pub async fn handler() -> impl Responder {
     let mut buf = String::new();
     match update_official_submissions(0, 100).await {
@@ -67,6 +141,18 @@ pub async fn handler() -> impl Responder {
         }
         Err(e) => {
             buf.push_str(&format!("Failed to update submissions: {}\n", e));
+        }
+    }
+    match update_official_problems().await {
+        Ok(ids) => {
+            if ids.len() == 0 {
+                buf.push_str("No problems to update\n");
+            } else {
+                buf.push_str(&format!("Added problems: {:?}\n", ids));
+            }
+        }
+        Err(e) => {
+            buf.push_str(&format!("Failed to update problems: {}\n", e));
         }
     }
     HttpResponse::Ok().content_type("text/plain").body(buf)
