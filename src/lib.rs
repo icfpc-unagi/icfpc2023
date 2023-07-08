@@ -1,6 +1,8 @@
 pub mod scoring;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufWriter;
 
 pub mod secret;
 
@@ -163,6 +165,15 @@ pub fn write_output(output: &Output) {
         placements: output.iter().map(|p| p.into()).collect(),
     };
     serde_json::to_writer(std::io::stdout(), &out).unwrap();
+}
+
+pub fn write_output_to_file(output: &Output, file_name: &str) {
+    let out = Solution {
+        placements: output.iter().map(|p| p.into()).collect(),
+    };
+    let file = File::create(file_name).expect("unable to create file");
+    let writer = BufWriter::new(file);
+    serde_json::to_writer(writer, &out).expect("unable to write data");
 }
 
 pub fn parse_output(s: &str) -> Output {
