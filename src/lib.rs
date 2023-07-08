@@ -12,6 +12,9 @@ pub mod api;
 #[cfg(feature = "reqwest")]
 pub mod www;
 
+#[cfg(feature = "mysql")]
+pub mod mysql;
+
 pub trait SetMinMax {
     fn setmin(&mut self, v: Self) -> bool;
     fn setmax(&mut self, v: Self) -> bool;
