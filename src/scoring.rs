@@ -565,16 +565,15 @@ mod tests {
     #[test]
     fn test_example_ver2_naive() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
-        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::Two);
-        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        let input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
+        let output = parse_output(EXAMPLE_OUTPUT);
         assert_eq!(compute_score(&input, &output), 5357);
     }
 
     #[test]
     fn test_example_ver2_fast() {
-        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
-        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::Two);
-        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        let input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
+        let output = parse_output(EXAMPLE_OUTPUT);
         assert_eq!(
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
@@ -584,16 +583,15 @@ mod tests {
     #[test]
     fn test_example2_naive() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
-        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
-        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        let input = parse_input_with_version(EXAMPLE_INPUT2, Version::Two);
+        let output = parse_output(EXAMPLE_OUTPUT);
         assert_eq!(compute_score(&input, &output), 3270);
     }
 
     #[test]
     fn test_example2_fast() {
-        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
-        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT2, crate::Version::Two);
-        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        let input = parse_input_with_version(EXAMPLE_INPUT2, Version::Two);
+        let output = parse_output(EXAMPLE_OUTPUT);
         assert_eq!(
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
@@ -607,5 +605,31 @@ mod tests {
         let result_naive = compute_score_fast(&input, &output);
         assert_eq!(result_naive.0, 1502807685);
         assert_eq!(result_naive, compute_score_naive(&input, &output));
+    }
+
+    #[test]
+    fn test_problem2_64a93f468c4efca8cb0a9c65_scorerer() {
+        let input = read_input_from_file("./problems/problem-2.json");
+        let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
+
+        let mut scorerer = Scorerer::new(&input);
+        for i in 0..input.n_musicians() {
+            scorerer.add_musician(i, output[i]);
+
+            let remove_musician_id = (i * 12308120398123 + 120938102938) % (i + 1);
+            let score_diff2 = scorerer.remove_musician(remove_musician_id);
+            let score_diff3 = scorerer.add_musician(remove_musician_id, output[remove_musician_id]);
+            assert_eq!(score_diff2, -score_diff3);
+
+            if i > 0 {
+                let swap_musician_id = (i * 12313414 + 20931023) % i;
+                let score_diff2 = scorerer.swap_musicians(swap_musician_id, i);
+                let score_diff3 = scorerer.swap_musicians(swap_musician_id, i);
+                assert_eq!(score_diff2, -score_diff3);
+            }
+
+            // dbg!(scorerer.score);
+        }
+        assert_eq!(scorerer.score, compute_score(&input, &output));
     }
 }
