@@ -35,10 +35,26 @@ RUN touch ./src/lib.rs \
     && cargo build --release --bin www \
     && cp ./target/release/www /app/
 
-FROM ubuntu:22.04 AS server
+FROM rust-builder AS server
+
+ARG UNAGI_PASSWORD
+ENV UNAGI_PASSWORD ${UNAGI_PASSWORD}
+
+RUN apt-get update \
+    && apt-get install -y nginx apache2-utils supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN htpasswd -b -c /etc/nginx/.htpasswd unagi ${UNAGI_PASSWORD}
+
+RUN rm /etc/nginx/sites-enabled/default
+COPY configs/nginx.conf /etc/nginx/sites-enabled/
+COPY configs/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 COPY --from=vis /www /www
-COPY --from=service /app/www /app/www
+COPY --from=service /app/www /usr/local/bin/app
 COPY static /www/static
 WORKDIR /app
-ENV PORT 8080
-CMD ["./www"]
+ENV RUST_BACKTRACE 1
+
+EXPOSE 80
+CMD ["/usr/bin/supervisord"]
