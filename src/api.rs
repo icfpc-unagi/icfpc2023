@@ -149,7 +149,7 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
 pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
     let res = CLIENT
         .get(format!("{}/submission?submission_id={}", API_BASE, submission_id))
-        .header(AUTHORIZATION, format!("Bearer {}", *TOKEN))
+        .bearer_auth(&*TOKEN)
         .send()
         .await?;
     eprintln!("Status: {}", res.status());
