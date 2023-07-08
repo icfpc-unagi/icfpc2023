@@ -28,6 +28,10 @@ async fn main() -> std::io::Result<()> {
                 web::get().to(www::handlers::my_userboard::handler),
             )
             .route(
+                "/my_submissions",
+                web::get().to(www::handlers::my_submissions::handler),
+            )
+            .route(
                 "/cron",
                 web::get().to(www::handlers::cron::handler),
             )
