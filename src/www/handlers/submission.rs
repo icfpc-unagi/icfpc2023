@@ -1,4 +1,4 @@
-use crate::{api::Submission, *};
+use crate::*;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -19,7 +19,7 @@ fn default_color_type() -> i32 {
 // use actix_web::web;
 // use actix_web::HttpResponse;
 // use actix_web::Responder;
-use std::fmt::{write, Write};
+use std::fmt::Write;
 
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
     match handle(info).await {

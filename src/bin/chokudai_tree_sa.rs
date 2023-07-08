@@ -7,6 +7,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 
 
+#[allow(non_upper_case_globals)]
 const ng_num: usize = 9999999;
 
 struct States{
@@ -282,6 +283,7 @@ fn main() {
         }
 
         let ave = sum / cnt as f64 / 10.0;
+        #[allow(non_snake_case)]
         let mut T = ave * (1.0 - t)* (1.0 - t);
         if T <= 1.0{
             T = 1.0;
