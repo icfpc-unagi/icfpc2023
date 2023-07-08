@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use icfpc2023;
+use icfpc2023::{self, compute_score};
 use icfpc2023::{Input, Output, P};
 
 use glob::glob;
@@ -34,6 +34,23 @@ fn main() {
         //"..//Downloads/submission-p1-2023-07-07T17_29_13.529879303Z.json",
         // "..//Downloads/submission-p45-2023-07-07T15_26_09.822142655Z.json",
     );
+
+    let mut scorerer = icfpc2023::Scorerer::new(&input);
+    for i in 0..input.n_musicians() {
+        scorerer.add_musician(i, output[i]);
+
+        let remove_musician_id = (i * 12308120398123 + 120938102938) % (i + 1);
+        let score_diff2 = scorerer.remove_musician(remove_musician_id);
+        let score_diff3 = scorerer.add_musician(remove_musician_id, output[remove_musician_id]);
+        assert_eq!(score_diff2, -score_diff3);
+
+        // dbg!(scorerer.score);
+    }
+    dbg!(scorerer.score);
+    dbg!(compute_score(&input, &output));
+    return;
+
+    /*
     //let output = icfpc2023::read_output_from_file();
 
     // let output =
@@ -75,5 +92,6 @@ fn main() {
         s += mat[i][input.musicians[i]];
     }
     dbg!(&s);
+    */
     */
 }

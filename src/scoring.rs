@@ -286,3 +286,164 @@ pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec
 
     (score_total, score_musician, score_attendee)
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+pub struct Scorerer {
+    pub input: Input,
+    pub score: i64,
+    pub musician_pos: Vec<Option<P>>,
+    // n_blocking_musicians[musician_id][attendee_id] := # of other musicians bocking this edge
+    pub n_blocking_musicians: Vec<Vec<usize>>,
+}
+
+impl Scorerer {
+    pub fn new(input: &Input) -> Self {
+        Self {
+            input: input.clone(),
+            score: 0,
+            musician_pos: vec![None; input.n_musicians()],
+            n_blocking_musicians: vec![vec![0; input.n_attendees()]; input.n_musicians()],
+        }
+    }
+
+    fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> i64 {
+        let instrument_id = self.input.musicians[musician_id];
+        let taste = self.input.tastes[attendee_id][instrument_id];
+        let pos = self.musician_pos[musician_id].unwrap();
+        let d2 = (self.input.pos[attendee_id] - pos).abs2();
+        score_fn(taste, d2)
+    }
+
+    pub fn add_musician(&mut self, musician_id: usize, pos: P) -> i64 {
+        assert_eq!(self.musician_pos[musician_id], None);
+        self.musician_pos[musician_id] = Some(pos);
+
+        let mut score_diff = 0;
+
+        // Add new contributions
+        for attendee_id in 0..self.input.n_attendees() {
+            self.n_blocking_musicians[musician_id][attendee_id] = 0;
+            for blocker_id in 0..self.input.n_musicians() {
+                let blocker_pos = self.musician_pos[blocker_id];
+                if blocker_id == musician_id || blocker_pos == None {
+                    continue;
+                }
+                if is_blocked(pos, self.input.pos[attendee_id], blocker_pos.unwrap()) {
+                    self.n_blocking_musicians[musician_id][attendee_id] += 1;
+                }
+            }
+            if self.n_blocking_musicians[musician_id][attendee_id] == 0 {
+                score_diff += self.bare_score_fn(musician_id, attendee_id);
+            }
+        }
+
+        // Add new blocking
+        for blocked_musician_id in 0..self.input.n_musicians() {
+            let blocked_pos = self.musician_pos[blocked_musician_id];
+            if blocked_pos == None || blocked_musician_id == musician_id {
+                continue;
+            }
+            let blocked_pos = blocked_pos.unwrap();
+
+            for attendee_id in 0..self.input.n_attendees() {
+                if is_blocked(blocked_pos, self.input.pos[attendee_id], pos) {
+                    self.n_blocking_musicians[blocked_musician_id][attendee_id] += 1;
+                    if self.n_blocking_musicians[blocked_musician_id][attendee_id] == 1 {
+                        score_diff -= self.bare_score_fn(blocked_musician_id, attendee_id);
+                    }
+                }
+            }
+        }
+
+        self.score += score_diff;
+        // dbg!(score_diff);
+        score_diff
+    }
+
+    pub fn remove_musician(&mut self, musician_id: usize) -> i64 {
+        assert_ne!(self.musician_pos[musician_id], None);
+        let pos = self.musician_pos[musician_id].unwrap();
+        let mut score_diff = 0;
+
+        // Cancel the current contributions
+        for attendee_id in 0..self.input.n_attendees() {
+            if self.n_blocking_musicians[musician_id][attendee_id] == 0 {
+                score_diff -= self.bare_score_fn(musician_id, attendee_id);
+            }
+            self.n_blocking_musicians[musician_id][attendee_id] = 0;
+        }
+
+        // Cancel the current blocking
+        for blocked_musician_id in 0..self.input.n_musicians() {
+            let blocked_pos = self.musician_pos[blocked_musician_id];
+            if blocked_pos == None || blocked_musician_id == musician_id {
+                continue;
+            }
+            let blocked_pos = blocked_pos.unwrap();
+
+            for attendee_id in 0..self.input.n_attendees() {
+                if is_blocked(blocked_pos, self.input.pos[attendee_id], pos) {
+                    self.n_blocking_musicians[blocked_musician_id][attendee_id] -= 1;
+                    if self.n_blocking_musicians[blocked_musician_id][attendee_id] == 0 {
+                        score_diff += self.bare_score_fn(blocked_musician_id, attendee_id);
+                    }
+                }
+            }
+        }
+
+        self.musician_pos[musician_id] = None;
+        self.score += score_diff;
+        score_diff
+    }
+
+    pub fn move_musician(&mut self, musician_id: usize, new_pos: P) -> i64 {
+        let diff1 = self.remove_musician(musician_id);
+        let diff2 = self.add_musician(musician_id, new_pos);
+        diff1 + diff2
+    }
+
+    /*
+    pub fn swap_musicians(&mut self, musician_id1: usize, musician_id2: usize) -> i64 {
+        let pos1 = self.musician_pos[musician_id1];
+        let pos2 = self.musician_pos[musician_id2];
+        // この場合、ブロッキングは全く変わらない。単にこのmusicianたちが与えているスコアが変わる。
+
+        let mut score_diff = 0;
+        if let Some(pos1) = pos1 {
+            for attendee_id in 0..self.input.n_attendees() {
+                if self.n_blocking_musicians[musician_id1][attendee_id] == 0 {
+                    score_diff -= self.bare_score_fn(musician_id1, attendee_id);
+                }
+            }
+        }
+
+        self.musician_pos[musician_id1] = pos2;
+        self.musician_pos[musician_id2] = pos1;
+
+        /*
+        let diff1 = if pos1 == None {
+            0
+        } else {
+            self.remove_musician(musician_id1)
+        };
+        let diff2 = if pos2 == None {
+            0
+        } else {
+            self.remove_musician(musician_id2)
+        };
+        let diff3 = if pos1 == None {
+            0
+        } else {
+            self.add_musician(musician_id2, pos1.unwrap())
+        };
+        let diff4 = if pos2 == None {
+            0
+        } else {
+            self.add_musician(musician_id1, pos2.unwrap())
+        };
+        diff1 + diff2 + diff3 + diff4
+        */
+    }
+    */
+}
