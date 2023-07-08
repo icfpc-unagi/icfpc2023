@@ -44,6 +44,13 @@ fn main() {
         let score_diff3 = scorerer.add_musician(remove_musician_id, output[remove_musician_id]);
         assert_eq!(score_diff2, -score_diff3);
 
+        if i > 0 {
+            let swap_musician_id = (i * 12313414 + 20931023) % i;
+            let score_diff2 = scorerer.swap_musicians(swap_musician_id, i);
+            let score_diff3 = scorerer.swap_musicians(swap_musician_id, i);
+            assert_eq!(score_diff2, -score_diff3);
+        }
+
         // dbg!(scorerer.score);
     }
     dbg!(scorerer.score);

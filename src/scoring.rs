@@ -403,47 +403,44 @@ impl Scorerer {
         diff1 + diff2
     }
 
-    /*
+    /// この場合、ブロッキングは全く変わらない。単にこのmusicianたちが与えているスコアが変わる。
     pub fn swap_musicians(&mut self, musician_id1: usize, musician_id2: usize) -> i64 {
-        let pos1 = self.musician_pos[musician_id1];
-        let pos2 = self.musician_pos[musician_id2];
-        // この場合、ブロッキングは全く変わらない。単にこのmusicianたちが与えているスコアが変わる。
-
+        assert_ne!(musician_id1, musician_id2);
         let mut score_diff = 0;
-        if let Some(pos1) = pos1 {
+
+        if self.musician_pos[musician_id1].is_some() {
             for attendee_id in 0..self.input.n_attendees() {
                 if self.n_blocking_musicians[musician_id1][attendee_id] == 0 {
                     score_diff -= self.bare_score_fn(musician_id1, attendee_id);
                 }
             }
         }
+        if self.musician_pos[musician_id2].is_some() {
+            for attendee_id in 0..self.input.n_attendees() {
+                if self.n_blocking_musicians[musician_id2][attendee_id] == 0 {
+                    score_diff -= self.bare_score_fn(musician_id2, attendee_id);
+                }
+            }
+        }
 
-        self.musician_pos[musician_id1] = pos2;
-        self.musician_pos[musician_id2] = pos1;
+        self.musician_pos.swap(musician_id1, musician_id2);
+        self.n_blocking_musicians.swap(musician_id1, musician_id2);
 
-        /*
-        let diff1 = if pos1 == None {
-            0
-        } else {
-            self.remove_musician(musician_id1)
-        };
-        let diff2 = if pos2 == None {
-            0
-        } else {
-            self.remove_musician(musician_id2)
-        };
-        let diff3 = if pos1 == None {
-            0
-        } else {
-            self.add_musician(musician_id2, pos1.unwrap())
-        };
-        let diff4 = if pos2 == None {
-            0
-        } else {
-            self.add_musician(musician_id1, pos2.unwrap())
-        };
-        diff1 + diff2 + diff3 + diff4
-        */
+        if self.musician_pos[musician_id1].is_some() {
+            for attendee_id in 0..self.input.n_attendees() {
+                if self.n_blocking_musicians[musician_id1][attendee_id] == 0 {
+                    score_diff += self.bare_score_fn(musician_id1, attendee_id);
+                }
+            }
+        }
+        if self.musician_pos[musician_id2].is_some() {
+            for attendee_id in 0..self.input.n_attendees() {
+                if self.n_blocking_musicians[musician_id2][attendee_id] == 0 {
+                    score_diff += self.bare_score_fn(musician_id2, attendee_id);
+                }
+            }
+        }
+
+        score_diff
     }
-    */
 }
