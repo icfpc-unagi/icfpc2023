@@ -278,6 +278,14 @@ impl P {
     pub fn abs(self) -> f64 {
         self.abs2().sqrt()
     }
+    pub fn pi_ll((p1, p2): (P, P), (q1, q2): (P, P)) -> Option<P> {
+        let d = (q2 - q1).det(p2 - p1);
+        if d == 0.0 {
+            return None;
+        }
+        let r = p1 * d + (p2 - p1) * (q2 - q1).det(q1 - p1);
+        Some(P(r.0 / d, r.1 / d))
+    }
     /// [p1側, p2側].
     pub fn pi_cl((c, r): (P, f64), (p1, p2): (P, P)) -> Vec<P> {
         let v = p2 - p1;
