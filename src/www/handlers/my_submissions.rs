@@ -1,12 +1,9 @@
 use crate::*;
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
 use mysql::params;
 use serde::Deserialize;
-use anyhow::Result;
-use anyhow::anyhow;
-
-use super::submission;
 
 #[derive(Deserialize)]
 pub struct Query {
@@ -77,7 +74,7 @@ LIMIT :offset, :limit
             }() {
                 Ok(s) => {
                     buf.push_str(&s);
-                },
+                }
                 Err(e) => {
                     buf.push_str(&format!("<tr><td>{}</td></tr>", e));
                 }

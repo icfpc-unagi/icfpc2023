@@ -1,7 +1,7 @@
 use anyhow::Result;
+use mysql;
 use mysql::prelude::*;
 use mysql::*;
-use mysql;
 use once_cell::sync::Lazy;
 use std::env;
 
@@ -18,17 +18,18 @@ where
     P: Into<Params>,
 {
     let mut conn = CLIENT.get_conn()?;
-    let selected_data: Vec<T> = conn.exec_map(query, params, move |r| f(Row{row: r}))?;
+    let selected_data: Vec<T> = conn.exec_map(query, params, move |r| f(Row { row: r }))?;
     Ok(selected_data)
 }
 
-pub fn row<T, P>(query: &str, params: P) -> Result<Option<T>>
+pub fn row<P>(query: &str, params: P) -> Result<Option<Row>>
 where
-    T: FromRow,
     P: Into<Params>,
 {
     let mut conn = CLIENT.get_conn()?;
-    let row: Option<T> = conn.exec_first(query, params)?;
+    let row = conn
+        .exec_first(query, params)?
+        .and_then(|r| Some(Row { row: r }));
     Ok(row)
 }
 
@@ -37,8 +38,8 @@ where
     T: FromValue,
     P: Into<Params>,
 {
-    match row::<(T,), P>(query, params) {
-        Ok(Some(row)) => Ok(Some(row.0)),
+    match row::<P>(query, params) {
+        Ok(Some(row)) => Ok(row.at(0)?),
         Ok(None) => Ok(None),
         Err(e) => Err(e),
     }
@@ -64,42 +65,50 @@ where
 }
 
 pub struct Row {
-    row: mysql::Row
+    row: mysql::Row,
 }
 
 impl Row {
+    pub fn at_option<T>(&self, idx: usize) -> Result<Option<T>>
+    where
+        T: FromValue,
+    {
+        match self.row.get_opt::<mysql::Value, usize>(idx) {
+            Some(Ok(value)) => match value {
+                mysql::Value::NULL => Ok(None),
+                x => mysql::from_value_opt::<T>(x.clone())
+                    .map_err(|e| anyhow::anyhow!("Column {}: {}", idx, e))
+                    .map(Some),
+            },
+            Some(Err(e)) => return Err(anyhow::anyhow!("Column {}: {}", idx, e)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn at<T>(&self, idx: usize) -> Result<T>
+    where
+        T: FromValue,
+    {
+        self.at_option(idx)?
+            .ok_or_else(|| anyhow::anyhow!("Column {} is null", idx))
+    }
+
+    fn idx(&self, name: &str) -> Result<usize> {
+        name.idx(&*self.row.columns())
+            .ok_or_else(|| anyhow::anyhow!("Column {} is not found", name))
+    }
+
     pub fn get<T>(&self, name: &str) -> Result<T>
     where
         T: FromValue,
     {
-        let idx = name.idx(&*self.row.columns())
-            .ok_or_else(|| anyhow::anyhow!("Column {} is not found", name))?;
-        match self.row.get_opt::<mysql::Value, usize>(idx) {
-            Some(Ok(value)) => match value {
-                mysql::Value::NULL => return Err(anyhow::anyhow!("{} is null", name)),
-                x => mysql::from_value_opt::<T>(x.clone())
-                    .map_err(|e| anyhow::anyhow!("{}: {}", name, e)),
-            },
-            Some(Err(e)) => return Err(anyhow::anyhow!("{}: {}", name, e)),
-            None => return Err(anyhow::anyhow!("{} is null", name)),
-        }
+        self.at(self.idx(name)?)
     }
 
     pub fn get_option<T>(&self, name: &str) -> Result<Option<T>>
     where
         T: FromValue,
     {
-        let idx = name.idx(&*self.row.columns())
-            .ok_or_else(|| anyhow::anyhow!("Column {} is not found", name))?;
-        match self.row.get_opt::<mysql::Value, usize>(idx) {
-            Some(Ok(value)) => match value {
-                mysql::Value::NULL => Ok(None),
-                x => mysql::from_value_opt::<T>(x.clone())
-                    .map_err(|e| anyhow::anyhow!("{}: {}", name, e))
-                    .map(Some),
-            },
-            Some(Err(e)) => return Err(anyhow::anyhow!("{}: {}", name, e)),
-            None => Ok(None),
-        }
+        self.at_option(self.idx(name)?)
     }
 }

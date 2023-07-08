@@ -1,14 +1,16 @@
 use crate::*;
 
-use mysql::params;
-use anyhow::Result;
 use actix_web::{HttpResponse, Responder};
+use anyhow::Result;
+use mysql::params;
 
 async fn insert_official_submission(official_id: &str) -> Result<Option<String>> {
     let submission = api::get_submission(official_id).await?;
     dbg!(&submission);
     let (submission_score, submission_error) = match submission.submission.score {
-        api::SubmissionStatus::Processing => { return Ok(None); },
+        api::SubmissionStatus::Processing => {
+            return Ok(None);
+        }
         api::SubmissionStatus::Success(score) => (Some(score), None),
         api::SubmissionStatus::Failure(error) => (None, Some(error)),
     };
@@ -35,12 +37,15 @@ pub async fn update_official_submissions(offset: u32, limit: u32) -> Result<Vec<
     let mut ids = Vec::new();
     for submission in submissions {
         dbg!(&submission);
-        let result: Option<u32> = sql::cell("
+        let result: Option<u32> = sql::cell(
+            "
             SELECT submission_id
             FROM submissions
-            WHERE official_id = :official_id", params! {
-            "official_id" => &submission._id,
-        })?;
+            WHERE official_id = :official_id",
+            params! {
+                "official_id" => &submission._id,
+            },
+        )?;
         if let None = result {
             if let Some(id) = insert_official_submission(&submission._id).await? {
                 ids.push(id);
@@ -59,10 +64,10 @@ pub async fn handler() -> impl Responder {
             } else {
                 buf.push_str(&format!("Added submissions: {:?}\n", ids));
             }
-        },
+        }
         Err(e) => {
             buf.push_str(&format!("Failed to update submissions: {}\n", e));
-        },
+        }
     }
     HttpResponse::Ok().content_type("text/plain").body(buf)
 }
