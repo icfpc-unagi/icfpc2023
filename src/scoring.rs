@@ -150,48 +150,42 @@ pub fn compute_closeness_factor(input: &Input, output: &Output, musician_id: usi
     q
 }
 
-pub fn compute_score(input: &Input, output: &Output) -> i64 {
+pub fn compute_score_naive(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
     if !is_valid_output(input, output, true) {
-        return 0;
+        return (
+            0,
+            vec![0; input.n_musicians()],
+            vec![0; input.n_attendees()],
+        );
     }
 
-    let mut score = 0;
+    let mut score_total = 0;
+    let mut score_musician = vec![0; input.n_musicians()];
+    let mut score_attendee = vec![0; input.n_attendees()];
+
     for musician_id in 0..input.n_musicians() {
         let closeness_factor = compute_closeness_factor(input, output, musician_id);
         for attendee_id in 0..input.n_attendees() {
             let pair_score = compute_score_for_pair(input, output, musician_id, attendee_id);
-            score += (closeness_factor * pair_score as f64).ceil() as i64;
+            let score = (closeness_factor * pair_score as f64).ceil() as i64;
+            score_total += score;
+            score_musician[musician_id] += score;
+            score_attendee[attendee_id] += score;
         }
     }
-    score
+    (score_total, score_musician, score_attendee)
+}
+
+pub fn compute_score(input: &Input, output: &Output) -> i64 {
+    compute_score_naive(input, output).0
 }
 
 pub fn compute_score_for_musician(input: &Input, output: &Output) -> Vec<i64> {
-    if !is_valid_output(input, output, true) {
-        return vec![0; input.n_musicians()];
-    }
-
-    return (0..input.n_musicians())
-        .map(|musician_id| {
-            (0..input.n_attendees())
-                .map(|attendee_id| compute_score_for_pair(input, output, musician_id, attendee_id))
-                .sum()
-        })
-        .collect();
+    compute_score_naive(input, output).1
 }
 
 pub fn compute_score_for_attendees(input: &Input, output: &Output) -> Vec<i64> {
-    if !is_valid_output(input, output, true) {
-        return vec![0; input.n_attendees()];
-    }
-
-    return (0..input.n_attendees())
-        .map(|attendee_id| {
-            (0..input.n_musicians())
-                .map(|musician_id| compute_score_for_pair(input, output, musician_id, attendee_id))
-                .sum()
-        })
-        .collect();
+    compute_score_naive(input, output).2
 }
 
 /// score[pos_id][instrument_id]
@@ -237,6 +231,8 @@ pub fn compute_score_for_a_musician_fast(
     let eps = 1e-5;
     let p = output[musician_id];
     let mut events = vec![];
+
+    let closeness_factor = compute_closeness_factor(input, output, musician_id);
 
     for i in 0..input.n_musicians() {
         if i == musician_id {
@@ -295,6 +291,7 @@ pub fn compute_score_for_a_musician_fast(
                     let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
                     let instrument_id = input.musicians[musician_id];
                     let s = score_fn(input.tastes[attendee_id][instrument_id], d2);
+                    let s = (closeness_factor * s as f64).ceil() as i64;
                     score += s;
                     attendee_scores[attendee_id] = s;
                 }
@@ -493,5 +490,48 @@ impl Scorerer {
         }
 
         score_diff
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_example_ver1_naive() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
+        let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
+        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(compute_score(&input, &output), 5343);
+    }
+
+    #[test]
+    fn test_example_ver1_fast() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
+        let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
+        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
+    fn test_example_ver2_naive() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(compute_score(&input, &output), 5357);
+    }
+
+    #[test]
+    fn test_example_ver2_fast() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
+        let input = crate::parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::Two);
+        let output = crate::parse_output(crate::EXAMPLE_OUTPUT);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
     }
 }
