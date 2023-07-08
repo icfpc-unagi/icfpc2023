@@ -315,6 +315,8 @@ pub mod input_stats;
 
 pub mod candidate;
 
+pub mod bigint_scoring;
+
 #[cfg(test)]
 mod tests {
     #[test]
