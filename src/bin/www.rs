@@ -1,8 +1,9 @@
-use icfpc2023::api;
 use actix_files::Files;
-use actix_web::{web, App, HttpServer, Responder, HttpResponse};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use icfpc2023::api;
+use icfpc2023::www;
+use serde::Deserialize;
 use std::env;
-use serde::{Deserialize};
 
 fn render(contents: &str) -> String {
     let mut s = String::new();
@@ -34,13 +35,23 @@ fn render(contents: &str) -> String {
 }
 
 async fn index() -> impl Responder {
-    HttpResponse::Ok().content_type("text/html").body(render("Hello, world!"))
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(render("Hello, world!"))
 }
 
 async fn visualizer() -> impl Responder {
     let contents = std::fs::read_to_string("/www/visualizer.html").unwrap();
-    let contents = contents.split("<body>").nth(1).unwrap().split("</body>").nth(0).unwrap();
-    HttpResponse::Ok().content_type("text/html").body(render(contents))    
+    let contents = contents
+        .split("<body>")
+        .nth(1)
+        .unwrap()
+        .split("</body>")
+        .nth(0)
+        .unwrap();
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(render(contents))
 }
 
 mod submissions {
@@ -61,7 +72,7 @@ mod submissions {
     fn default_limit() -> u32 {
         100
     }
-    
+
     pub async fn handler(info: web::Query<Query>) -> impl Responder {
         let mut s = String::new();
         s.push_str("<table>");
@@ -72,13 +83,13 @@ mod submissions {
                     match &submission.score {
                         api::SubmissionStatus::Processing => {
                             score_str.push_str("Pending");
-                        },
+                        }
                         api::SubmissionStatus::Success(score) => {
                             score_str.push_str(&format!("{}", score));
-                        },
+                        }
                         api::SubmissionStatus::Failure(e) => {
                             score_str.push_str(&format!("{}", e));
-                        },
+                        }
                     }
                     s.push_str(&format!(
                         "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td></tr>",
@@ -87,16 +98,25 @@ mod submissions {
                         submission.problem_id,
                         score_str));
                 }
-            },
+            }
             Err(e) => {
-                return HttpResponse::InternalServerError().content_type("text/html").body(render(&format!("{}", e)));
+                return HttpResponse::InternalServerError()
+                    .content_type("text/html")
+                    .body(render(&format!("{}", e)));
             }
         }
         s.push_str("</table>");
-        s.push_str(format!(
-            "<a href=\"/submissions?offset={}&limit={}\">Next</a>",
-            info.offset + info.limit, info.limit).as_str());
-        HttpResponse::Ok().content_type("text/html").body(render(&s))
+        s.push_str(
+            format!(
+                "<a href=\"/submissions?offset={}&limit={}\">Next</a>",
+                info.offset + info.limit,
+                info.limit
+            )
+            .as_str(),
+        );
+        HttpResponse::Ok()
+            .content_type("text/html")
+            .body(render(&s))
     }
 }
 
@@ -112,31 +132,45 @@ mod submission {
         let mut s = String::new();
         match api::get_submission(&info.submission_id).await {
             Ok(submission) => {
-                s.push_str(&format!("<h1>Submission ID: {}</h1>", submission.submission._id));
-                s.push_str(&format!("<ul><li>Problem ID: {}</li>", submission.submission.problem_id));
-                s.push_str(&format!("<li>Submitted at: {}</li>", submission.submission.submitted_at));
+                s.push_str(&format!(
+                    "<h1>Submission ID: {}</h1>",
+                    submission.submission._id
+                ));
+                s.push_str(&format!(
+                    "<ul><li>Problem ID: {}</li>",
+                    submission.submission.problem_id
+                ));
+                s.push_str(&format!(
+                    "<li>Submitted at: {}</li>",
+                    submission.submission.submitted_at
+                ));
                 let mut score_str = String::new();
                 match &submission.submission.score {
                     api::SubmissionStatus::Processing => {
                         score_str.push_str("Pending");
-                    },
+                    }
                     api::SubmissionStatus::Success(score) => {
                         score_str.push_str(&format!("{}", score));
-                    },
+                    }
                     api::SubmissionStatus::Failure(e) => {
                         score_str.push_str(&format!("{}", e));
-                    },
+                    }
                 }
                 s.push_str(&format!("<li>Score: {}</li>", score_str));
                 s.push_str(&format!(
                     "<pre style=\"white-space: pre-wrap;\"><code>{}</code></pre>",
-                    submission.contents));
-            },
+                    submission.contents
+                ));
+            }
             Err(e) => {
-                return HttpResponse::InternalServerError().content_type("text/html").body(render(&format!("{}", e)));
+                return HttpResponse::InternalServerError()
+                    .content_type("text/html")
+                    .body(render(&format!("{}", e)));
             }
         }
-        HttpResponse::Ok().content_type("text/html").body(render(&s))
+        HttpResponse::Ok()
+            .content_type("text/html")
+            .body(render(&s))
     }
 }
 
@@ -148,10 +182,18 @@ async fn main() -> std::io::Result<()> {
 
     eprintln!("Starting server at: {}", bind_address);
     HttpServer::new(|| {
-        App::new().route("/", web::get().to(index))
+        App::new()
+            .route("/", web::get().to(index))
             .route("/visualizer", web::get().to(visualizer))
             .route("/submissions", web::get().to(submissions::handler))
-            .route("/submission", web::get().to(submission::handler))
+            .route(
+                "/submission",
+                web::get().to(www::handlers::submission::handler),
+            )
+            .route(
+                "/visualize",
+                web::get().to(www::handlers::visualize::handler),
+            )
             .service(Files::new("/", "/www"))
     })
     .bind(bind_address)?
