@@ -171,7 +171,7 @@ pub mod update_problem_png {
     pub async fn update(problem_id: u32) -> Result<()> {
         eprintln!("Updating the problem png: {}", problem_id);
         let problem = api::get_problem(problem_id).await?;
-        let svg = vis::vis(&problem.into(), &Vec::new(), 1, !0, None);
+        let svg = vis::vis(&problem.into(), &(Vec::new(), Vec::new()), 1, !0, None);
         let png_data = svg_to_png::svg_to_png(&svg.2.into())?;
         sql::exec(
             "

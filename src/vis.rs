@@ -124,17 +124,17 @@ pub fn vis(
         );
     }
     // Musicians
-    for i in 0..out.len() {
+    for i in 0..out.0.len() {
         doc = doc.add(
             Group::new()
                 .add(Title::new().add(Text::new(format!(
                     "musicians {}, inst = {}\n({}, {})\nscore = {}",
-                    i, input.musicians[i], out[i].0, out[i].1, score_musicians[i]
+                    i, input.musicians[i], out.0[i].0, out.0[i].1, score_musicians[i]
                 ))))
                 .add(
                     Circle::new()
-                        .set("cx", out[i].0 * mul)
-                        .set("cy", out[i].1 * mul)
+                        .set("cx", out.0[i].0 * mul)
+                        .set("cy", out.0[i].1 * mul)
                         .set("r", 5.0 * mul)
                         .set(
                             "fill",
@@ -179,8 +179,8 @@ pub fn vis(
         for (score, i) in list {
             doc = doc.add(
                 Line::new()
-                    .set("x1", out[focus].0 * mul)
-                    .set("y1", out[focus].1 * mul)
+                    .set("x1", out.0[focus].0 * mul)
+                    .set("y1", out.0[focus].1 * mul)
                     .set("x2", input.pos[i].0 * mul)
                     .set("y2", input.pos[i].1 * mul)
                     .set("stroke", color(0.5 + 0.5 * score as f64 / max as f64))

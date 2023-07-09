@@ -275,17 +275,97 @@ pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
     get_submission_api(submission_id).await
 }
 
-/// Submits a solution and returns the submission ID.
-pub async fn submit(problem_id: u32, placements: &Output) -> Result<String> {
-    let contents = serde_json::to_string(&Solution {
-        placements: placements.iter().map(|p| p.into()).collect(),
-    })?;
-
-    submit_raw(problem_id, &contents).await
+/// Registers tags for a submission.
+/// It does not remove existing tags.
+async fn tag_submission(local_submission_id: u64, tags: &[&str]) -> Result<()> {
+    if tags.is_empty() {
+        return Ok(());
+    }
+    let local_id = local_submission_id;
+    let official_id = local_submission_id;
+    sql::exec_batch(
+        "
+INSERT INTO submission_tags
+    (submission_id, tag_name)
+VALUES
+    (:local_id, :tag_name)
+",
+        tags.iter().map(|&tag| {
+            params! {
+                "local_id" => local_id,
+                "official_id" => official_id,
+                "tag_name" => tag,
+            }
+        }),
+    )?;
+    Ok(())
 }
 
 /// Submits a solution and returns the submission ID.
-pub async fn submit_raw(problem_id: u32, contents: &str) -> Result<String> {
+pub async fn submit(
+    problem_id: u32,
+    output: &Output,
+    tags: &[&str],
+    local: bool,
+) -> Result<String> {
+    if local {
+        let local_id = submit_local(problem_id, output).await?;
+        tag_submission(local_id, tags).await?;
+        return Ok(local_id.to_string());
+    } else {
+        let official_id = submit_api(problem_id, output).await?;
+        let local_id = insert_placeholder_submission(&official_id).await?;
+        tag_submission(local_id, tags).await?;
+        return Ok(official_id);
+    }
+}
+
+/// Inserts a placeholder submission to local DB and returns the local submission ID.
+pub async fn insert_placeholder_submission(official_id: &str) -> Result<u64> {
+    let local_id = sql::insert(
+        "
+INSERT INTO submissions
+    (official_id)
+VALUES
+    (:official_id)",
+        params! {
+            "official_id" => official_id,
+        },
+    )?;
+    Ok(local_id)
+}
+
+/// Submits a solution to local DB and returns the local submission ID.
+/// It fails if the submission is not valid.
+pub async fn submit_local(problem_id: u32, output: &Output) -> Result<u64> {
+    let input = get_problem(problem_id).await?.into();
+    // TODO(sulume): Find the right scoring.
+    let score = compute_score(&input, &output);
+    let contents = serde_json::to_string::<Solution>(&output.into())?;
+    let local_id = sql::insert(
+        "
+INSERT INTO submissions
+    (problem_id, submission_score, submission_contents)
+VALUES
+    (:problem_id, :submission_score, :submission_contents)",
+        params! {
+            "problem_id" => problem_id,
+            "submission_score" => score,
+            "submission_contents" => contents,
+        },
+    )?;
+    Ok(local_id)
+}
+
+/// Submits a solution and returns the submission ID.
+pub async fn submit_api(problem_id: u32, output: &Output) -> Result<String> {
+    let contents = serde_json::to_string::<Solution>(&output.into())?;
+    let submission_id = submit_raw_api(problem_id, &contents).await?;
+    Ok(submission_id)
+}
+
+/// Submits a solution and returns the submission ID.
+pub async fn submit_raw_api(problem_id: u32, contents: &str) -> Result<String> {
     #[derive(Serialize)]
     struct SubmissionRequest<'a> {
         problem_id: u32,
