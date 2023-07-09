@@ -4,6 +4,7 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use mysql::params;
 use serde::Deserialize;
+use std::fmt::Write;
 
 #[derive(Deserialize)]
 pub struct Query {
@@ -24,6 +25,8 @@ fn default_limit() -> u32 {
 // Implement the handler function to list submissions from MySQL database with offset and limit.
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
     let mut buf = String::new();
+    write!(&mut buf, "<a href=\"/submissions\">[Load from the official API]</a>").unwrap();
+    write!(&mut buf, "<h1>Submissions from local DB copy (excl. pending submissions)</h1>").unwrap();
     buf.push_str("<table>");
     match sql::select(
         r#"

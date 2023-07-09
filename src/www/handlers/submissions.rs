@@ -34,6 +34,8 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
 
 pub async fn handle(info: web::Query<Query>) -> Result<String> {
     let mut s = String::new();
+    write!(&mut s, "<a href=\"/my_submissions\">[Load from local DB copy]</a>")?;
+    write!(&mut s, "<h1>Submissions from the official API</h1>")?;
     write!(&mut s, "<table>")?;
     let submissions = api::get_submissions(info.offset, info.limit).await?;
     for submission in submissions {
