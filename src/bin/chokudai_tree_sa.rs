@@ -2,6 +2,7 @@
 use std::{collections::BinaryHeap, net::SocketAddr};
 
 use aead::NewAead;
+use handlebars::Output;
 use icfpc2023::{
     self,
     candidate::get_candidate2,
@@ -179,8 +180,7 @@ impl States {
 
     #[allow(dead_code)]
     fn random_remove(&mut self) {
-        #[warn(unused_assignments)]
-        let mut t = 9999999;
+        let mut t;
         loop {
             t = self.rng.gen_range(0, self.active_list.len());
             if self.parent[t].len() == 0 {
@@ -325,6 +325,8 @@ fn main() {
         .map(|a| a.parse().unwrap())
         .unwrap_or(600.0);
     let stime = get_time();
+
+    let volume_all_zero = vec![1.0; m];
 
     loop {
         let t = (get_time() - stime) / tl;
@@ -481,7 +483,8 @@ fn main() {
                 best_score = score;
                 eprintln!("{} {} {}", t, best_score, iter);
                 if fast_mode && t > 0.3 {
-                    let real_score = compute_score_fast(&inp, &best_ret).0;
+                    let real_score =
+                        compute_score_fast(&inp, &(best_ret.clone(), volume_all_zero.clone())).0;
                     eprintln!("real: {}", real_score);
                 }
             }
@@ -494,7 +497,7 @@ fn main() {
     }
 
     //dbg!(compute_score(&inp, &best_ret));
-    write_output(&best_ret);
+    write_output(&(best_ret.clone(), volume_all_zero.clone()));
 }
 
 fn chokudai_solve(inp: Input) -> Vec<P> {
@@ -506,6 +509,8 @@ fn chokudai_solve(inp: Input) -> Vec<P> {
     let mut best_score = 0;
     let mut best_ret = vec![];
     let mut best_start = start.clone();
+
+    let volume_all_zero = vec![1.0; inp.musicians.len()];
 
     let mut rng = rand::thread_rng();
 
@@ -592,7 +597,7 @@ fn chokudai_solve(inp: Input) -> Vec<P> {
             ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
         }
 
-        let score = compute_score_fast(&inp, &ret).0;
+        let score = compute_score_fast(&inp, &(best_ret.clone(), volume_all_zero.clone())).0;
 
         dbg!(score);
         if score > best_score {
@@ -634,7 +639,7 @@ fn chokudai_solve(inp: Input) -> Vec<P> {
             ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
         }
 
-        let score = compute_score_fast(&inp, &ret).0;
+        let score = compute_score_fast(&inp, &(best_ret.clone(), volume_all_zero.clone())).0;
 
         best_ret = ret;
 
