@@ -1,0 +1,10 @@
+steps:
+  - name: 'rust:1.70.0'
+    entrypoint: /bin/bash
+    args: 
+      - -c
+      - make test/rust
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_32'
