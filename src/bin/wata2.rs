@@ -130,16 +130,6 @@ struct State {
 }
 
 impl State {
-    fn new(num_cands: usize, num_attendees: usize, num_musicians: usize) -> Self {
-        Self {
-            block_count: mat![0; num_cands; num_attendees],
-            musicians: vec![!0; num_cands],
-            to: vec![!0; num_musicians],
-            coef_musicians: vec![0.0; num_musicians],
-            closeness: vec![0.0; num_cands],
-            score: 0.0,
-        }
-    }
     /// 指定された解 to の状態にする
     fn initialize(
         input: &Input,
@@ -147,30 +137,50 @@ impl State {
         block: &Vec<Vec<(usize, usize)>>,
         to: &Vec<usize>,
     ) -> Self {
-        let mut s = State::new(cand.len(), input.n_attendees(), input.n_musicians());
+        let mut block_count = mat![0; cand.len(); input.n_attendees()];
+        let mut musicians = vec![!0; cand.len()];
+        let to = to.clone();
+        let mut coef_musicians = vec![0.0; input.n_musicians()];
+        let mut closeness = vec![0.0; input.n_musicians()];
+        let mut score = 0.0;
+        for i in 0..cand.len() {
+            for a in 0..input.n_attendees() {
+                for &p in &input.pillars {
+                    if is_blocked_by_circle(cand[i], input.pos[a], p) {
+                        block_count[i][a] += 1;
+                    }
+                }
+            }
+        }
         for i in 0..input.musicians.len() {
-            s.to[i] = to[i];
-            s.musicians[to[i]] = i;
+            musicians[to[i]] = i;
             for &(p, j) in &block[to[i]] {
-                s.block_count[p][j] += 1;
+                block_count[p][j] += 1;
             }
         }
         for i in 0..input.musicians.len() {
             for j in 0..input.n_attendees() {
-                if s.block_count[to[i]][j] == 0 {
-                    s.coef_musicians[i] += score1(input, cand[to[i]], input.musicians[i], j);
+                if block_count[to[i]][j] == 0 {
+                    coef_musicians[i] += score1(input, cand[to[i]], input.musicians[i], j);
                 }
             }
             if input.version != Version::One {
                 for &j in &input.inst_musicians[input.musicians[i]] {
                     if j != i {
-                        s.closeness[i] += 1.0 / (cand[to[i]] - cand[to[j]]).abs();
+                        closeness[i] += 1.0 / (cand[to[i]] - cand[to[j]]).abs();
                     }
                 }
             }
-            s.score += (1.0 + s.closeness[i]) * s.coef_musicians[i];
+            score += (1.0 + closeness[i]) * coef_musicians[i];
         }
-        s
+        State {
+            block_count,
+            closeness,
+            coef_musicians,
+            musicians,
+            to,
+            score,
+        }
     }
     /// 指定された音楽家のclosenessとスコアへの影響を取り除き、coef_musiciansを0にする
     fn forget_musician(&mut self, input: &Input, cand: &Vec<P>, musician: usize) {
@@ -249,13 +259,14 @@ impl State {
             for &(p, a) in &block[from] {
                 self.block_count[p][a] -= 1;
                 let k2 = self.musicians[p];
-                if self.block_count[p][a] == 0
-                    && k2 != !0
-                    && input.musicians[k2] != input.musicians[k]
-                {
-                    self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                if self.block_count[p][a] == 0 && k2 != !0 {
+                    if input.musicians[k2] != input.musicians[k] {
+                        self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                    }
                     self.coef_musicians[k2] += score1(input, cand[p], input.musicians[k2], a);
-                    self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                    if input.musicians[k2] != input.musicians[k] {
+                        self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                    }
                 }
             }
             self.musicians[from] = !0;
@@ -263,13 +274,14 @@ impl State {
             self.to[k] = to;
             for &(p, a) in &block[to] {
                 let k2 = self.musicians[p];
-                if self.block_count[p][a] == 0
-                    && k2 != !0
-                    && input.musicians[k2] != input.musicians[k]
-                {
-                    self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                if self.block_count[p][a] == 0 && k2 != !0 {
+                    if input.musicians[k2] != input.musicians[k] {
+                        self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                    }
                     self.coef_musicians[k2] -= score1(input, cand[p], input.musicians[k2], a);
-                    self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                    if input.musicians[k2] != input.musicians[k] {
+                        self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                    }
                 }
                 self.block_count[p][a] += 1;
             }
