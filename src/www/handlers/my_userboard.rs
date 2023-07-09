@@ -6,7 +6,8 @@ pub async fn handler() -> impl Responder {
     let mut buf = String::new();
     buf.push_str("<table><tr><td>問題番号</td><td>スコア</td></tr>");
     let mut total_score = 0;
-    sql::select("
+    for row in sql::select(
+        "
 SELECT
     problem_id,
     submission_score,
@@ -26,7 +27,11 @@ NATURAL JOIN(
 GROUP BY
     problem_id
 ORDER BY
-    problem_id", mysql::Params::Empty, |row| {
+    problem_id",
+        mysql::Params::Empty,
+    )
+    .unwrap()
+    {
         let _submission_id: i64 = row.get("submission_id").unwrap();
         let official_id: Option<String> = row.get("official_id").unwrap();
         let problem_id: i64 = row.get("problem_id").unwrap();
@@ -38,20 +43,22 @@ ORDER BY
             Some(official_id) => {
                 buf.push_str(&format!(
                     "<td><a href=\"/submission?submission_id={}\">{}</a></td></tr>",
-                    official_id, submission_score));
+                    official_id, submission_score
+                ));
             }
             None => {
                 buf.push_str(&format!("<td>{}</td></tr>", submission_score));
             }
         }
-    }).unwrap();
+    }
     buf.push_str("</table>");
-    buf = format!("
+    buf = format!(
+        "
         <h1>Unagi Userboard</h1>
         <p>合計点: {}</p>
         {}",
-        total_score,
-        buf);
+        total_score, buf
+    );
     HttpResponse::Ok()
         .content_type("text/html")
         .body(www::handlers::template::render(&buf))

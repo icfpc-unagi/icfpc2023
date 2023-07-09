@@ -7,6 +7,7 @@ fn main() {
         "SELECT CAST(:a + :b AS SIGNED)",
         params! {"a" => 1, "b" => 20},
     )
-    .unwrap().unwrap();
+    .unwrap()
+    .unwrap();
     dbg!("Result: {}", value);
 }

@@ -1,12 +1,13 @@
 use crate::*;
 
-pub mod template;
-pub mod visualize;
+pub mod cron;
+pub mod my_submission;
+pub mod my_submissions;
+pub mod my_userboard;
 pub mod submission;
 pub mod submissions;
-pub mod my_userboard;
-pub mod my_submissions;
-pub mod cron;
+pub mod template;
+pub mod visualize;
 
 use actix_web::{HttpResponse, Responder};
 

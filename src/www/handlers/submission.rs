@@ -1,4 +1,4 @@
-use crate::{api::Submission, *};
+use crate::*;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -19,7 +19,7 @@ fn default_color_type() -> i32 {
 // use actix_web::web;
 // use actix_web::HttpResponse;
 // use actix_web::Responder;
-use std::fmt::{write, Write};
+use std::fmt::Write;
 
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
     match handle(info).await {
@@ -90,8 +90,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
                 .set("y", 0)
                 .set("width", 1.0 / musician_scores.len() as f64)
                 .set("height", normalized)
-                .set("fill", "blue")
-                .set("title", format!("Musician {}: {}", i, musician_scores[i])),
+                .set("fill", "blue"),
         );
     }
     write!(&mut buf, "{}", musicians_svg)?;
@@ -123,8 +122,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
                 .set("y", 0)
                 .set("width", 1.0 / attendee_scores.len() as f64)
                 .set("height", normalized)
-                .set("fill", "red")
-                .set("title", format!("Attendee {}: {}", i, attendee_scores[i])),
+                .set("fill", "red"),
         );
     }
     write!(&mut buf, "{}", attendees_svg)?;

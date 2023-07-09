@@ -2,7 +2,7 @@ use std::ops::*;
 
 use num::traits::Zero;
 
-use super::{P, Input, Output};
+use super::{Input, Output, P};
 
 type BigF = num::BigRational;
 
@@ -54,7 +54,6 @@ impl Sub for &BigP {
 //     }
 // }
 
-
 impl BigP {
     pub fn dot(&self, a: &BigP) -> BigF {
         (&self.0 * &a.0) + (&self.1 * &a.1)
@@ -84,8 +83,6 @@ impl BigP {
     }
 }
 
-
-
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 struct BigInput {
     room: BigP,
@@ -106,7 +103,6 @@ impl BigInput {
     }
 }
 
-
 impl From<Input> for BigInput {
     fn from(input: Input) -> Self {
         Self {
@@ -115,7 +111,11 @@ impl From<Input> for BigInput {
             stage1: BigP::from(input.stage1),
             musicians: input.musicians,
             pos: input.pos.into_iter().map(BigP::from).collect(),
-            tastes: input.tastes.into_iter().map(|v| v.into_iter().map(from_f64).collect()).collect(),
+            tastes: input
+                .tastes
+                .into_iter()
+                .map(|v| v.into_iter().map(from_f64).collect())
+                .collect(),
         }
     }
 }
@@ -137,7 +137,6 @@ pub fn compute_score(input: &Input, output: &Output) -> i64 {
     }
     score
 }
-
 
 fn is_valid_output(input: &BigInput, output: &BigOutput) -> bool {
     if output.len() != input.n_musicians() {
@@ -176,7 +175,6 @@ fn is_valid_output(input: &BigInput, output: &BigOutput) -> bool {
     true
 }
 
-
 fn is_blocked(musician: &BigP, attendee: &BigP, blocking_musician: &BigP) -> bool {
     let d2 = BigP::dist2_sp((musician, attendee), blocking_musician);
     d2 < from_f64(25.0)
@@ -203,7 +201,11 @@ fn is_blocked_by_someone(
 }
 
 pub fn score_fn(taste: &BigF, d2: BigF) -> i64 {
-    (from_f64(1_000_000.0) * taste / d2).ceil().to_integer().try_into().unwrap()
+    (from_f64(1_000_000.0) * taste / d2)
+        .ceil()
+        .to_integer()
+        .try_into()
+        .unwrap()
 }
 
 fn compute_score_for_pair(
@@ -342,7 +344,8 @@ pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec
     let mut score_musician = vec![0; input.n_musicians()];
     let mut score_attendee = vec![0; input.n_attendees()];
     for musician_id in 0..input.n_musicians() {
-        let (s, sm) = compute_score_for_a_musician_fast(input, output, &big_input, &big_output, musician_id);
+        let (s, sm) =
+            compute_score_for_a_musician_fast(input, output, &big_input, &big_output, musician_id);
         score_total += s;
         score_musician[musician_id] = s;
         for attendee_id in 0..input.n_attendees() {

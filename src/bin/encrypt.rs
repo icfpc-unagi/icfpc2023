@@ -1,13 +1,13 @@
 use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
 use aes_gcm::Aes128Gcm;
-use hex::{encode};
+use hex::encode;
 use rand::Rng;
 use std::env;
 
 fn main() {
     // UNAGI_PASSWORDから共通のパスワードを取得
     let password = env::var("UNAGI_PASSWORD").expect("UNAGI_PASSWORD is not set");
-    
+
     // パスワードをbytesに変換
     let password_bytes = password.as_bytes();
 
@@ -28,7 +28,13 @@ fn main() {
     let plaintext_bytes = plaintext.as_bytes();
 
     // テキストの暗号化
-    let ciphertext = cipher.encrypt(nonce, plaintext_bytes).expect("Encryption failed");
+    let ciphertext = cipher
+        .encrypt(nonce, plaintext_bytes)
+        .expect("Encryption failed");
 
-    println!("Ciphertext: UNAGI::{}::{}", encode(&nonce_bytes), encode(&ciphertext));
+    println!(
+        "Ciphertext: UNAGI::{}::{}",
+        encode(&nonce_bytes),
+        encode(&ciphertext)
+    );
 }
