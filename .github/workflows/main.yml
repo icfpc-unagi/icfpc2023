@@ -121,7 +121,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Decrypt secrets
-        run: make secrets
+        run: make secrets && ls -lA secrets && md5sum secrets/*
       - uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: 'secrets/service_account.json'
