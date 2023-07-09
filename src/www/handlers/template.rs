@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, HttpResponseBuilder, Responder};
+use actix_web::{HttpResponse, Responder};
 use anyhow::Result;
 use handlebars::Handlebars;
 use once_cell::sync::Lazy;
