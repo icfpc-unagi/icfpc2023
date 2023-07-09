@@ -128,7 +128,12 @@ pub async fn get_raw_problem_db(problem_id: u32) -> Result<String> {
 /// Returns the problem with the given ID.
 /// Authentication is not required.
 pub async fn get_problem(problem_id: u32) -> Result<Problem> {
-    let problem = get_raw_problem_db(problem_id).await?;
+    // Try DB first.
+    let problem = match get_raw_problem_db(problem_id).await {
+        Ok(problem) => problem,
+        // Fallback to CDN.
+        Err(_) => get_raw_problem_cdn(problem_id).await?,
+    };
     let problem: Problem = serde_json::from_str(&problem)?;
     Ok(problem)
 }
@@ -195,7 +200,59 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
     }
 }
 
+pub async fn get_submission_db(submission_id: &str) -> Result<SubmissionResponse> {
+    let rows = sql::select(
+        "
+SELECT
+    submission_id,
+    official_id,
+    problem_id,
+    submission_score,
+    submission_error,
+    submission_contents,
+    DATE_FORMAT(submission_created, \"%Y-%m-%d %T\") AS submission_created
+FROM
+    submissions
+WHERE
+    submission_id = :submission_id OR official_id = :submission_id",
+        params! {
+            "submission_id" => submission_id
+        },
+    )?;
+    let row = rows
+        .first()
+        .ok_or(anyhow!("エラー: 該当の提出 ID が見つかりませんでした。"))?;
+
+    let submission_id: u32 = row.get("submission_id")?;
+    let official_id: Option<String> = row.get_option("official_id")?;
+    let problem_id: u32 = row.get("problem_id")?;
+    let submission_score: Option<u64> = row.get_option("submission_score")?;
+    let submission_error: Option<String> = row.get_option("submission_error")?;
+    let submission_contents: Option<String> = row.get_option("submission_contents")?;
+    let submission_created: String = row.get("submission_created")?;
+    Ok(SubmissionResponse {
+        submission: Submission {
+            _id: official_id.unwrap_or(submission_id.to_string()),
+            problem_id: problem_id,
+            submitted_at: submission_created,
+            score: match (submission_score, submission_error) {
+                (Some(score), _) => SubmissionStatus::Success(score),
+                (_, Some(error)) => SubmissionStatus::Failure(error),
+                _ => SubmissionStatus::Processing,
+            },
+            user_id: None,
+        },
+        contents: submission_contents.unwrap_or_default(),
+    })
+}
+
 pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
+    // Try to get from DB.
+    match get_submission_db(submission_id).await {
+        Ok(submission) => return Ok(submission),
+        Err(error) => eprintln!("Failed to get submission from DB: {}", error),
+    }
+    // If not found, get from API.
     let res = CLIENT
         .get(format!(
             "{}/submission?submission_id={}",

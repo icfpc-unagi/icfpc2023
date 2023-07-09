@@ -1,3 +1,5 @@
+use actix_web::{HttpResponse, Responder};
+use anyhow::Result;
 use handlebars::Handlebars;
 use once_cell::sync::Lazy;
 use serde_json::json;
@@ -244,6 +246,20 @@ pub fn render(contents: &str) -> String {
             }),
         )
         .unwrap()
+}
+
+pub fn to_response(result: Result<String>) -> impl Responder {
+    match result {
+        Ok(contents) => HttpResponse::Ok()
+            .content_type("text/html")
+            .body(render(&contents)),
+        Err(e) => HttpResponse::InternalServerError()
+            .content_type("text/html")
+            .body(render(&format!(
+                "<h1>エラー</h1><pre><code>{}</code></pre>",
+                escape_html(&format!("{:?}", e))
+            ))),
+    }
 }
 
 pub fn render_visualize(problem_id: u32, input: &str, output: &str) -> String {

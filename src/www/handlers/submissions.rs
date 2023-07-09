@@ -1,7 +1,9 @@
 use crate::*;
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
 use serde::Deserialize;
+use std::fmt::Write;
 
 #[derive(Deserialize)]
 pub struct Query {
@@ -20,47 +22,37 @@ fn default_limit() -> u32 {
 }
 
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
-    let mut s = String::new();
-    s.push_str("<table>");
-    match api::get_submissions(info.offset, info.limit).await {
-        Ok(submissions) => {
-            for submission in submissions {
-                let mut score_str = String::new();
-                match &submission.score {
-                    api::SubmissionStatus::Processing => {
-                        score_str.push_str("Pending");
-                    }
-                    api::SubmissionStatus::Success(score) => {
-                        score_str.push_str(&format!("{}", score));
-                    }
-                    api::SubmissionStatus::Failure(e) => {
-                        score_str.push_str(&format!("{}", e));
-                    }
-                }
-                s.push_str(&format!(
-                    "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td></tr>",
-                    submission._id,
-                    submission.submitted_at,
-                    submission.problem_id,
-                    score_str));
-            }
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError()
-                .content_type("text/html")
-                .body(www::handlers::template::render(&format!("{}", e)));
-        }
+    match handle(info).await {
+        Ok(contents) => HttpResponse::Ok()
+            .content_type("text/html")
+            .body(www::handlers::template::render(&contents)),
+        Err(e) => HttpResponse::InternalServerError()
+            .content_type("text/html")
+            .body(www::handlers::template::render(&format!("{}", e))),
     }
-    s.push_str("</table>");
-    s.push_str(
-        format!(
-            "<a href=\"/submissions?offset={}&limit={}\">Next</a>",
-            info.offset + info.limit,
-            info.limit
-        )
-        .as_str(),
-    );
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(www::handlers::template::render(&s))
+}
+
+pub async fn handle(info: web::Query<Query>) -> Result<String> {
+    let mut s = String::new();
+    write!(&mut s, "<table>")?;
+    let submissions = api::get_submissions(info.offset, info.limit).await?;
+    for submission in submissions {
+        write!(
+            &mut s,
+            "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td></tr>",
+            submission._id,
+            submission._id,
+            submission.submitted_at,
+            submission.problem_id,
+            submission.score,
+        )?;
+    }
+    write!(&mut s, "</table>")?;
+    write!(
+        &mut s,
+        "<a href=\"/submissions?offset={}&limit={}\">Next</a>",
+        info.offset + info.limit,
+        info.limit
+    )?;
+    Ok(s)
 }

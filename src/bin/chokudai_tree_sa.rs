@@ -2,20 +2,25 @@
 use std::{collections::BinaryHeap, net::SocketAddr};
 
 use aead::NewAead;
-use icfpc2023::{self, Input, read_input, P, mcf::weighted_matching, write_output, compute_score, compute_score_for_instruments, compute_score_for_a_musician_fast, compute_score_fast, candidate::get_candidate2, get_time, candidate_tree::get_candidate_tree};
-use rand::{Rng, rngs::ThreadRng};
-
-
+use icfpc2023::{
+    self, candidate::get_candidate2, candidate_tree::get_candidate_tree, compute_score,
+    compute_score_fast, compute_score_for_a_musician_fast, compute_score_for_instruments, get_time,
+    mcf::weighted_matching, read_input, write_output, Input, P,
+};
+use rand::{rngs::ThreadRng, Rng};
 
 #[allow(non_upper_case_globals)]
 const ng_num: usize = 9999999;
 
-struct States{
+struct States {
     ps: Vec<P>,
     parent: Vec<Vec<usize>>,
     child: Vec<Vec<usize>>,
     connect: Vec<Vec<usize>>,
     valid: Vec<bool>,
+    #[allow(dead_code)]
+    points: Vec<Vec<i64>>,
+    max_point: Vec<i64>,
 
     active_list: Vec<usize>,
     active_pos: Vec<usize>,
@@ -28,19 +33,18 @@ struct States{
     active_parent: Vec<usize>,
     rng: ThreadRng,
 
-    rlist: Vec<(usize, bool)>
-
+    rlist: Vec<(usize, bool)>,
 }
 impl States {
-    fn set_wait(&mut self, a: usize){
+    fn set_wait(&mut self, a: usize) {
         self.wait_list.push(a);
         self.wait_pos[a] = self.wait_list.len() - 1;
         self.state[a] = 1;
     }
-    
-    fn remove_wait(&mut self, a: usize){
+
+    fn remove_wait(&mut self, a: usize) {
         let b = self.wait_list.pop().unwrap();
-        if a != b{
+        if a != b {
             self.wait_list[self.wait_pos[a]] = b;
             self.wait_pos[b] = self.wait_pos[a];
         }
@@ -48,7 +52,7 @@ impl States {
         self.state[a] = 0;
     }
 
-    fn set_active(&mut self, a: usize){
+    fn set_active(&mut self, a: usize) {
         self.remove_wait(a);
 
         self.active_list.push(a);
@@ -61,7 +65,7 @@ impl States {
         for i in 0..self.connect[a].len() {
             let t = self.connect[a][i];
             self.dup[t] += 1;
-            if self.state[t] == 1{
+            if self.state[t] == 1 {
                 self.remove_wait(t);
             }
         }
@@ -71,36 +75,48 @@ impl States {
             let t = self.child[a][i];
             self.active_parent[t] += 1;
 
-            //dbg!(self.state[t], self.dup[t], self.active_parent[t], self.parent[t].len());
-            if self.state[t] == 0 && self.dup[t] == 0 && self.active_parent[t] == self.parent[t].len() && self.valid[t]{
+            dbg!(
+                self.state[t],
+                self.dup[t],
+                self.active_parent[t],
+                self.parent[t].len()
+            );
+            if self.state[t] == 0
+                && self.dup[t] == 0
+                && self.active_parent[t] == self.parent[t].len()
+                && self.valid[t]
+            {
                 //dbg!("get!");
                 self.set_wait(t);
             }
         }
-
     }
 
-    fn remove_active(&mut self, a: usize, flag: bool){
+    fn remove_active(&mut self, a: usize, flag: bool) {
         //remove伝搬処理
 
         if flag {
-        for i in 0..self.child[a].len() {
+            for i in 0..self.child[a].len() {
                 let t = self.child[a][i];
-                if self.state[t] == 2{
+                if self.state[t] == 2 {
                     self.remove_active(t, flag);
                 }
             }
         }
 
         let b = self.active_list.pop().unwrap();
-        if a != b{
+        if a != b {
             self.active_list[self.active_pos[a]] = b;
             self.active_pos[b] = self.active_pos[a];
         }
         self.active_pos[a] = ng_num;
         self.state[a] = 0;
-        
-        if self.state[a] == 0 && self.dup[a] == 0 && self.active_parent[a] == self.parent[a].len() && self.valid[a]{
+
+        if self.state[a] == 0
+            && self.dup[a] == 0
+            && self.active_parent[a] == self.parent[a].len()
+            && self.valid[a]
+        {
             self.set_wait(a);
         }
 
@@ -111,7 +127,7 @@ impl States {
         for i in 0..self.child[a].len() {
             let t = self.child[a][i];
             self.active_parent[t] -= 1;
-            if self.state[t] == 1{
+            if self.state[t] == 1 {
                 self.remove_wait(t);
             }
         }
@@ -120,42 +136,52 @@ impl States {
         for i in 0..self.connect[a].len() {
             let t = self.connect[a][i];
             self.dup[t] -= 1;
-            if self.state[t] == 0 && self.dup[t] == 0 && self.active_parent[t] == self.parent[t].len() && self.valid[t]{
+            if self.state[t] == 0
+                && self.dup[t] == 0
+                && self.active_parent[t] == self.parent[t].len()
+                && self.valid[t]
+            {
                 self.set_wait(t);
             }
         }
-
     }
 
-    fn random_add(&mut self){
-        let t = self.rng.gen_range(0, self.wait_list.len());
-        self.set_active(self.wait_list[t]);
+    fn random_add(&mut self, l: usize) {
+        let mut t = 99999999;
+        let mut best = -99999999999;
+        for _ in 0..l {
+            let t2 = self.rng.gen_range(0, self.wait_list.len());
+            let t3 = self.wait_list[t2];
+            if self.max_point[t3] > best {
+                t = t3;
+                best = self.max_point[t3];
+            }
+        }
+        self.set_active(t);
     }
 
-    fn random_remove(&mut self){
+    fn random_remove(&mut self) {
         let t = self.rng.gen_range(0, self.active_list.len());
         self.remove_active(self.active_list[t], true);
     }
 
-    fn reset_list(&mut self){
+    fn reset_list(&mut self) {
         self.rlist = vec![];
     }
 
-    fn rollback(&mut self){
+    fn rollback(&mut self) {
         let rr = self.rlist.len();
         for i in 0..rr {
             let r = self.rlist[rr - 1 - i];
 
             if !r.1 {
                 self.set_active(r.0);
-            }
-            else{
+            } else {
                 self.remove_active(r.0, false);
             }
         }
 
-
-        /* 
+        /*
         let mut atode = vec![];
 
         for i in 0.. self.rlist.len(){
@@ -177,12 +203,9 @@ impl States {
         }
         */
     }
-
 }
 
-
 fn main() {
-
     let inp = read_input();
 
     let ret = get_candidate_tree(&inp);
@@ -194,6 +217,8 @@ fn main() {
         child: ret.2,
         connect: ret.3,
         valid: ret.4,
+        points: ret.5,
+        max_point: ret.6,
 
         active_list: vec![],
         active_pos: vec![ng_num; n],
@@ -201,18 +226,17 @@ fn main() {
         wait_list: vec![],
         wait_pos: vec![ng_num; n],
 
-        state : vec![0; n],
-        dup :vec![0; n],
-        active_parent :vec![0; n],
-        rng : rand::thread_rng(),
-        
-        rlist: vec![]
-    };
+        state: vec![0; n],
+        dup: vec![0; n],
+        active_parent: vec![0; n],
+        rng: rand::thread_rng(),
 
+        rlist: vec![],
+    };
 
     let tl: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(120.0);
+        .unwrap_or(600.0);
     let stime = get_time();
 
     let mut iter = 0;
@@ -220,8 +244,8 @@ fn main() {
     let mut best_score = -999999999999999;
     let mut best_ret = vec![];
 
-    for i in 0..st.parent.len(){
-        if st.parent[i].len() == 0 && st.valid[i]{
+    for i in 0..st.parent.len() {
+        if st.parent[i].len() == 0 && st.valid[i] {
             st.set_wait(i);
         }
     }
@@ -233,19 +257,19 @@ fn main() {
 
     loop {
         let t = (get_time() - stime) / tl;
+        iter += 1;
         if t >= 1.0 {
             eprintln!("Iter = {}", iter);
             break;
         }
-        iter += 1;
         st.reset_list();
 
-        while st.active_list.len() >= m{
+        while st.active_list.len() >= m {
             st.random_remove();
         }
 
-        while st.active_list.len() < m{
-            st.random_add();
+        while st.active_list.len() < m {
+            st.random_add(10);
         }
 
         let mut cand = vec![];
@@ -255,6 +279,17 @@ fn main() {
         }
 
         let pos_to_music = compute_score_for_instruments(&inp, &cand);
+
+        /*
+        for i in 0..pos_to_music.len() {
+            for j in 0..pos_to_music[0].len() {
+                eprintln!(
+                    "{} {} {} {}",
+                    i, j, pos_to_music[i][j], st.points[st.active_list[i]][j]
+                )
+            }
+        }
+        */
 
         let mut ar = Vec::new();
         for i in 0..inp.musicians.len() {
@@ -278,39 +313,36 @@ fn main() {
         sum += diff.abs() as f64;
         cnt += 1;
 
-        if cnt == 1{
+        if cnt == 1 {
             sum = 1.0;
         }
 
         let ave = sum / cnt as f64 / 10.0;
         #[allow(non_snake_case)]
-        let mut T = ave * (1.0 - t)* (1.0 - t);
-        if T <= 1.0{
+        let mut T = ave * (1.0 - t) * (1.0 - t);
+        if T <= 1.0 {
             T = 1.0;
         }
 
         //let score2 = compute_score(&inp, &ret);
 
-        //dbg!(score);
+        dbg!(score);
         //if score > best_score{
 
         //dbg!(diff, T, (diff as f64 / T).exp());
-            
+
         if diff >= 0 || st.rng.gen_bool((diff as f64 / T).exp()) {
             best_ret = ret.clone();
             best_score = score;
-            eprintln!("{} {}",t, score);
-        }
-        else{
+            eprintln!("{} {}", t, best_score);
+        } else {
             st.rollback();
         }
+
+        dbg!(st.wait_list.len());
+        //break;
     }
-    
+
     //dbg!(compute_score(&inp, &best_ret));
     write_output(&best_ret);
-
-
-
 }
-
-

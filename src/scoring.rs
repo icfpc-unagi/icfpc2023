@@ -377,19 +377,24 @@ pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec
 
 pub struct Scorerer {
     pub input: Input,
-    pub score: i64,
+    pub score: f64,
     pub musician_pos: Vec<Option<P>>,
     // n_blocking_musicians[musician_id][attendee_id] := # of other musicians bocking this edge
     pub n_blocking_musicians: Vec<Vec<usize>>,
+    // musician_scoreはcloseness factorを含まないことに注意！
+    pub musician_score: Vec<f64>,
+    pub closeness_factor: Vec<f64>,
 }
 
 impl Scorerer {
     pub fn new(input: &Input) -> Self {
         Self {
             input: input.clone(),
-            score: 0,
+            score: 0.0,
             musician_pos: vec![None; input.n_musicians()],
             n_blocking_musicians: vec![vec![0; input.n_attendees()]; input.n_musicians()],
+            musician_score: vec![0.0; input.n_musicians()],
+            closeness_factor: vec![0.0; input.n_musicians()],
         }
     }
 
@@ -401,21 +406,44 @@ impl Scorerer {
         scorerer
     }
 
-    fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> i64 {
+    fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> f64 {
         let instrument_id = self.input.musicians[musician_id];
         let taste = self.input.tastes[attendee_id][instrument_id];
         let pos = self.musician_pos[musician_id].unwrap();
         let d2 = (self.input.pos[attendee_id] - pos).abs2();
-        score_fn(taste, d2)
+        score_fn(taste, d2) as f64
     }
 
-    pub fn add_musician(&mut self, musician_id: usize, pos: P) -> i64 {
+    // O(n m)
+    pub fn add_musician(&mut self, musician_id: usize, pos: P) -> f64 {
         assert_eq!(self.musician_pos[musician_id], None);
         self.musician_pos[musician_id] = Some(pos);
+        let mut score_diff = 0.0;
 
-        let mut score_diff = 0;
+        // Update closeness factor
+        self.closeness_factor[musician_id] = 1.0;
+        if self.input.version == Version::Two {
+            for other_musician_id in 0..self.input.n_musicians() {
+                let other_pos = self.musician_pos[other_musician_id];
+                if other_pos == None
+                    || other_musician_id == musician_id
+                    || !self
+                        .input
+                        .is_same_instrument(musician_id, other_musician_id)
+                {
+                    continue;
+                }
+                let other_pos = other_pos.unwrap();
+                let df = 1.0 / (pos - other_pos).abs2().sqrt();
+
+                self.closeness_factor[musician_id] += df;
+                self.closeness_factor[other_musician_id] += df;
+                score_diff += df * self.musician_score[other_musician_id];
+            }
+        }
 
         // Add new contributions
+        let mut my_musician_score = 0.0;
         for attendee_id in 0..self.input.n_attendees() {
             self.n_blocking_musicians[musician_id][attendee_id] = 0;
             for blocker_id in 0..self.input.n_musicians() {
@@ -428,9 +456,11 @@ impl Scorerer {
                 }
             }
             if self.n_blocking_musicians[musician_id][attendee_id] == 0 {
-                score_diff += self.bare_score_fn(musician_id, attendee_id);
+                my_musician_score += self.bare_score_fn(musician_id, attendee_id);
             }
         }
+        self.musician_score[musician_id] = my_musician_score;
+        score_diff += self.closeness_factor[musician_id] * my_musician_score;
 
         // Add new blocking
         for blocked_musician_id in 0..self.input.n_musicians() {
@@ -444,7 +474,9 @@ impl Scorerer {
                 if is_blocked(blocked_pos, self.input.pos[attendee_id], pos) {
                     self.n_blocking_musicians[blocked_musician_id][attendee_id] += 1;
                     if self.n_blocking_musicians[blocked_musician_id][attendee_id] == 1 {
-                        score_diff -= self.bare_score_fn(blocked_musician_id, attendee_id);
+                        let s = self.bare_score_fn(blocked_musician_id, attendee_id);
+                        self.musician_score[blocked_musician_id] -= s;
+                        score_diff -= self.closeness_factor[blocked_musician_id] * s;
                     }
                 }
             }
@@ -455,10 +487,12 @@ impl Scorerer {
         score_diff
     }
 
-    pub fn remove_musician(&mut self, musician_id: usize) -> i64 {
+    pub fn remove_musician(&mut self, musician_id: usize) -> f64 {
         assert_ne!(self.musician_pos[musician_id], None);
         let pos = self.musician_pos[musician_id].unwrap();
-        let mut score_diff = 0;
+        let mut score_diff = 0.0;
+
+        // TODO: closeness factor fawoeifjpoaweijfpoaiwejf
 
         // Cancel the current contributions
         for attendee_id in 0..self.input.n_attendees() {
@@ -491,16 +525,18 @@ impl Scorerer {
         score_diff
     }
 
-    pub fn move_musician(&mut self, musician_id: usize, new_pos: P) -> i64 {
+    pub fn move_musician(&mut self, musician_id: usize, new_pos: P) -> f64 {
         let diff1 = self.remove_musician(musician_id);
         let diff2 = self.add_musician(musician_id, new_pos);
         diff1 + diff2
     }
 
     /// この場合、ブロッキングは全く変わらない。単にこのmusicianたちが与えているスコアが変わる。
-    pub fn swap_musicians(&mut self, musician_id1: usize, musician_id2: usize) -> i64 {
+    pub fn swap_musicians(&mut self, musician_id1: usize, musician_id2: usize) -> f64 {
         assert_ne!(musician_id1, musician_id2);
-        let mut score_diff = 0;
+        let mut score_diff = 0.0;
+
+        // TODO: closeness factor awopefijawpoeifjawopijefp
 
         if self.musician_pos[musician_id1].is_some() {
             for attendee_id in 0..self.input.n_attendees() {
@@ -539,59 +575,277 @@ impl Scorerer {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
+pub struct DynamicScorer {
+    pub input: Input,
+    pub pair_score: Vec<Vec<i64>>,
+    pub is_blocked_by_pillar: Vec<Vec<bool>>,
+    pub n_blocking_musicians: Vec<Vec<usize>>,
+    pub musician_pos: Vec<Option<P>>,
+    // blocking_pairs[musician_id] = pairs which are blocked by `musician_id`
+    pub blocking_pairs: Vec<Vec<(usize, usize)>>,
+}
+
+impl DynamicScorer {
+    pub fn new(input: &Input) -> Self {
+        let nm = input.n_musicians();
+        let na = input.n_attendees();
+        Self {
+            input: input.clone(),
+            pair_score: vec![vec![0; na]; nm],
+            is_blocked_by_pillar: vec![vec![false; na]; nm],
+            n_blocking_musicians: vec![vec![0; na]; nm],
+            musician_pos: vec![None; nm],
+            blocking_pairs: vec![vec![]; nm],
+        }
+    }
+
+    pub fn new_with_output(input: &Input, output: &Output) -> Self {
+        let mut scorer = Self::new(input);
+        for musician_id in 0..input.n_musicians() {
+            scorer.add_musician(musician_id, output[musician_id]);
+        }
+        scorer
+    }
+
+    pub fn n_musicians(&self) -> usize {
+        self.input.n_musicians()
+    }
+
+    pub fn n_attendees(&self) -> usize {
+        self.input.n_attendees()
+    }
+
+    pub fn is_visible(&self, musician_id: usize, attendee_id: usize) -> bool {
+        self.is_blocked_by_pillar[musician_id][attendee_id] == false
+            && self.n_blocking_musicians[musician_id][attendee_id] == 0
+    }
+
+    fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> i64 {
+        let instrument_id = self.input.musicians[musician_id];
+        let taste = self.input.tastes[attendee_id][instrument_id];
+        let pos = self.musician_pos[musician_id].unwrap();
+        let d2 = (self.input.pos[attendee_id] - pos).abs2();
+        score_fn(taste, d2)
+    }
+
+    pub fn get_musician_score(&self, musician_id: usize, closeness_factor: f64) -> i64 {
+        if self.musician_pos[musician_id] == None {
+            return 0;
+        }
+        let mut total_score = 0;
+        for attendee_id in 0..self.n_attendees() {
+            // dbg!(self.n_blocking_musicians[musician_id][attendee_id]);
+            if self.is_visible(musician_id, attendee_id) {
+                /*
+                dbg!(
+                    musician_id,
+                    attendee_id,
+                    self.pair_score[musician_id][attendee_id],
+                );
+                */
+                total_score += (closeness_factor * self.pair_score[musician_id][attendee_id] as f64)
+                    .ceil() as i64;
+            }
+        }
+        // dbg!(total_score);
+        total_score
+    }
+
+    // O(M^2)
+    pub fn get_closeness_factor(&self) -> Vec<f64> {
+        let mut closeness_factor = vec![1.0; self.n_musicians()];
+        for i in 0..self.n_musicians() {
+            if self.musician_pos[i].is_none() {
+                continue;
+            }
+            let pi = self.musician_pos[i].unwrap();
+
+            for j in 0..i {
+                if self.musician_pos[j].is_none() || !self.input.is_same_instrument(i, j) {
+                    continue;
+                }
+                let pj = self.musician_pos[j].unwrap();
+                let d = (pi - pj).abs2().sqrt();
+                closeness_factor[i] += 1.0 / d;
+                closeness_factor[j] += 1.0 / d;
+            }
+        }
+        closeness_factor
+    }
+
+    // O(M(M + A))
+    pub fn get_score(&self) -> i64 {
+        if self.input.version == Version::One {
+            (0..self.n_musicians())
+                .map(|musician_id| self.get_musician_score(musician_id, 1.0))
+                .sum()
+        } else {
+            let closeness_factor = self.get_closeness_factor();
+            (0..self.n_musicians())
+                .map(|musician_id| {
+                    self.get_musician_score(musician_id, closeness_factor[musician_id])
+                })
+                .sum()
+        }
+    }
+
+    // O(M * A + P)
+    pub fn add_musician(&mut self, musician_id: usize, pos: P) {
+        assert_eq!(self.musician_pos[musician_id], None);
+        self.musician_pos[musician_id] = Some(pos);
+
+        // Step 1: Blocked?
+        for attendee_id in 0..self.n_attendees() {
+            self.is_blocked_by_pillar[musician_id][attendee_id] = false;
+            for &p in &self.input.pillars {
+                self.is_blocked_by_pillar[musician_id][attendee_id] |=
+                    is_blocked_by_circle(pos, self.input.pos[attendee_id], p);
+                if self.is_blocked_by_pillar[musician_id][attendee_id] {
+                    break;
+                }
+            }
+            if self.is_blocked_by_pillar[musician_id][attendee_id] {
+                continue;
+            }
+
+            self.pair_score[musician_id][attendee_id] =
+                self.bare_score_fn(musician_id, attendee_id);
+
+            for blocking_musician_id in 0..self.n_musicians() {
+                let blocking_pos = self.musician_pos[blocking_musician_id];
+                if blocking_pos == None || blocking_musician_id == musician_id {
+                    continue;
+                }
+                let blocking_pos = blocking_pos.unwrap();
+
+                if is_blocked(pos, self.input.pos[attendee_id], blocking_pos) {
+                    self.n_blocking_musicians[musician_id][attendee_id] += 1;
+                }
+            }
+        }
+
+        // Step 2: Blocking?
+        let mut blocking_pairs = vec![];
+        for blocked_musician_id in 0..self.n_musicians() {
+            let blocked_pos = self.musician_pos[blocked_musician_id];
+            if blocked_pos == None || blocked_musician_id == musician_id {
+                continue;
+            }
+            let blocked_pos = blocked_pos.unwrap();
+
+            for attendee_id in 0..self.n_attendees() {
+                if self.is_blocked_by_pillar[blocked_musician_id][attendee_id] {
+                    continue;
+                }
+                if is_blocked(blocked_pos, self.input.pos[attendee_id], pos) {
+                    self.n_blocking_musicians[blocked_musician_id][attendee_id] += 1;
+                    blocking_pairs.push((blocked_musician_id, attendee_id));
+                }
+            }
+        }
+        self.blocking_pairs[musician_id] = blocking_pairs;
+    }
+
+    // O(# of blocked edges)
+    pub fn remove_musician(&mut self, musician_id: usize) {
+        assert_ne!(self.musician_pos[musician_id], None);
+        for (blocked_musician_id, attendee_id) in &self.blocking_pairs[musician_id] {
+            self.n_blocking_musicians[*blocked_musician_id][*attendee_id] -= 1;
+        }
+        self.blocking_pairs[musician_id].clear();
+        self.musician_pos[musician_id] = None;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    //
+    // Utils
+    //
+
+    fn prepare_example(version: Version) -> (Input, Output) {
+        let input = parse_input_with_version(EXAMPLE_INPUT, version);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
+        (input, output)
+    }
+
+    fn prepare_example2(version: Version) -> (Input, Output) {
+        let input = parse_input_with_version(EXAMPLE_INPUT2, version);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
+        (input, output)
+    }
+
+    #[cfg(not(debug_assertions))] // release build only because it's too slow
+    fn prepare_problem2(version: Version) -> (Input, Output) {
+        let mut input = read_input_from_file("./problems/problem-2.json");
+        let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
+        input.version = version;
+        (input, output)
+    }
+
+    //
+    // Naive
+    //
+
     #[test]
-    fn test_example_ver1_naive() {
+    fn test_naive_example1_ver1() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
-        let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
-        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        let (input, output) = prepare_example(Version::One);
         assert_eq!(compute_score(&input, &output), 5343);
     }
 
     #[test]
-    fn test_example_ver1_fast() {
-        // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
-        let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
-        let output = parse_output(crate::EXAMPLE_OUTPUT);
-        assert_eq!(
-            compute_score_fast(&input, &output),
-            compute_score_naive(&input, &output)
-        );
-    }
-
-    #[test]
-    fn test_example_ver2_naive() {
+    fn test_naive_example1_ver2() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
-        let input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let (input, output) = prepare_example(Version::Two);
         assert_eq!(compute_score(&input, &output), 5357);
     }
 
     #[test]
-    fn test_example_ver2_fast() {
-        let input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
-        assert_eq!(
-            compute_score_fast(&input, &output),
-            compute_score_naive(&input, &output)
-        );
-    }
-
-    #[test]
-    fn test_example2_naive() {
+    fn test_naive_example2_ver2() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
-        let input = parse_input_with_version(EXAMPLE_INPUT2, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let (input, output) = prepare_example2(Version::Two);
         assert_eq!(compute_score(&input, &output), 3270);
     }
 
     #[test]
+    #[cfg(not(debug_assertions))] // release build only because it's too slow
+    fn test_naive_problem2() {
+        let (input, output) = prepare_problem2(Version::One);
+        assert_eq!(compute_score(&input, &output), 1502807685);
+    }
+
+    //
+    // Fast
+    //
+
+    #[test]
+    fn test_fast_example1_ver1() {
+        let (input, output) = prepare_example(Version::One);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
+    fn test_fast_example1_ver2() {
+        let (input, output) = prepare_example(Version::Two);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
     fn test_example2_fast() {
-        let input = parse_input_with_version(EXAMPLE_INPUT2, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let (input, output) = prepare_example2(Version::Two);
         assert_eq!(
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
@@ -600,17 +854,17 @@ mod tests {
 
     #[test]
     #[cfg(not(debug_assertions))] // release build only because it's too slow
-    fn test_problem2_64a93f468c4efca8cb0a9c65() {
-        let input = read_input_from_file("./problems/problem-2.json");
-        let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
-        let result_naive = compute_score_fast(&input, &output);
-        assert_eq!(result_naive.0, 1502807685);
-        assert_eq!(result_naive, compute_score_naive(&input, &output));
+    fn test_fast_problem2() {
+        let (input, output) = prepare_problem2(Version::One);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
     }
 
     #[test]
     #[cfg(not(debug_assertions))] // release build only because it's too slow
-    fn test_problem2_64a93f468c4efca8cb0a9c65_scorerer() {
+    fn test_scorerer_problem2_64a93f468c4efca8cb0a9c65() {
         let input = read_input_from_file("./problems/problem-2.json");
         let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
 
@@ -632,6 +886,88 @@ mod tests {
 
             // dbg!(scorerer.score);
         }
-        assert_eq!(scorerer.score, compute_score(&input, &output));
+        assert_eq!(scorerer.score as i64, compute_score(&input, &output));
+    }
+
+    /*
+    #[test]
+    fn test_scorerer_example_ver2() {
+        // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
+        let mut input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
+        let output = parse_output(EXAMPLE_OUTPUT);
+
+        let mut scorerer = Scorerer::new(&input);
+        for i in 0..input.n_musicians() {
+            scorerer.add_musician(i, output[i]);
+        }
+
+        dbg!(&scorerer.closeness_factor);
+        dbg!((0..input.n_musicians())
+            .map(|i| compute_closeness_factor(&input, &output, i))
+            .collect::<Vec<_>>());
+
+        dbg!(&scorerer.musician_score);
+
+        input.version = Version::One;
+        dbg!(compute_score_naive(&input, &output).1);
+        input.version = Version::Two;
+
+        dbg!((0..input.n_musicians())
+            .map(|i| (scorerer.closeness_factor[i] * scorerer.musician_score[i]).ceil())
+            .sum::<f64>());
+
+        assert_eq!(scorerer.score as i64, 5357);
+    }
+    */
+
+    fn check_dynamic_example(input: &Input, output: &Output, expected: i64) {
+        // Batch construction
+        assert_eq!(
+            DynamicScorer::new_with_output(&input, &output).get_score(),
+            expected
+        );
+
+        // Construction with removal
+        let mut scorer = DynamicScorer::new(&input);
+        for i in 0..input.n_musicians() {
+            let j = (i + 1).min(input.n_musicians() - 1);
+            let score_before = scorer.get_score();
+            scorer.add_musician(j, output[j]);
+            scorer.remove_musician(j);
+            assert_eq!(score_before, scorer.get_score());
+            scorer.add_musician(i, output[i]);
+        }
+        assert_eq!(scorer.get_score(), expected);
+
+        // Destruction
+        for i in 0..input.n_musicians() {
+            scorer.remove_musician(i);
+        }
+        assert_eq!(scorer.get_score(), 0);
+    }
+
+    #[test]
+    fn test_dynamic_example1_ver1() {
+        let (input, output) = prepare_example(Version::One);
+        check_dynamic_example(&input, &output, 5343);
+    }
+
+    #[test]
+    fn test_dynamic_example1_ver2() {
+        let (input, output) = prepare_example(Version::Two);
+        check_dynamic_example(&input, &output, 5357);
+    }
+
+    #[test]
+    fn test_dynamic_example2_ver2() {
+        let (input, output) = prepare_example2(Version::Two);
+        check_dynamic_example(&input, &output, 3270);
+    }
+
+    #[test]
+    #[cfg(not(debug_assertions))]
+    fn test_dynamic_problem2_ver1() {
+        let (input, output) = prepare_problem2(Version::One);
+        check_dynamic_example(&input, &output, 1502807685);
     }
 }

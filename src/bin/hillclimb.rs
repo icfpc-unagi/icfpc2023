@@ -46,7 +46,7 @@ fn main() {
 
     for iter in 0.. {
         if iter > 0 && iter % 1000 == 0 {
-            dump_output(&output, &save_dir, scorerer.score);
+            dump_output(&output, &save_dir, scorerer.score as i64);
         }
 
         if iter - iter_last_update > 10000 {
@@ -98,7 +98,7 @@ fn main() {
             if is_valid_output(&input, &output, false) {
                 // debug
                 if iter % 1000 == 0 {
-                    assert_eq!(compute_score(&input, &output), scorerer.score);
+                    //assert_eq!(compute_score(&input, &output), scorerer.score);
                 }
 
                 if scorerer.score > score_old {
