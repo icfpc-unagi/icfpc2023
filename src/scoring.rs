@@ -202,10 +202,11 @@ pub fn compute_score_naive(input: &Input, output: &Output) -> (i64, Vec<i64>, Ve
     let mut score_attendee = vec![0; input.n_attendees()];
 
     for musician_id in 0..input.n_musicians() {
+        let volume = output.1[musician_id];
         let closeness_factor = compute_closeness_factor(input, output, musician_id);
         for attendee_id in 0..input.n_attendees() {
             let pair_score = compute_score_for_pair(input, output, musician_id, attendee_id);
-            let score = (closeness_factor * pair_score as f64).ceil() as i64;
+            let score = (volume * closeness_factor * pair_score as f64).ceil() as i64;
             score_total += score;
             score_musician[musician_id] += score;
             score_attendee[attendee_id] += score;
@@ -313,6 +314,7 @@ pub fn compute_score_for_a_musician_fast(
     }
     events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
+    let volume = output.1[musician_id];
     let closeness_factor = compute_closeness_factor(input, output, musician_id);
     let mut score = 0;
     let mut attendee_scores = vec![0; input.n_attendees()];
@@ -338,7 +340,7 @@ pub fn compute_score_for_a_musician_fast(
                     let d2 = (input.pos[attendee_id] - output.0[musician_id]).abs2();
                     let instrument_id = input.musicians[musician_id];
                     let s = score_fn(input.tastes[attendee_id][instrument_id], d2);
-                    let s = (closeness_factor * s as f64).ceil() as i64;
+                    let s = (volume * closeness_factor * s as f64).ceil() as i64;
                     score += s;
                     attendee_scores[attendee_id] = s;
                 }
@@ -586,6 +588,7 @@ pub struct DynamicScorer {
     pub is_blocked_by_pillar: Vec<Vec<bool>>,
     pub n_blocking_musicians: Vec<Vec<usize>>,
     pub musician_pos: Vec<Option<P>>,
+    pub musician_vol: Vec<Option<f64>>,
 }
 
 impl DynamicScorer {
@@ -598,13 +601,14 @@ impl DynamicScorer {
             is_blocked_by_pillar: vec![vec![false; na]; nm],
             n_blocking_musicians: vec![vec![0; na]; nm],
             musician_pos: vec![None; nm],
+            musician_vol: vec![None; nm],
         }
     }
 
     pub fn new_with_output(input: &Input, output: &Output) -> Self {
         let mut scorer = Self::new(input);
         for musician_id in 0..input.n_musicians() {
-            scorer.add_musician(musician_id, output.0[musician_id]);
+            scorer.add_musician(musician_id, output.0[musician_id], output.1[musician_id]);
         }
         scorer
     }
@@ -634,19 +638,13 @@ impl DynamicScorer {
         if self.musician_pos[musician_id] == None {
             return 0;
         }
+        let volume = self.musician_vol[musician_id].unwrap();
         let mut total_score = 0;
         for attendee_id in 0..self.n_attendees() {
-            // dbg!(self.n_blocking_musicians[musician_id][attendee_id]);
             if self.is_visible(musician_id, attendee_id) {
-                /*
-                dbg!(
-                    musician_id,
-                    attendee_id,
-                    self.pair_score[musician_id][attendee_id],
-                );
-                */
-                total_score += (closeness_factor * self.pair_score[musician_id][attendee_id] as f64)
-                    .ceil() as i64;
+                total_score +=
+                    (volume * closeness_factor * self.pair_score[musician_id][attendee_id] as f64)
+                        .ceil() as i64;
             }
         }
         // dbg!(total_score);
@@ -692,9 +690,11 @@ impl DynamicScorer {
     }
 
     // O(M * A + P)
-    pub fn add_musician(&mut self, musician_id: usize, pos: P) {
+    pub fn add_musician(&mut self, musician_id: usize, pos: P, vol: f64) {
         assert_eq!(self.musician_pos[musician_id], None);
+        assert_eq!(self.musician_vol[musician_id], None);
         self.musician_pos[musician_id] = Some(pos);
+        self.musician_vol[musician_id] = Some(vol);
 
         // Step 1: Blocked?
         for attendee_id in 0..self.n_attendees() {
@@ -751,6 +751,7 @@ impl DynamicScorer {
     // O(# of blocked edges)
     pub fn remove_musician(&mut self, musician_id: usize) {
         assert_ne!(self.musician_pos[musician_id], None);
+        assert_ne!(self.musician_vol[musician_id], None);
         let pos = self.musician_pos[musician_id].unwrap();
 
         for blocked_musician_id in 0..self.n_musicians() {
@@ -770,11 +771,12 @@ impl DynamicScorer {
             }
         }
         self.musician_pos[musician_id] = None;
+        self.musician_vol[musician_id] = None;
     }
 
-    pub fn move_musician(&mut self, musician_id: usize, pos: P) {
+    pub fn move_musician(&mut self, musician_id: usize, pos: P, vol: f64) {
         self.remove_musician(musician_id);
-        self.add_musician(musician_id, pos);
+        self.add_musician(musician_id, pos, vol);
     }
 }
 
@@ -787,6 +789,11 @@ mod tests {
     //
     // Utils
     //
+
+    fn randomize_volume(output: Output) -> Output {
+        let n = output.0.len();
+        (output.0, (0..n).map(|i| (i % 11) as f64).collect())
+    }
 
     fn prepare_example(version: Version) -> (Input, Output) {
         let input = parse_input_with_version(EXAMPLE_INPUT, version);
@@ -952,10 +959,10 @@ mod tests {
         for i in 0..input.n_musicians() {
             let j = (i + 1).min(input.n_musicians() - 1);
             let score_before = scorer.get_score();
-            scorer.add_musician(j, output.0[j]);
+            scorer.add_musician(j, output.0[j], 1.0);
             scorer.remove_musician(j);
             assert_eq!(score_before, scorer.get_score());
-            scorer.add_musician(i, output.0[i]);
+            scorer.add_musician(i, output.0[i], 1.0);
         }
         assert_eq!(scorer.get_score(), expected);
 
@@ -989,5 +996,36 @@ mod tests {
     fn test_dynamic_problem2_ver1() {
         let (input, output) = prepare_problem2(Version::One);
         check_dynamic_example(&input, &output, 1502807685);
+    }
+
+    #[test]
+    fn test_volumes_example2_fast() {
+        let (input, output) = prepare_example2(Version::Two);
+        let output = randomize_volume(output);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
+    }
+
+    #[test]
+    fn test_volumes_example2_dynamic() {
+        let (input, output) = prepare_example2(Version::Two);
+        let output = randomize_volume(output);
+        assert_eq!(
+            DynamicScorer::new_with_output(&input, &output).get_score(),
+            compute_score_naive(&input, &output).0,
+        );
+    }
+
+    #[test]
+    #[cfg(not(debug_assertions))]
+    fn test_volumes_problem2() {
+        let (input, output) = prepare_problem2(Version::Two);
+        let output = randomize_volume(output);
+        assert_eq!(
+            compute_score_fast(&input, &output),
+            compute_score_naive(&input, &output)
+        );
     }
 }

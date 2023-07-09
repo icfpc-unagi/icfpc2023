@@ -46,13 +46,14 @@ fn main() {
             musician_ids.shuffle(&mut rng);
 
             for musician_id in musician_ids {
+                let vol = output.1[musician_id];
                 let pos_old = output.0[musician_id];
                 for pos in &candidate_poss {
                     output.0[musician_id] = *pos;
                     if !is_valid_output(&input, &output, false) {
                         continue;
                     }
-                    scorer.move_musician(musician_id, *pos);
+                    scorer.move_musician(musician_id, *pos, vol);
                     let score_new = scorer.get_score();
                     if score_new > score_old {
                         println!("{} {:10} -> {:10}", musician_id, score_old, score_new);
@@ -61,7 +62,7 @@ fn main() {
                         continue 'outer;
                     }
                 }
-                scorer.move_musician(musician_id, pos_old);
+                scorer.move_musician(musician_id, pos_old, vol);
                 output.0[musician_id] = pos_old;
             }
             break;
