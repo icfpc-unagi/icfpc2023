@@ -105,6 +105,10 @@ impl Input {
     pub fn n_instruments(&self) -> usize {
         self.tastes[0].len()
     }
+
+    pub fn is_same_instrument(&self, musician_id1: usize, musician_id2: usize) -> bool {
+        self.musicians[musician_id1] == self.musicians[musician_id2]
+    }
 }
 
 pub type Output = Vec<P>;

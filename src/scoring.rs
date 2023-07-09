@@ -377,11 +377,11 @@ pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec
 
 pub struct Scorerer {
     pub input: Input,
-    pub score: i64,
+    pub score: f64,
     pub musician_pos: Vec<Option<P>>,
     // n_blocking_musicians[musician_id][attendee_id] := # of other musicians bocking this edge
     pub n_blocking_musicians: Vec<Vec<usize>>,
-    // closeness factor用
+    // musician_scoreはcloseness factorを含まないことに注意！
     pub musician_score: Vec<f64>,
     pub closeness_factor: Vec<f64>,
 }
@@ -390,7 +390,7 @@ impl Scorerer {
     pub fn new(input: &Input) -> Self {
         Self {
             input: input.clone(),
-            score: 0,
+            score: 0.0,
             musician_pos: vec![None; input.n_musicians()],
             n_blocking_musicians: vec![vec![0; input.n_attendees()]; input.n_musicians()],
             musician_score: vec![0.0; input.n_musicians()],
@@ -406,37 +406,43 @@ impl Scorerer {
         scorerer
     }
 
-    fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> i64 {
+    fn bare_score_fn(&self, musician_id: usize, attendee_id: usize) -> f64 {
         let instrument_id = self.input.musicians[musician_id];
         let taste = self.input.tastes[attendee_id][instrument_id];
         let pos = self.musician_pos[musician_id].unwrap();
         let d2 = (self.input.pos[attendee_id] - pos).abs2();
-        score_fn(taste, d2)
+        score_fn(taste, d2) as f64
     }
 
-    pub fn add_musician(&mut self, musician_id: usize, pos: P) -> i64 {
+    pub fn add_musician(&mut self, musician_id: usize, pos: P) -> f64 {
         assert_eq!(self.musician_pos[musician_id], None);
         self.musician_pos[musician_id] = Some(pos);
+        let mut score_diff = 0.0;
 
         // Update closeness factor
-        /*
-        for other_musician_id in 0..self.input.n_musicians() {
-            if other_musician_id == musician_id ||  {
-                continue;
-            }
-            let other_pos = self.musician_pos[other_musician_id];
-            if other_pos == None {
-                continue;
-            }
-            let other_pos = other_pos.unwrap();
-            let d2 = (pos - other_pos).abs2();
-            self.closeness_factor[musician_id] += 1.0 / d2.sqrt();
-        }
-        */
+        self.closeness_factor[musician_id] = 1.0;
+        if self.input.version == Version::Two {
+            for other_musician_id in 0..self.input.n_musicians() {
+                let other_pos = self.musician_pos[other_musician_id];
+                if other_pos == None
+                    || other_musician_id == musician_id
+                    || !self
+                        .input
+                        .is_same_instrument(musician_id, other_musician_id)
+                {
+                    continue;
+                }
+                let other_pos = other_pos.unwrap();
+                let df = 1.0 / (pos - other_pos).abs2().sqrt();
 
-        let mut score_diff = 0;
+                self.closeness_factor[musician_id] += df;
+                self.closeness_factor[other_musician_id] += df;
+                score_diff += df * self.musician_score[other_musician_id];
+            }
+        }
 
         // Add new contributions
+        let mut my_musician_score = 0.0;
         for attendee_id in 0..self.input.n_attendees() {
             self.n_blocking_musicians[musician_id][attendee_id] = 0;
             for blocker_id in 0..self.input.n_musicians() {
@@ -449,9 +455,11 @@ impl Scorerer {
                 }
             }
             if self.n_blocking_musicians[musician_id][attendee_id] == 0 {
-                score_diff += self.bare_score_fn(musician_id, attendee_id);
+                my_musician_score += self.bare_score_fn(musician_id, attendee_id);
             }
         }
+        self.musician_score[musician_id] = my_musician_score;
+        score_diff += self.closeness_factor[musician_id] * my_musician_score;
 
         // Add new blocking
         for blocked_musician_id in 0..self.input.n_musicians() {
@@ -465,7 +473,9 @@ impl Scorerer {
                 if is_blocked(blocked_pos, self.input.pos[attendee_id], pos) {
                     self.n_blocking_musicians[blocked_musician_id][attendee_id] += 1;
                     if self.n_blocking_musicians[blocked_musician_id][attendee_id] == 1 {
-                        score_diff -= self.bare_score_fn(blocked_musician_id, attendee_id);
+                        let s = self.bare_score_fn(blocked_musician_id, attendee_id);
+                        self.musician_score[blocked_musician_id] -= s;
+                        score_diff -= self.closeness_factor[blocked_musician_id] * s;
                     }
                 }
             }
@@ -476,10 +486,12 @@ impl Scorerer {
         score_diff
     }
 
-    pub fn remove_musician(&mut self, musician_id: usize) -> i64 {
+    pub fn remove_musician(&mut self, musician_id: usize) -> f64 {
         assert_ne!(self.musician_pos[musician_id], None);
         let pos = self.musician_pos[musician_id].unwrap();
-        let mut score_diff = 0;
+        let mut score_diff = 0.0;
+
+        // TODO: closeness factor fawoeifjpoaweijfpoaiwejf
 
         // Cancel the current contributions
         for attendee_id in 0..self.input.n_attendees() {
@@ -512,7 +524,7 @@ impl Scorerer {
         score_diff
     }
 
-    pub fn move_musician(&mut self, musician_id: usize, new_pos: P) -> i64 {
+    pub fn move_musician(&mut self, musician_id: usize, new_pos: P) -> f64 {
         let diff1 = self.remove_musician(musician_id);
         let diff2 = self.add_musician(musician_id, new_pos);
         diff1 + diff2
@@ -522,6 +534,8 @@ impl Scorerer {
     pub fn swap_musicians(&mut self, musician_id1: usize, musician_id2: usize) -> i64 {
         assert_ne!(musician_id1, musician_id2);
         let mut score_diff = 0;
+
+        // TODO: closeness factor awopefijawpoeifjawopijefp
 
         if self.musician_pos[musician_id1].is_some() {
             for attendee_id in 0..self.input.n_attendees() {
