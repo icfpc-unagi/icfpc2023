@@ -74,7 +74,12 @@ WHERE
         submission.submission._id
     )?;
     for tag in tags {
-        write!(&mut buf, "<span class=\"tag\">{}</span> ", tag)?;
+        write!(
+            &mut buf,
+            "<a href=\"/my_submissions?tag={}\" class=\"tag\">{}</a>",
+            percent_encoding::utf8_percent_encode(&tag, percent_encoding::NON_ALPHANUMERIC),
+            tag,
+        )?;
     }
     write!(
         &mut buf,

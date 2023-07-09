@@ -2,6 +2,7 @@ use crate::*;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
+use handlebars::html_escape;
 use mysql::params;
 use num_format::{Locale, ToFormattedString};
 use serde::Deserialize;
@@ -13,6 +14,8 @@ pub struct Query {
     pub offset: u32,
     #[serde(default = "default_limit")]
     pub limit: u32,
+    #[serde(default)]
+    pub tag: String,
 }
 
 fn default_offset() -> u32 {
@@ -49,8 +52,9 @@ async fn handle(info: &web::Query<Query>) -> Result<String, Box<dyn std::error::
 
     buf.push_str("<table>");
 
-    let rows = sql::select(
-        r#"
+    let rows = if info.tag.is_empty() {
+        sql::select(
+            r#"
 SELECT
     submission_id,
     official_id,
@@ -65,11 +69,39 @@ ORDER BY
 DESC
 LIMIT :offset, :limit
 "#,
-        params! {
-            "offset" => info.offset,
-            "limit" => info.limit
-        },
-    )?;
+            params! {
+                "offset" => info.offset,
+                "limit" => info.limit
+            },
+        )?
+    } else {
+        sql::select(
+            r#"
+SELECT
+    submission_id,
+    official_id,
+    problem_id,
+    submission_score,
+    submission_error,
+    DATE_FORMAT(submission_created, "%Y-%m-%d %T") AS submission_created
+FROM
+    submissions
+NATURAL JOIN
+    submission_tags
+WHERE
+    submission_tag = :tag
+ORDER BY
+    submission_created
+DESC
+LIMIT :offset, :limit
+"#,
+            params! {
+                "tag" => &info.tag,
+                "offset" => info.offset,
+                "limit" => info.limit
+            },
+        )?
+    };
 
     let submission_ids = rows
         .iter()
@@ -125,7 +157,15 @@ WHERE
             let mut tag_str = String::new();
             if let Some(tags) = tag_map.get(&submission_id) {
                 for tag in tags {
-                    write!(&mut tag_str, "<span class=\"tag\">{}</span>", tag)?;
+                    write!(
+                        &mut tag_str,
+                        "<a href=\"/my_submissions?tag={}\" class=\"tag\">{}</a>",
+                        percent_encoding::utf8_percent_encode(
+                            tag,
+                            percent_encoding::NON_ALPHANUMERIC
+                        ),
+                        tag
+                    )?;
                 }
             }
             Ok(format!(
