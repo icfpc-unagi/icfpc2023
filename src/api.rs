@@ -361,8 +361,7 @@ VALUES
 /// It fails if the submission is not valid.
 pub async fn submit_local(problem_id: u32, output: &Output) -> Result<u64> {
     let input = get_problem(problem_id).await?.into();
-    // TODO(sulume): Find the right scoring.
-    let score = compute_score(&input, &output);
+    let score = compute_score_fast(&input, &output).0;
     let contents = serde_json::to_string::<Solution>(&output.into())?;
     let local_id = sql::insert(
         "
