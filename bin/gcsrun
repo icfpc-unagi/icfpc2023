@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Usage: gcsrun <version> <command> [<args>...]
+
+VERSION="$1"
+COMMAND="$2"
+shift 2
+
+# Create a temporary directory.
+export TMPDIR="$(mktemp -d)"
+
+gsutil cp "gs://icfpc2023/bin/${VERSION}/${COMMAND}" "${TMPDIR}/${COMMAND}"
+chmod +x "${TMPDIR}/${COMMAND}"
+
+# Run the command.
+exec "${TMPDIR}/${COMMAND}" "$@"
