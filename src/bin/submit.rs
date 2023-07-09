@@ -14,7 +14,7 @@ struct Cli {
 async fn main() -> Result<()> {
     let args = Cli::parse();
     let solution = read_output_from_file(&args.solution);
-    let submission_id = api::submit(args.problem_id, &solution).await?;
+    let submission_id = api::submit(args.problem_id, &solution, &[], false).await?;
 
     eprintln!("Submitted as submission_id={}", submission_id);
 
