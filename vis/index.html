@@ -9,7 +9,7 @@
   <p>
     <label>
       Problem:
-      <input type="number" id="seed" value="0" min="0" max="18446744073709551615" onchange="generate()" />
+      <input type="number" id="seed" value="1" min="1" max="18446744073709551615" onchange="generate()" />
     </label>
   </p>
   <p>
@@ -22,7 +22,7 @@
     <label>
       Output:<br>
       <textarea id="output" rows="4" style="width:650px;" data-gramm_editor="false"
-        oninput="updateOutput()">0</textarea>
+        oninput="updateOutput()" placeholder="{&quot;placements&quot;:[]}">{"placements":[]}</textarea>
     </label>
   </p>
   <p>
@@ -31,10 +31,10 @@
   <p>
     <label>
       color_type:
-      <select id="color_type" onchange="visualize(-1)">
-        <option value="0">楽器ID</option>
-        <option value="1">スコア</option>
-      </select>
+      <input type="radio" id="id_color_type_0" name="color_type" value="0" checked onchange="visualize(-1)">
+      <label for="id_color_type_0">楽器ID</label>
+      <input type="radio" id="id_color_type_1" name="color_type" value="1" onchange="visualize(-1)">
+      <label for="id_color_type_1">スコア</label>
     </label>&ensp;
   </p>
   <p style="display:flex;">
@@ -128,8 +128,8 @@
       const input = document.getElementById("input").value;
       const output = document.getElementById("output").value;
       const t = document.getElementById("turn").value;
-      const select = document.getElementById("color_type");
-      const color_type = parseInt(select.options[select.selectedIndex].value);
+      const color_type_checked = document.querySelector('input[name="color_type"]:checked')
+      const color_type = parseInt(color_type_checked.value);
       try {
         const ret = vis(input, output, t, color_type, id);
         document.getElementById("score").innerHTML = "Score = " + ret.score;
