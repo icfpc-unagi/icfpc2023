@@ -383,7 +383,7 @@ pub async fn submit_raw_api(problem_id: u32, contents: &str) -> Result<String> {
         .send()
         .await?
         .error_for_status()?;
-    let submission_id = res.text().await?;
+    let submission_id = res.text().await?.trim_matches('"').into();
     Ok(submission_id)
 }
 
