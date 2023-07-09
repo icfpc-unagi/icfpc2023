@@ -46,14 +46,21 @@ pub fn exec(query: &str, params: impl Into<Params>) -> Result<()> {
         .map_err(|e| e.into())
 }
 
-pub fn insert<T>(query: &str, values: &[T]) -> Result<u64>
+// insert is the same as exec, but it returns the last insert ID.
+pub fn insert(query: &str, params: impl Into<Params>) -> Result<u64> {
+    let mut conn = CLIENT.get_conn()?;
+    conn.exec_drop(query, params)?;
+    Ok(conn.last_insert_id())
+}
+
+pub fn exec_batch<P, I>(query: &str, params: I) -> Result<()>
 where
-    for<'a> &'a T: Into<Params>,
+    P: Into<Params>,
+    I: IntoIterator<Item = P>,
 {
     let mut conn = CLIENT.get_conn()?;
-    let params: Vec<Params> = values.iter().map(|v| v.into()).collect();
     conn.exec_batch(query, params)?;
-    Ok(conn.affected_rows())
+    Ok(())
 }
 
 pub struct Row {
