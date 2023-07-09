@@ -202,7 +202,7 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
 }
 
 pub async fn get_submission_db(submission_id: &str) -> Result<SubmissionResponse> {
-    let local_id = submission_id.parse().unwrap_or(0);
+    let local_id = submission_id.parse().unwrap_or(0u32);
     let official_id = submission_id;
     let rows = sql::select(
         "
@@ -274,16 +274,20 @@ pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
             if submission.contents != "" {
                 return Ok(submission);
             }
-            // If the submission in DB is incomplete, try to get from API.
+            // If the submission in DB is incomplete, try to get from API with official id.
+            if !submission.submission._id.is_empty() {
+                return get_submission_api(&submission.submission._id).await;
+            }
         }
         Err(error) => {
-            if submission_id.len() != 24 {
-                return Err(error);
-            }
-            eprintln!("Failed to get submission from DB: {}", error)
+            eprintln!("Failed to get submission from DB: {}", error);
         }
     }
-    get_submission_api(submission_id).await
+    if submission_id.len() == 24 {
+        get_submission_api(submission_id).await
+    } else {
+        Err(anyhow!("Failed to get submission neither from DB nor API"))
+    }
 }
 
 /// Registers tags for a submission.
