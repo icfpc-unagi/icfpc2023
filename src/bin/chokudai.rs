@@ -62,7 +62,7 @@ fn main() {
 
     let tl: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(600.0);
+        .unwrap_or(10800.0);
     let stime = get_time();
 
     let mut iter = 0;
