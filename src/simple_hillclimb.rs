@@ -126,7 +126,8 @@ pub fn hillclimb_candidate_findbest(
     let mut rng = rand::thread_rng();
     let mut scorer = DynamicScorer::new_with_output(&input, &output);
     let mut iter = 0;
-    dbg!(scorer.get_score());
+    let score_original = scorer.get_score();
+    dbg!(score_original);
 
     loop {
         let candidate_poss = candidate_positions::enumerate_candidate_positions_with_config(
@@ -198,13 +199,14 @@ pub fn hillclimb_candidate_findbest(
                 output.0[musician_id] = pos_best;
                 if score_best > score_old {
                     let time_now = get_time();
-                    println!(
-                        "t={:.1} iter={} {:10} -> {:10} (+{:10})",
+                    eprintln!(
+                        "UP t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
                         time_now - time_start,
                         iter,
                         score_old,
                         score_best,
-                        score_best - score_old
+                        score_best - score_old,
+                        score_best - score_original,
                     );
 
                     let score_naive = compute_score(&input, &output);
