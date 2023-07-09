@@ -71,7 +71,7 @@
     import init, { vis, get_max_turn } from './vis.js';
 
     var seed0 = "";
-    let outerSvg = null;
+    let globalSvg = null;
 
     async function run() {
       for (const [key, value] of new URL(location).searchParams.entries()) {
@@ -112,7 +112,7 @@
         } else {
           return;
         }
-        const svg = outerSvg;
+        const svg = globalSvg;
         // https://www.kabuku.co.jp/developers/how-to-enable-zoom-in-svg
 
         // 現在のviewBoxを取得する
@@ -196,23 +196,10 @@
         if (ret.error != "") {
           document.getElementById("score").innerHTML += " <font color='red'>(" + ret.error + ")</font>";
         }
-        let svg = SVG(ret.svg);
-        outerSvg = new SVG();
-        let g = outerSvg.group();
-        let w = svg.attr('width');
-        let h = svg.attr('height');
-        g.add(svg);
-        outerSvg.attr('width', w);
-        outerSvg.attr('height', h);
-        outerSvg.attr('viewBox', `0 0 ${w} ${h}`);
-        // g.panZoom();
-        document.getElementById("result").innerHTML = "";
-        outerSvg.addTo("#result");
-
-        // let svg = SVG(ret.svg);
-        // svg.panZoom();
-        // ret.svg = svg;
         // document.getElementById("result").innerHTML = ret.svg;
+        globalSvg = SVG(ret.svg);
+        document.getElementById("result").innerHTML = "";
+        globalSvg.addTo("#result");
       } catch (error) {
         console.log(error);
         document.getElementById("result").innerHTML = "<p>Invalid</p>";
