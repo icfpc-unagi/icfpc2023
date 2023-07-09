@@ -2,7 +2,6 @@
 use clap::Parser;
 use icfpc2023::*;
 use rand::seq::SliceRandom;
-use rand::Rng;
 
 #[derive(Parser, Debug)]
 struct Args {
