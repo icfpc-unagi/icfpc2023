@@ -18,7 +18,7 @@ fn main() {
     }
 
     let mut best_score = 0;
-    let mut best_ret = vec![];
+    let mut best_ret = (vec![], vec![]);
     let mut best_start = start.clone();
 
     let mut rng = rand::thread_rng();
@@ -101,9 +101,10 @@ fn main() {
 
         let ans = weighted_matching(&ar);
 
-        let mut ret = Vec::new();
+        let mut ret = (vec![], vec![]);
         for i in 0..inp.musicians.len() {
-            ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
+            ret.0.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
+            ret.1.push(1.0); // default volume
         }
 
         let score = compute_score_fast(&inp, &ret).0;
@@ -124,7 +125,7 @@ fn main() {
 
         let mut cand2 = Vec::new();
         for i in 0..inp.musicians.len() {
-            cand2.push(best_ret[i]);
+            cand2.push((best_ret.0[i], best_ret.1[i]));
             //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
             //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
         }
@@ -143,9 +144,11 @@ fn main() {
 
         let ans = weighted_matching(&ar);
 
-        let mut ret = Vec::new();
+        let mut ret = (vec![], vec![]);
         for i in 0..inp.musicians.len() {
-            ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
+            ret.0
+                .push(P(candidate[ans.1[i]].0 .0, candidate[ans.1[i]].0 .1));
+            ret.1.push(candidate[ans.1[i]].1)
         }
 
         let score = compute_score_fast(&inp, &ret).0;

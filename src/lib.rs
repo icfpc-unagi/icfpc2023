@@ -124,6 +124,7 @@ impl Input {
     }
 }
 
+/// (positions[0..n_musicians], volumes[0..n_musicians])
 pub type Output = (Vec<P>, Vec<f64>);
 
 #[derive(Serialize, Deserialize, Debug)]
