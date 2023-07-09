@@ -30,7 +30,7 @@ fn main() {
         .map(|f| read_output_from_file(&f))
         .unwrap_or(vec![]);
     let color_type = cli.c.unwrap_or(1);
-    let svg = vis::vis(&input, &output, color_type, cli.f.unwrap_or(!0));
+    let svg = vis::vis(&input, &output, color_type, cli.f.unwrap_or(!0), None);
     eprintln!("Score = {}", svg.0);
     println!("{}", svg.2);
     if let Some(png) = cli.png {

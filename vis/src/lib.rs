@@ -12,7 +12,14 @@ pub struct Ret {
 }
 
 #[wasm_bindgen]
-pub fn vis(input: String, output: String, _t: i32, color_type: i32, focus: i32) -> Ret {
+pub fn vis(
+    input: String,
+    output: String,
+    _t: i32,
+    color_type: i32,
+    focus: i32,
+    color_instrument: i32,
+) -> Ret {
     let input = icfpc2023::parse_input(&input);
     let out = icfpc2023::parse_output_or_die(&output);
     let (score, error, svg) = icfpc2023::vis::vis(
@@ -20,6 +27,7 @@ pub fn vis(input: String, output: String, _t: i32, color_type: i32, focus: i32) 
         &out,
         color_type,
         if focus < 0 { !0 } else { focus as usize },
+        (color_instrument >= 0).then_some(color_instrument as usize),
     );
     Ret { score, error, svg }
 }

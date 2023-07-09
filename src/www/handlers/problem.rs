@@ -7,13 +7,7 @@ use svg;
 
 #[derive(Debug, Deserialize)]
 pub struct Query {
-    pub submission_id: String,
-    #[serde(default = "default_color_type")]
-    pub color_type: i32,
-}
-
-fn default_color_type() -> i32 {
-    1
+    pub problem_id: u32,
 }
 
 // use actix_web::web;
@@ -34,22 +28,17 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
 
 async fn handle(info: web::Query<Query>) -> Result<String> {
     let mut buf = String::new();
-    let submission = api::get_submission(&info.submission_id).await?;
+    // let submission = api::get_submission(&info.submission_id).await?;
     // TODO: Cache problem data
-    let problem_id = submission.submission.problem_id;
+    let problem_id = info.problem_id;
     let input: Input = api::get_problem(problem_id).await?.into();
-    let output = parse_output(&submission.contents)?;
-    let computed_scores = compute_score_fast(&input, &output);
+    // let output = parse_output(&submission.contents);
+    let computed_scores = compute_score_fast(&input, &vec![]);
 
     write!(
         &mut buf,
-        "<a href=\"/visualizer?submission_id={}\">[Show on Visualizer]</a>",
-        submission.submission._id,
-    )?;
-    write!(
-        &mut buf,
-        "<h1>Submission ID: {}</h1>",
-        submission.submission._id
+        "<h1>Problem ID: {}</h1>",
+        problem_id
     )?;
     write!(
         &mut buf,
@@ -122,19 +111,6 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("transform", "scale(1, -1)")
         .set("style", "margin: 10pt;");
     musicians_svg = musicians_svg.add(
-        svg::node::element::Group::new()
-            .set("transform", "scale(1, -1)")
-            .add(
-                svg::node::element::Text::new()
-                    .set("x", 0.95)
-                    .set("y", -0.95)
-                    .set("text-anchor", "end")
-                    .set("dominant-baseline", "text-before-edge")
-                    .set("font-size", 0.2)
-                    .add(svg::node::Text::new("🎤")),
-            ),
-    );
-    musicians_svg = musicians_svg.add(
         svg::node::element::Rectangle::new()
             .set("x", 0)
             .set("y", 0)
@@ -166,19 +142,6 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("height", 200)
         .set("transform", "scale(1, -1)")
         .set("style", "margin: 10pt;");
-    attendees_svg = attendees_svg.add(
-        svg::node::element::Group::new()
-            .set("transform", "scale(1, -1)")
-            .add(
-                svg::node::element::Text::new()
-                    .set("x", 0.95)
-                    .set("y", -0.95)
-                    .set("text-anchor", "end")
-                    .set("dominant-baseline", "text-before-edge")
-                    .set("font-size", 0.2)
-                    .add(svg::node::Text::new("👂")),
-            ),
-    );
     attendees_svg = attendees_svg.add(
         svg::node::element::Rectangle::new()
             .set("x", 0)

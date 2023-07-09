@@ -43,7 +43,13 @@ pub fn rect(x: f64, y: f64, w: f64, h: f64, fill: &str) -> Rectangle {
         .set("fill", fill)
 }
 
-pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, String, String) {
+pub fn vis(
+    input: &Input,
+    out: &Output,
+    color_type: i32,
+    focus: usize,
+    color_instrument: Option<usize>,
+) -> (i64, String, String) {
     let room = (
         input.pos.iter().map(|a| a.0.ceil() as usize).max().unwrap() as f64 + 10.0,
         input.pos.iter().map(|a| a.1.ceil() as usize).max().unwrap() as f64 + 10.0,
@@ -95,7 +101,9 @@ pub fn vis(input: &Input, out: &Output, color_type: i32, focus: usize) -> (i64, 
                         .set("r", 3.0 * mul)
                         .set(
                             "fill",
-                            if focus != !0 {
+                            if let Some(color_instrument) = color_instrument {
+                                color(0.5 + 0.5 * input.tastes[i][color_instrument] as f64 * 0.001)
+                            } else if focus != !0 {
                                 color(
                                     0.5 + 0.5
                                         * input.tastes[i][input.musicians[focus]] as f64
