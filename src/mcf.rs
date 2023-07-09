@@ -66,7 +66,7 @@ impl Graph {
         let mut visit = vec![false; n];
         let mut ok = self.ex.iter().all(|&ex| ex == 0);
         'refine: loop {
-            eps = (eps / 8).max(1);
+            eps = (eps / 4).max(1);
             if ok && self.fitting() {
                 break;
             }
@@ -220,6 +220,37 @@ pub fn weighted_matching(w: &Vec<Vec<i64>>) -> (i64, Vec<usize>) {
             }
         }
         score += w[i][to[i]];
+    }
+    (score, to)
+}
+
+pub fn weighted_matching_with_capacity(
+    w: &Vec<Vec<i64>>,
+    cap: Vec<usize>,
+) -> (i64, Vec<Vec<usize>>) {
+    let n = w.len();
+    let m = w[0].len();
+    let mut g = Graph::new(n + m + 1);
+    for i in 0..n {
+        g.ex[i] = cap[i] as i64;
+        g.ex[n + m] -= cap[i] as i64;
+        for j in 0..m {
+            g.add(i, n + j, 1, -w[i][j]);
+        }
+    }
+    for j in 0..m {
+        g.add(n + j, n + m, 1, 0);
+    }
+    g.solve();
+    let mut to = vec![vec![]; n];
+    let mut score = 0;
+    for i in 0..n {
+        for e in &g.es[i] {
+            if e.cap == 0 {
+                to[i].push(e.to - n);
+                score += w[i][e.to - n];
+            }
+        }
     }
     (score, to)
 }

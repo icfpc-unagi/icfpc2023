@@ -86,6 +86,7 @@ pub struct Input {
     pub stage0: P,
     pub stage1: P,
     pub musicians: Vec<usize>,
+    pub inst_musicians: Vec<Vec<usize>>,
     pub pos: Vec<P>,
     pub tastes: Vec<Vec<f64>>,
     pub pillars: Vec<(P, f64)>,
@@ -157,12 +158,17 @@ impl From<Problem> for Input {
         } else {
             Version::Two
         };
+        let mut inst_musicians = vec![vec![]; p.attendees[0].tastes.len()];
+        for i in 0..p.musicians.len() {
+            inst_musicians[p.musicians[i]].push(i);
+        }
 
         Input {
             room: p.room_size(),
             stage0: p.stage_bottom_left,
             stage1: p.stage_bottom_left + p.stage_size(),
             musicians: p.musicians,
+            inst_musicians,
             pos: p.attendees.iter().map(|a| P(a.x, a.y)).collect(),
             tastes: p.attendees.into_iter().map(|a| a.tastes).collect(),
             pillars,

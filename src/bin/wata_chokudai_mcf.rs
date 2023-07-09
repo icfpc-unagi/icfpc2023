@@ -301,7 +301,7 @@ impl State {
 }
 
 fn main() {
-    let input = preprocess(read_input());
+    let input = preprocess(read_input_from_file(&std::env::args().nth(1).unwrap()));
     let cand = compute_cand(&input);
     let mut near = vec![vec![]; cand.len()];
     let mut conflict = vec![vec![]; cand.len()];
@@ -463,7 +463,9 @@ fn main() {
                     ws[i][j] = score_pos_inst[j][input.musicians[i]];
                 }
             }
+            let time = get_time();
             let (score, to) = icfpc2023::mcf::weighted_matching(&ws);
+            dbg!(get_time() - time);
             eprintln!("{} -> {}", state.score, score);
             state.score = score;
             for i in 0..pos.len() {
