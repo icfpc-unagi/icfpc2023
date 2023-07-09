@@ -19,6 +19,13 @@ steps:
           --target rust-builder
           --build-arg BUILDKIT_INLINE_CACHE=1
           .'
+  - id: 'push-tag-cache'
+    name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+    - '-c'
+    - 'docker tag asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder
+          asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder:$(cat Cargo.sha1)'
   - id: 'push-rust-cache'
     name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
