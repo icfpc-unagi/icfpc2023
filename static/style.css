@@ -266,6 +266,10 @@ article table td {
     padding: 2px 5px;
 }
 
+article table .align-r {
+	text-align: right;
+}
+
 article textarea {
 	font-family: 'Courier New', Courier, monospace;
 }

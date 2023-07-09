@@ -128,7 +128,7 @@ WHERE
                 }
             }
             Ok(format!(
-                "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td class=\"align-r\">{}</td><td class=\"align-r\">{}</td><td>{}</td></tr>",
                 submission_id,
                 official_id.unwrap_or("N/A".into()),
                 submission_created,
@@ -141,7 +141,7 @@ WHERE
                 buf.push_str(&s);
             }
             Err(e) => {
-                write!(&mut buf, "<tr><td>{}</td></tr>", e)?;
+                write!(&mut buf, "<tr><td colspan=\"5\">{}</td></tr>", e)?;
             }
         }
     }
