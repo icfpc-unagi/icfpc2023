@@ -381,6 +381,9 @@ pub struct Scorerer {
     pub musician_pos: Vec<Option<P>>,
     // n_blocking_musicians[musician_id][attendee_id] := # of other musicians bocking this edge
     pub n_blocking_musicians: Vec<Vec<usize>>,
+    // closeness factor用
+    pub musician_score: Vec<f64>,
+    pub closeness_factor: Vec<f64>,
 }
 
 impl Scorerer {
@@ -390,6 +393,8 @@ impl Scorerer {
             score: 0,
             musician_pos: vec![None; input.n_musicians()],
             n_blocking_musicians: vec![vec![0; input.n_attendees()]; input.n_musicians()],
+            musician_score: vec![0.0; input.n_musicians()],
+            closeness_factor: vec![0.0; input.n_musicians()],
         }
     }
 
@@ -412,6 +417,22 @@ impl Scorerer {
     pub fn add_musician(&mut self, musician_id: usize, pos: P) -> i64 {
         assert_eq!(self.musician_pos[musician_id], None);
         self.musician_pos[musician_id] = Some(pos);
+
+        // Update closeness factor
+        /*
+        for other_musician_id in 0..self.input.n_musicians() {
+            if other_musician_id == musician_id ||  {
+                continue;
+            }
+            let other_pos = self.musician_pos[other_musician_id];
+            if other_pos == None {
+                continue;
+            }
+            let other_pos = other_pos.unwrap();
+            let d2 = (pos - other_pos).abs2();
+            self.closeness_factor[musician_id] += 1.0 / d2.sqrt();
+        }
+        */
 
         let mut score_diff = 0;
 
