@@ -65,6 +65,21 @@
     var seed0 = "";
 
     async function run() {
+      for (const [key, value] of new URL(location).searchParams.entries()) {
+        if (key == "submission_id") {
+          let url = new URL("/api/submission", location);
+          url.searchParams.set("submission_id", value);
+          let res = await (await fetch(url)).json();
+          let problem_id = res.submission.problem_id;
+          let contents = res.contents;
+          if (typeof contents !== "string") {
+            contents = JSON.stringify(contents);
+          }
+          document.getElementById("seed").value = problem_id;
+          document.getElementById("output").value = contents;
+        }
+      };
+
       await init();
       // seed0 = gen("0");
       await generate();

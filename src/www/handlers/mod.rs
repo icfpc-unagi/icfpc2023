@@ -1,5 +1,6 @@
 use crate::*;
 
+pub mod api_proxy;
 pub mod cron;
 pub mod my_submission;
 pub mod my_submissions;
@@ -18,7 +19,7 @@ pub async fn index() -> impl Responder {
 }
 
 pub async fn visualizer() -> impl Responder {
-    let contents = std::fs::read_to_string("/www/visualizer.html").unwrap();
+    let contents = std::fs::read_to_string("vis/index.html").unwrap();
     let contents = contents
         .split("<body>")
         .nth(1)
