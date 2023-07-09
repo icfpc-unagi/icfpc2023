@@ -127,10 +127,12 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
     )?;
     Ok(buf)
 }
-
-fn generate_svg_chart(scores: Vec<i64>, color: &str, symbol: &str) -> svg::Document {
-    let mut scores = scores.clone();
-    scores.sort_unstable_by(|a, b| b.cmp(&a));
+fn generate_svg_chart(mut scores: Vec<i64>, color: &str, symbol: &str) -> svg::Document {
+    scores.sort_unstable_by(|a, b| b.partial_cmp(&a).unwrap());
+    let max_score = scores.first().copied().unwrap_or(1).max(1) as f64;
+    let min_score = scores.last().copied().unwrap_or(0).min(0) as f64;
+    let range = (max_score - min_score) as f64;
+    let lift = -min_score / range;
     let mut svg = svg::Document::new()
         .set("viewBox", (0, 0, 1, 1))
         .set("width", 200)
@@ -162,13 +164,18 @@ fn generate_svg_chart(scores: Vec<i64>, color: &str, symbol: &str) -> svg::Docum
             .set("stroke-width", 0.01),
     );
     for i in 0..scores.len() {
-        let normalized = scores[i] as f64 / scores[0] as f64;
+        let normalized = scores[i] as f64 / range;
+        let (y, height) = if normalized.is_sign_positive() {
+            (lift, normalized)
+        } else {
+            (lift + normalized, -normalized)
+        };
         svg = svg.add(
             svg::node::element::Rectangle::new()
                 .set("x", i as f64 / scores.len() as f64)
-                .set("y", 0)
+                .set("y", y)
                 .set("width", 1.0 / scores.len() as f64)
-                .set("height", normalized),
+                .set("height", height),
         );
     }
     svg
