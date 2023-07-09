@@ -145,10 +145,9 @@ fn extend_cand(input: &Input, cand: &mut Vec<P>, best: &Vec<P>) {
     eprintln!("#cand = {}", cand.len());
 }
 
-// ceilは取らない
 fn score1(input: &Input, p: P, inst: usize, a: usize) -> f64 {
     let d = (p - input.pos[a]).abs2();
-    1e6 * input.tastes[a][inst] / d
+    (1e6 * input.tastes[a][inst] / d).ceil()
 }
 
 struct State {
