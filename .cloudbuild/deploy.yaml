@@ -13,12 +13,12 @@ steps:
     args:
     - '-c'
     - >-
-      docker buildx build
-          -t asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder 
-          --cache-from asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder:$(cat Cargo.sha1)
-          -f docker/builder.Dockerfile
-          --target rust-builder
-          --build-arg BUILDKIT_INLINE_CACHE=1
+      docker buildx build \
+          -t asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder \
+          --cache-from asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder:$(cat Cargo.sha1) \
+          -f docker/builder.Dockerfile \
+          --target rust-builder \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
           .
   - id: 'push-rust-cache'
     name: 'gcr.io/cloud-builders/docker'
