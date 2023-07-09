@@ -3,6 +3,7 @@
 use icfpc2023::{candidate::get_all_candidate, mcf::weighted_matching_with_capacity, *};
 use rand::prelude::*;
 use rayon::prelude::*;
+use std::collections::BTreeMap;
 
 // ステージ外の点について、一番近いミュージシャンまでの距離の二乗
 pub fn compute_dist2_from_stage(input: &Input, p: P) -> f64 {
@@ -84,6 +85,26 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>) {
         > 0
     {
         cand_list.extend(get_all_candidate(input));
+    }
+    for d in 0.. {
+        let x = stage0.0 + 10.0 * d as f64;
+        if x > stage1.0 {
+            break;
+        }
+        cand_list.push(P(x, stage0.1));
+        cand_list.push(P(x, stage1.1));
+        cand_list.push(P(stage1.0 - 10.0 * d as f64, stage0.1));
+        cand_list.push(P(stage1.0 - 10.0 * d as f64, stage1.1));
+    }
+    for d in 0.. {
+        let y = stage0.1 + 10.0 * d as f64;
+        if y > stage1.1 {
+            break;
+        }
+        cand_list.push(P(stage0.0, y));
+        cand_list.push(P(stage1.0, y));
+        cand_list.push(P(stage0.0, stage1.1 - 10.0 * d as f64));
+        cand_list.push(P(stage1.0, stage1.1 - 10.0 * d as f64));
     }
     // 内側に十分な量を追加しておく
     let mut count = 0;
@@ -398,16 +419,31 @@ fn main() {
         .collect::<Vec<_>>();
     let mut rng = rand::thread_rng();
     let mut to = vec![!0; input.musicians.len()];
-    let mut used = vec![false; cand.len()];
-    for i in 0..input.musicians.len() {
-        loop {
-            let j = rng.gen_range(0, cand.len());
-            if !used[j] {
-                to[i] = j;
-                for &k in &conflict[j] {
-                    used[k] = true;
+    if std::env::var("START_FROM_ANS")
+        .unwrap_or(String::new())
+        .len()
+        > 0
+    {
+        let mut id = BTreeMap::new();
+        for i in 0..cand.len() {
+            id.insert(cand[i], i);
+        }
+        let ans = read_output_from_file(&std::env::args().nth(3).unwrap());
+        for i in 0..ans.len() {
+            to[i] = id[&ans[i]];
+        }
+    } else {
+        let mut used = vec![false; cand.len()];
+        for i in 0..input.musicians.len() {
+            loop {
+                let j = rng.gen_range(0, cand.len());
+                if !used[j] {
+                    to[i] = j;
+                    for &k in &conflict[j] {
+                        used[k] = true;
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -469,7 +505,7 @@ fn main() {
                 }
             }
         }
-        if best_score.setmax(state.score) {
+        if best_score + 0.1 < state.score {
             if state.optimize_mcf(&input, &cand) {
                 eprintln!("{:.0} -> {:.0}", best_score, state.score);
             }

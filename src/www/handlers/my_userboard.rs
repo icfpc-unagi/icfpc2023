@@ -43,16 +43,15 @@ NATURAL RIGHT JOIN(
     )? {
         let problem_id: i64 = row.get("problem_id")?;
         let submission_id = row.get_option::<i64>("submission_id")?;
-        let _official_id = row.get_option::<String>("official_id")?;
+        let official_id = row.get_option::<String>("official_id")?;
         let submission_score = row.get_option::<i64>("submission_score")?;
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
-        let score = match submission_id {
+        let score = match official_id.or_else(|| submission_id.map(|x| x.to_string())) {
             Some(id) => format!(
-                "<a href=\"/my_submission?submission_id={}\">{}</a>",
+                "<a href=\"/submission?submission_id={}\">{}</a>",
                 id, submission_score
             ),
-
             None => format!("{}", submission_score),
         };
         buf.push_str(&format!(
