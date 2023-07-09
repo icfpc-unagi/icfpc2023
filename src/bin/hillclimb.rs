@@ -77,7 +77,7 @@ fn main() {
         }
 
         loop {
-            let p_old = output[musician_id];
+            let p_old = output.0[musician_id];
             let mut p_new = p_old + vec * d * rng.gen::<f64>();
             p_new = P((p_new.0 as f32) as f64, (p_new.1 as f32) as f64);
             p_new.0 = p_new
@@ -90,7 +90,7 @@ fn main() {
                 .min(input.stage1.0 - 10.0);
 
             let score_old = scorerer.score;
-            output[musician_id] = p_new;
+            output.0[musician_id] = p_new;
             scorerer.move_musician(musician_id, p_new);
 
             let mut is_improved = false;
@@ -120,7 +120,7 @@ fn main() {
                 iter_last_update = iter;
                 continue;
             } else {
-                output[musician_id] = p_old;
+                output.0[musician_id] = p_old;
                 scorerer.move_musician(musician_id, p_old);
                 break;
             }
