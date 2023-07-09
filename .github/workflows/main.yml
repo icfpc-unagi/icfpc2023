@@ -139,10 +139,12 @@ jobs:
         run: cargo build --bins --release
       - name: Deploy binaries
         run: |
-          cd src/bin
+          ROOT_DIR="$(pwd)"
           mkdir -p ./deploy
+          cd src/bin
           for file in *.rs; do
-            cp "./target/release/${file//.rs}" "./deploy/${file//.rs}"
+            cp "${ROOT_DIR}/target/release/${file//.rs}" "${ROOT_DIR}/deploy/${file//.rs}"
           done
+          cd -
           ls -lA ./deploy
           gsutil -m cp -Z ./deploy/* "gs://icfpc2023/bin/$(git rev-parse --short HEAD)/"
