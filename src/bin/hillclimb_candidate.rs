@@ -8,15 +8,26 @@ struct Args {
     input_path: String,
     output_path: String,
     save_dir: String,
+    #[clap(long = "time-limit")]
+    time_limit: Option<f64>,
 }
 
 fn main() {
     let args = Args::parse();
     let input = read_input_from_file(&args.input_path);
     let output = read_output_from_file(&args.output_path);
-    // let rng = rand::thread_rng();
+    let save_dir = simple_hillclimb::prepare_output_dir(&input, &args.save_dir);
 
-    simple_hillclimb::simple_hillclimb(&input, output, &args.save_dir);
+    simple_hillclimb::hillclimb_candidate_findbest(
+        &input,
+        output,
+        &save_dir,
+        1000,
+        args.time_limit.unwrap_or(1e9),
+    );
+
+    // let rng = rand::thread_rng();
+    //simple_hillclimb::simple_hillclimb(&input, output, &args.save_dir);
 
     /*
     let mut scorer = DynamicScorer::new_with_output(&input, &output);

@@ -1,7 +1,7 @@
 use super::*;
 use rand::seq::SliceRandom;
 
-fn prepare_output_dir(input: &Input, save_dir: &str) -> String {
+pub fn prepare_output_dir(input: &Input, save_dir: &str) -> String {
     let save_dir = format!(
         "{}/problem-{}/",
         save_dir.to_owned(),
@@ -18,6 +18,8 @@ fn dump_output(output: &Output, save_dir: &str, score: i64) {
 
     let latest_path = format!("{}/latest.txt", save_dir);
     write_output_to_file(&output, &latest_path);
+
+    eprintln!("Saved: {} {}", out_path, latest_path);
 }
 
 /*
@@ -113,13 +115,14 @@ fn hillclimb_candidate(
 */
 
 /// 改善できたら移動するんじゃなくて、一番いいとこに移動する
-fn hillclimb_candidate_findbest(
+pub fn hillclimb_candidate_findbest(
     input: &Input,
     mut output: Output,
     save_dir: &str,
     candidate_limit: usize,
-    max_iters: i64,
+    time_limit: f64,
 ) -> Output {
+    let time_start = get_time();
     let mut rng = rand::thread_rng();
     let mut scorer = DynamicScorer::new_with_output(&input, &output);
     let mut iter = 0;
@@ -138,7 +141,8 @@ fn hillclimb_candidate_findbest(
                 limit_pattern2: Some(candidate_limit),
                 limit_pattern3: Some(candidate_limit / 10), // tekitou
                 limit_pattern23: None,
-                filter_by_intersections1: Some(0),
+                filter_by_intersections1: Some(1),
+                filter_by_intersections234: Some(1),
                 filter_by_reach23: true,
                 filter_by_reach14: false,
                 pattern2_disallow_blocked: true,
@@ -153,13 +157,20 @@ fn hillclimb_candidate_findbest(
         eprintln!("Candidate set size: {}", candidate_poss.len());
 
         let mut updated = false;
+        let mut time_last_save = time_start;
         loop {
             let mut musician_ids: Vec<usize> = (0..input.n_musicians()).collect();
             musician_ids.shuffle(&mut rng);
 
             for musician_id in musician_ids {
-                if iter >= max_iters {
+                let time_now = get_time();
+                if time_now > time_start + time_limit {
+                    dump_output(&output, &save_dir, scorer.get_score());
                     return output;
+                }
+                if time_now - time_last_save > 15.0 {
+                    dump_output(&output, &save_dir, scorer.get_score());
+                    time_last_save = time_now;
                 }
 
                 let vol = output.1[musician_id];
@@ -170,9 +181,6 @@ fn hillclimb_candidate_findbest(
 
                 for pos in &candidate_poss {
                     iter += 1;
-                    if iter % 10000 == 0 {
-                        dump_output(&output, &save_dir, scorer.get_score());
-                    }
 
                     output.0[musician_id] = *pos;
                     if !is_valid_output(&input, &output, false) {
@@ -189,8 +197,10 @@ fn hillclimb_candidate_findbest(
                 scorer.move_musician(musician_id, pos_best, vol);
                 output.0[musician_id] = pos_best;
                 if score_best > score_old {
+                    let time_now = get_time();
                     println!(
-                        "iter={} {:10} -> {:10} (+{:10})",
+                        "t={:.1} iter={} {:10} -> {:10} (+{:10})",
+                        time_now - time_start,
                         iter,
                         score_old,
                         score_best,
@@ -200,6 +210,10 @@ fn hillclimb_candidate_findbest(
                     let score_naive = compute_score(&input, &output);
                     if score_naive != score_best {
                         eprintln!("Score mismatch: {} vs {}", score_naive, score_best);
+                    }
+                    if time_now - time_last_save > 15.0 {
+                        dump_output(&output, &save_dir, scorer.get_score());
+                        time_last_save = time_now;
                     }
                     updated = true;
                 }
@@ -223,8 +237,7 @@ pub fn simple_hillclimb(input: &Input, mut output: Output, save_dir: &str) -> Ou
     let candidate_limit = 1000;
     loop {
         // output = hillclimb_candidate(input, output, &save_dir, candidate_limit, max_iters);
-        output =
-            hillclimb_candidate_findbest(input, output, &save_dir, candidate_limit, 1000000000);
+        output = hillclimb_candidate_findbest(input, output, &save_dir, candidate_limit, 60.0);
         dump_output(&output, &save_dir, compute_score(input, &output));
 
         // candidate_limit *= 2;

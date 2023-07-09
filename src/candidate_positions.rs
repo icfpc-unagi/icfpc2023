@@ -11,8 +11,9 @@ pub struct CandidateConfig {
     pub limit_pattern23: Option<usize>,
     pub filter_by_reach23: bool,
     pub filter_by_reach14: bool,
-    /// pattern1において、この個数より多くintersectしてたら捨てる
+    /// この個数より多くintersectしてたら捨てる
     pub filter_by_intersections1: Option<usize>,
+    pub filter_by_intersections234: Option<usize>,
     pub pattern2_disallow_blocked: bool,
 }
 
@@ -292,6 +293,9 @@ pub fn enumerate_candidate_positions_with_config(
         if config.filter_by_reach23 {
             cp2 = filter_by_reach(cp2, input, output);
         }
+        if let Some(limit) = config.filter_by_intersections234 {
+            cp2 = filter_by_intersections(cp2, output, limit);
+        }
         if let Some(limit) = config.limit_pattern2 {
             cp2 = cp2.into_iter().take(limit).collect();
         }
@@ -301,17 +305,26 @@ pub fn enumerate_candidate_positions_with_config(
         if config.filter_by_reach23 {
             cp3 = filter_by_reach(cp3, input, output);
         }
+        if let Some(limit) = config.filter_by_intersections234 {
+            cp3 = filter_by_intersections(cp3, output, limit);
+        }
         if let Some(limit) = config.limit_pattern3 {
             cp3 = cp3.into_iter().take(limit).collect();
         }
     }
     if config.use_pattern4 {
         cp4 = filter_outside(pattern4(input, output), input);
+        if let Some(limit) = config.filter_by_intersections234 {
+            cp4 = filter_by_intersections(cp4, output, limit);
+        }
     }
     if config.use_pattern23 {
         cp23 = filter_outside(pattern23(input, output, config), input);
         if config.filter_by_reach23 {
             cp23 = filter_by_reach(cp23, input, output);
+        }
+        if let Some(limit) = config.filter_by_intersections234 {
+            cp23 = filter_by_intersections(cp23, output, limit);
         }
         if let Some(limit) = config.limit_pattern23 {
             cp23 = cp23.into_iter().take(limit).collect();
@@ -353,6 +366,7 @@ pub fn enumerate_candidate_positions_hc(input: &Input, output: &Output) -> Vec<P
             limit_pattern3: Some(100),
             limit_pattern23: None,
             filter_by_intersections1: Some(0),
+            filter_by_intersections234: Some(0),
             filter_by_reach23: true,
             filter_by_reach14: true,
             pattern2_disallow_blocked: true,
@@ -375,6 +389,7 @@ pub fn enumerate_candidate_positions_sa(input: &Input, output: &Output) -> Vec<P
             limit_pattern3: None,
             limit_pattern23: Some(1000),
             filter_by_intersections1: Some(0),
+            filter_by_intersections234: None,
             filter_by_reach23: false,
             filter_by_reach14: false,
             pattern2_disallow_blocked: false,
