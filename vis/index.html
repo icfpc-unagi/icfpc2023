@@ -63,10 +63,15 @@
   <p id="score" style="user-select:none"></p>
   <div id="result">
   </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.0/svg.min.js" integrity="sha512-EmfT33UCuNEdtd9zuhgQClh7gidfPpkp93WO8GEfAP3cLD++UM1AG9jsTUitCI9DH5nF72XaFePME92r767dHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.pan-zoom.js/2.8.0/svg.pan-zoom.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.pan-zoom.js/2.8.0/svg.pan-zoom.js"></script> -->
   <script type="module">
     import init, { vis, get_max_turn } from './vis.js';
 
     var seed0 = "";
+    let outerSvg = null;
 
     async function run() {
       for (const [key, value] of new URL(location).searchParams.entries()) {
@@ -87,6 +92,53 @@
       await init();
       // seed0 = gen("0");
       await generate();
+      window.onkeydown = (event) => {
+        const key = event.key;
+        let scale = 1;
+        let dx = 0;
+        let dy = 0;
+        if (key === 'i') {
+          scale = 0.5;
+        } else if (key === 'o') {
+          scale = 2;
+        } else if (key == 'w') {
+          dy = -0.2;
+        } else if (key == 's') {
+          dy = 0.2;
+        } else if (key == 'a') {
+          dx = -0.2;
+        } else if (key == 'd') {
+          dx = 0.2;
+        } else {
+          return;
+        }
+        const svg = outerSvg;
+        // https://www.kabuku.co.jp/developers/how-to-enable-zoom-in-svg
+
+        // 現在のviewBoxを取得する
+        const [minX, minY, width, height] = svg.attr('viewBox')
+            .split(' ')
+            .map(s => parseFloat(s));
+
+        const minX1 = minX + dx * width;
+        const minY1 = minY + dy * height;
+
+        // 大きさをscale倍する
+        const zoomedWidth = width * scale;
+        const zoomedHeight = height * scale;
+
+        // 中心の座標を計算する
+        const centerX = minX1 + width / 2.0;
+        const centerY = minY1 + height / 2.0;
+
+        // scale倍したあとのmin-xとmin-yを計算する
+        const zoomedMinX = centerX - zoomedWidth / 2.0;
+        const zoomedMinY = centerY - zoomedHeight / 2.0;
+
+        // viewBoxを更新
+        const zoomedViewBox = [zoomedMinX, zoomedMinY, zoomedWidth, zoomedHeight].join(' ');
+        svg.attr('viewBox', zoomedViewBox);
+      };
     }
     run();
 
@@ -144,7 +196,23 @@
         if (ret.error != "") {
           document.getElementById("score").innerHTML += " <font color='red'>(" + ret.error + ")</font>";
         }
-        document.getElementById("result").innerHTML = ret.svg;
+        let svg = SVG(ret.svg);
+        outerSvg = new SVG();
+        let g = outerSvg.group();
+        let w = svg.attr('width');
+        let h = svg.attr('height');
+        g.add(svg);
+        outerSvg.attr('width', w);
+        outerSvg.attr('height', h);
+        outerSvg.attr('viewBox', `0 0 ${w} ${h}`);
+        // g.panZoom();
+        document.getElementById("result").innerHTML = "";
+        outerSvg.addTo("#result");
+
+        // let svg = SVG(ret.svg);
+        // svg.panZoom();
+        // ret.svg = svg;
+        // document.getElementById("result").innerHTML = ret.svg;
       } catch (error) {
         console.log(error);
         document.getElementById("result").innerHTML = "<p>Invalid</p>";
