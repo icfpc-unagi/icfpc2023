@@ -15,6 +15,10 @@ DOCKER_RUN = docker run --rm $(shell [ -t 0 ] && echo -it)
 
 DOCKER_REGISTRY = asia-docker.pkg.dev/icfpc-primary/asia
 
+PORT = 8080
+
+export DOCKER_BUILDKIT = 1
+
 ###############################################################################
 # Basic rules
 ###############################################################################
@@ -88,6 +92,9 @@ docker/%: FORCE
 push/%: docker/%
 	docker tag icfpc-unagi/$* "$(DOCKER_REGISTRY)/$*"
 	docker push "$(DOCKER_REGISTRY)/$*"
+
+run/server: docker/server
+	docker run -p 0.0.0.0:$(PORT):80 icfpc-unagi/server
 
 ###############################################################################
 # Generic rules
