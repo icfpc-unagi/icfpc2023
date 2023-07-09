@@ -43,7 +43,7 @@ async fn main() -> std::io::Result<()> {
                 "/api/submission",
                 web::get().to(www::handlers::api_proxy::submission),
             )
-            .service(Files::new("/", "vis/www"))
+            .service(Files::new("/", "/www"))
     })
     .bind(bind_address)?
     .run()
