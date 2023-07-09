@@ -60,7 +60,7 @@ pub fn pattern2(input: &Input, output: &Output) -> Vec<P> {
     let mut am_pairs = vec![];
     for attendee_id in 0..input.n_attendees() {
         for musician_id in 0..input.n_musicians() {
-            if is_blocked_by_someone(input, output, musician_id, attendee_id) {
+            if is_blocked_by_someone(input, &output.0, musician_id, attendee_id) {
                 continue;
             }
             let d = (input.pos[attendee_id] - output.0[musician_id]).abs2();
@@ -111,7 +111,7 @@ pub fn pattern3(input: &Input, output: &Output) -> Vec<P> {
     let mut am_pairs = vec![];
     for attendee_id in 0..input.n_attendees() {
         for musician_id in 0..input.n_musicians() {
-            if is_blocked_by_someone(input, output, musician_id, attendee_id) {
+            if is_blocked_by_someone(input, &output.0, musician_id, attendee_id) {
                 continue;
             }
             let d = (input.pos[attendee_id] - output.0[musician_id]).abs2();
@@ -152,7 +152,7 @@ pub fn pattern23(input: &Input, output: &Output, config: &CandidateConfig) -> Ve
     let mut am_pairs = vec![];
     for attendee_id in 0..input.n_attendees() {
         for musician_id in 0..input.n_musicians() {
-            if is_blocked_by_someone(input, output, musician_id, attendee_id) {
+            if is_blocked_by_someone(input, &output.0, musician_id, attendee_id) {
                 continue;
             }
             let d = (input.pos[attendee_id] - output.0[musician_id]).abs2();
