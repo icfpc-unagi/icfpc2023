@@ -125,35 +125,37 @@ pub fn vis(
     }
     // Musicians
     for i in 0..out.0.len() {
+        let nonzero_vol = out.1.get(i).map_or(true, |&v| v > 0.0);
+        let color = if color_instrument.map_or(true, |c| c == input.musicians[i]) {
+            match color_type {
+                0 => color(input.musicians[i] as f64 / t as f64),
+                1 => color(0.5 + 0.5 * score_musicians[i] as f64 / score_musician_max as f64),
+                _ => unimplemented!(),
+            }
+        } else {
+            "black".to_owned()
+        };
+        let circle = Circle::new()
+            .set("cx", out.0[i].0 * mul)
+            .set("cy", out.0[i].1 * mul)
+            .set("onclick", format!("visualize({})", i));
+        let circle = if nonzero_vol {
+            circle.set("r", 5.0 * mul).set("fill", color)
+        } else {
+            circle
+                .set("r", 4.0 * mul)
+                .set("fill", "grey")
+                .set("stroke", color)
+                .set("stroke-width", 2.0 * mul)
+        };
         doc = doc.add(
             Group::new()
                 .add(Title::new().add(Text::new(format!(
                     "musicians {}, inst = {}\n({}, {})\nscore = {}",
                     i, input.musicians[i], out.0[i].0, out.0[i].1, score_musicians[i]
                 ))))
-                .add(
-                    Circle::new()
-                        .set("cx", out.0[i].0 * mul)
-                        .set("cy", out.0[i].1 * mul)
-                        .set("r", 5.0 * mul)
-                        .set(
-                            "fill",
-                            if color_instrument.map_or(true, |c| c == input.musicians[i]) {
-                                match color_type {
-                                    0 => color(input.musicians[i] as f64 / t as f64),
-                                    1 => color(
-                                        0.5 + 0.5 * score_musicians[i] as f64
-                                            / score_musician_max as f64,
-                                    ),
-                                    _ => unimplemented!(),
-                                }
-                            } else {
-                                "black".to_owned()
-                            },
-                        )
-                        .set("onclick", format!("visualize({})", i)),
-                ),
-        )
+                .add(circle),
+        );
     }
     for &(c, r) in &input.pillars {
         doc = doc.add(
