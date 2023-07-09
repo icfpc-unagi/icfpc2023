@@ -38,6 +38,10 @@ async fn main() -> std::io::Result<()> {
                 "/my_submissions",
                 web::get().to(www::handlers::my_submissions::handler),
             )
+            .route(
+                "/problem_png",
+                web::get().to(www::handlers::problem_png::handler),
+            )
             .route("/cron", web::get().to(www::handlers::cron::handler))
             .route(
                 "/api/submission",
