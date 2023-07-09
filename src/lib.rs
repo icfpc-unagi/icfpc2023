@@ -124,7 +124,7 @@ impl Input {
     }
 }
 
-pub type Output = Vec<P>;
+pub type Output = (Vec<P>, Vec<f64>);
 
 #[derive(Serialize, Deserialize, Debug)]
 struct JsonAttendee {
@@ -244,19 +244,25 @@ pub fn parse_input_with_version(s: &str, version: Version) -> Input {
 #[derive(Serialize, Deserialize, Debug)]
 struct Solution {
     placements: Vec<XY>,
+    #[serde(default)]
+    volumes: Vec<f64>,
 }
 
 impl From<&Output> for Solution {
     fn from(output: &Output) -> Self {
         Solution {
-            placements: output.iter().map(|p| p.into()).collect(),
+            placements: output.0.iter().map(|p| p.into()).collect(),
+            volumes: output.1.clone(),
         }
     }
 }
 
 impl From<&Solution> for Output {
     fn from(solution: &Solution) -> Self {
-        solution.placements.iter().map(|p| P(p.x, p.y)).collect()
+        (
+            solution.placements.iter().map(|p| P(p.x, p.y)).collect(),
+            solution.volumes.clone(),
+        )
     }
 }
 
@@ -285,7 +291,8 @@ pub fn write_output(output: &Output) {
 
 pub fn write_output_to_file(output: &Output, file_name: &str) {
     let out = Solution {
-        placements: output.iter().map(|p| p.into()).collect(),
+        placements: output.0.iter().map(|p| p.into()).collect(),
+        volumes: output.1.clone(),
     };
     let file = File::create(file_name).expect("unable to create file");
     let writer = BufWriter::new(file);
@@ -294,7 +301,15 @@ pub fn write_output_to_file(output: &Output, file_name: &str) {
 
 pub fn parse_output(s: &str) -> Result<Output> {
     let out: Solution = serde_json::from_str(s)?;
-    Ok(out.placements.into_iter().map(|p| P(p.x, p.y)).collect())
+    let n = out.placements.len();
+    Ok((
+        out.placements.into_iter().map(|p| P(p.x, p.y)).collect(),
+        if out.volumes.is_empty() {
+            vec![1.0; n]
+        } else {
+            out.volumes.clone()
+        },
+    ))
 }
 
 pub fn parse_output_or_die(s: &str) -> Output {

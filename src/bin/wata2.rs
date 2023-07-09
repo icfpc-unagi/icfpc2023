@@ -451,69 +451,76 @@ fn main() {
     let mut best = state.to.clone();
     let mut best_score = state.score;
     eprintln!("{:.3}: {}", get_time(), best_score);
-    //const T0: f64 = 1e-2;
-    //const T1: f64 = 1e-6;
-
-    let mut sum = 1.0;
-    let mut cnt = 0;
-
-    let TL: f64 = std::env::var("TL")
+    let REP = std::env::var("REP")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(600.0);
-    let stime = get_time();
-    for iter in 0.. {
-        let t = (get_time() - stime) / TL;
-        if t >= 1.0 {
-            eprintln!("Iter = {}", iter);
-            break;
-        }
-        let i1 = state.to[rng.gen_range(0, input.n_musicians())];
-        let i2 = if rng.gen_bool(0.1) {
-            rng.gen_range(0, cand.len())
-        } else {
-            near[i1].choose(&mut rng).unwrap().1
-        };
-        if state.musicians[i2] == !0 {
-            if let Some(diff) = state.mov(&input, &cand, &block, &conflict, i1, i2) {
-                sum += diff.abs() as f64;
-                cnt += 1;
+        .unwrap_or(1);
+    for _ in 0..REP {
+        let mut sum = 1.0;
+        let mut cnt = 0;
 
-                let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t) * (1.0 - t);
-                if T <= 1.0 {
-                    T = 1.0;
+        let TL: f64 = std::env::var("TL")
+            .map(|a| a.parse().unwrap())
+            .unwrap_or(600.0);
+        let stime = get_time();
+        let mut num_used = vec![0i64; cand.len()];
+        for iter in 0.. {
+            if iter & 0xff == 0 {}
+            let t = (get_time() - stime) / TL;
+            if t >= 1.0 {
+                eprintln!("Iter = {}", iter);
+                break;
+            }
+            let i1 = state.to[rng.gen_range(0, input.n_musicians())];
+            let i2 = if rng.gen_bool(0.1) {
+                rng.gen_range(0, cand.len())
+            } else {
+                near[i1].choose(&mut rng).unwrap().1
+            };
+            if state.musicians[i2] == !0 {
+                if let Some(diff) = state.mov(&input, &cand, &block, &conflict, i1, i2) {
+                    sum += diff.abs() as f64;
+                    cnt += 1;
+
+                    let ave = sum / cnt as f64;
+                    let mut T = ave * (1.0 - t) * (1.0 - t);
+                    if T <= 1.0 {
+                        T = 1.0;
+                    }
+
+                    if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
+                    } else {
+                        state.mov(&input, &cand, &block, &conflict, i2, i1).unwrap();
+                    }
                 }
+            } else {
+                if let Some(diff) = state.swap(&input, &cand, i1, i2) {
+                    sum += diff.abs() as f64;
+                    cnt += 1;
 
-                if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
-                } else {
-                    state.mov(&input, &cand, &block, &conflict, i2, i1).unwrap();
+                    let ave = sum / cnt as f64;
+                    let mut T = ave * (1.0 - t) * (1.0 - t);
+                    if T <= 1.0 {
+                        T = 1.0;
+                    }
+                    if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
+                    } else {
+                        state.swap(&input, &cand, i1, i2).unwrap();
+                    }
                 }
             }
-        } else {
-            if let Some(diff) = state.swap(&input, &cand, i1, i2) {
-                sum += diff.abs() as f64;
-                cnt += 1;
-
-                let ave = sum / cnt as f64;
-                let mut T = ave * (1.0 - t) * (1.0 - t);
-                if T <= 1.0 {
-                    T = 1.0;
+            if best_score + 0.1 < state.score {
+                if state.optimize_mcf(&input, &cand) {
+                    eprintln!("{:.0} -> {:.0}", best_score, state.score);
                 }
-                if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
-                } else {
-                    state.swap(&input, &cand, i1, i2).unwrap();
-                }
+                best_score.setmax(state.score);
+                best = state.to.clone();
+                eprintln!("{:.3}: {:.0}", get_time(), best_score);
             }
         }
-        if best_score + 0.1 < state.score {
-            if state.optimize_mcf(&input, &cand) {
-                eprintln!("{:.0} -> {:.0}", best_score, state.score);
-            }
-            best_score.setmax(state.score);
-            best = state.to.clone();
-            eprintln!("{:.3}: {:.0}", get_time(), best_score);
-        }
+        let out = best.iter().map(|&p| cand[p]).collect();
+        write_output_to_file(
+            &out,
+            &format!("{}/{}.json", outdir, input.problem_id.unwrap_or(0)),
+        )
     }
-    let out = best.into_iter().map(|p| cand[p]).collect();
-    write_output(&out);
 }
