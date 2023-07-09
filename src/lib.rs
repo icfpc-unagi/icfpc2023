@@ -1,4 +1,5 @@
 pub mod scoring;
+use anyhow::Result;
 pub use scoring::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -270,14 +271,18 @@ pub fn write_output_to_file(output: &Output, file_name: &str) {
     serde_json::to_writer(writer, &out).expect("unable to write data");
 }
 
-pub fn parse_output(s: &str) -> Output {
-    let out: Solution = serde_json::from_str(s).unwrap();
-    out.placements.into_iter().map(|p| P(p.x, p.y)).collect()
+pub fn parse_output(s: &str) -> Result<Output> {
+    let out: Solution = serde_json::from_str(s)?;
+    Ok(out.placements.into_iter().map(|p| P(p.x, p.y)).collect())
+}
+
+pub fn parse_output_or_die(s: &str) -> Output {
+    parse_output(s).unwrap()
 }
 
 pub fn read_output_from_file(path: &str) -> Output {
     let content = std::fs::read_to_string(path).expect("Failed to read file");
-    parse_output(&content)
+    parse_output_or_die(&content)
 }
 
 use std::ops::*;

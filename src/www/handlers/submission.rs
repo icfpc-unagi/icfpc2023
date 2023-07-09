@@ -38,7 +38,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
     // TODO: Cache problem data
     let problem_id = submission.submission.problem_id;
     let input: Input = api::get_problem(problem_id).await?.into();
-    let output = parse_output(&submission.contents);
+    let output = parse_output(&submission.contents)?;
     let computed_scores = compute_score_fast(&input, &output);
 
     write!(

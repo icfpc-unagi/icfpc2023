@@ -14,7 +14,7 @@ pub struct Ret {
 #[wasm_bindgen]
 pub fn vis(input: String, output: String, _t: i32, color_type: i32, focus: i32) -> Ret {
     let input = icfpc2023::parse_input(&input);
-    let out = icfpc2023::parse_output(&output);
+    let out = icfpc2023::parse_output_or_die(&output);
     let (score, error, svg) = icfpc2023::vis::vis(
         &input,
         &out,
