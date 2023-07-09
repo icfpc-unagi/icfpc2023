@@ -249,14 +249,7 @@ WHERE
     })
 }
 
-/// Returns the submission with the given ID of either local or offical format.
-pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
-    // Try to get from DB.
-    match get_submission_db(submission_id).await {
-        Ok(submission) => return Ok(submission),
-        Err(error) => eprintln!("Failed to get submission from DB: {}", error),
-    }
-    // If not found, get from API.
+pub async fn get_submission_api(submission_id: &str) -> Result<SubmissionResponse> {
     let res = CLIENT
         .get(format!(
             "{}/submission?submission_id={}",
@@ -270,6 +263,16 @@ pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
         Response::Success(submission) => Ok(submission),
         Response::Failure(error) => Err(anyhow!(error)),
     }
+}
+
+/// Returns the submission with the given ID of either local or offical format.
+pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
+    // Try to get from DB.
+    match get_submission_db(submission_id).await {
+        Ok(submission) => return Ok(submission),
+        Err(error) => eprintln!("Failed to get submission from DB: {}", error),
+    }
+    get_submission_api(submission_id).await
 }
 
 /// Submits a solution and returns the submission ID.
