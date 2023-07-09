@@ -6,7 +6,7 @@ use rand::Rng;
 
 use crate::{Input, P};
 
-pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
+pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<P> {
     let mut candidate = Vec::new();
 
     let mut heap = BinaryHeap::new();
@@ -16,6 +16,16 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
     for i in 0..first_cand.len() {
         candidate.push(first_cand[i]);
     }
+
+    let random_space = rng.gen_range(0.0, 3.0);
+
+    let ten = {
+        if rand_flag {
+            10.0 + random_space
+        } else {
+            10.0
+        }
+    };
 
     for i in 0..inp.pos.len() {
         let dist = get_stage_diff(inp.pos[i], inp.stage0, inp.stage1) as i64;
@@ -75,8 +85,8 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
                 let p_0 = P(inp.stage0.0 + 10.0 + c, inp.pos[id].1);
-                let p_1 = P(inp.stage0.0 + 10.0, inp.pos[id].1 + b + 10.0 * num as f64);
-                let p_2 = P(inp.stage0.0 + 10.0, inp.pos[id].1 - b - 10.0 * num as f64);
+                let p_1 = P(inp.stage0.0 + 10.0, inp.pos[id].1 + b + ten * num as f64);
+                let p_2 = P(inp.stage0.0 + 10.0, inp.pos[id].1 - b - ten * num as f64);
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -85,8 +95,8 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
                 let p_0 = P(inp.stage1.0 - 10.0 - c, inp.pos[id].1);
-                let p_1 = P(inp.stage1.0 - 10.0, inp.pos[id].1 - b - 10.0 * num as f64);
-                let p_2 = P(inp.stage1.0 - 10.0, inp.pos[id].1 + b + 10.0 * num as f64);
+                let p_1 = P(inp.stage1.0 - 10.0, inp.pos[id].1 - b - ten * num as f64);
+                let p_2 = P(inp.stage1.0 - 10.0, inp.pos[id].1 + b + ten * num as f64);
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -95,8 +105,8 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
                 let p_0 = P(inp.pos[id].0, inp.stage0.1 + 10.0 + c);
-                let p_1 = P(inp.pos[id].0 + b + 10.0 * num as f64, inp.stage0.1 + 10.0);
-                let p_2 = P(inp.pos[id].0 - b - 10.0 * num as f64, inp.stage0.1 + 10.0);
+                let p_1 = P(inp.pos[id].0 + b + ten * num as f64, inp.stage0.1 + 10.0);
+                let p_2 = P(inp.pos[id].0 - b - ten * num as f64, inp.stage0.1 + 10.0);
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -105,8 +115,8 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
                 let p_0 = P(inp.pos[id].0, inp.stage1.1 - 10.0 - c);
-                let p_1 = P(inp.pos[id].0 + b + 10.0 * num as f64, inp.stage1.1 - 10.0);
-                let p_2 = P(inp.pos[id].0 - b - 10.0 * num as f64, inp.stage1.1 - 10.0);
+                let p_1 = P(inp.pos[id].0 + b + ten * num as f64, inp.stage1.1 - 10.0);
+                let p_2 = P(inp.pos[id].0 - b - ten * num as f64, inp.stage1.1 - 10.0);
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -165,22 +175,22 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
             if pattern == 2 {
                 ps = vec![
                     P(
-                        inp.pos[id].0 + (5.00 + 10.0 * num as f64),
+                        inp.pos[id].0 + (5.00 + ten * num as f64),
                         inp.stage0.1 + 10.0,
                     ),
                     P(
-                        inp.pos[id].0 - (5.00 + 10.0 * num as f64),
+                        inp.pos[id].0 - (5.00 + ten * num as f64),
                         inp.stage0.1 + 10.0,
                     ),
                 ];
             } else if pattern == 8 {
                 ps = vec![
                     P(
-                        inp.pos[id].0 + (5.00 + 10.0 * num as f64),
+                        inp.pos[id].0 + (5.00 + ten * num as f64),
                         inp.stage1.1 - 10.0,
                     ),
                     P(
-                        inp.pos[id].0 - (5.00 + 10.0 * num as f64),
+                        inp.pos[id].0 - (5.00 + ten * num as f64),
                         inp.stage1.1 - 10.0,
                     ),
                 ];
@@ -188,22 +198,22 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
                 ps = vec![
                     P(
                         inp.stage0.0 + 10.0,
-                        inp.pos[id].1 + (5.00 + 10.0 * num as f64),
+                        inp.pos[id].1 + (5.00 + ten * num as f64),
                     ),
                     P(
                         inp.stage0.0 + 10.0,
-                        inp.pos[id].1 - (5.00 + 10.0 * num as f64),
+                        inp.pos[id].1 - (5.00 + ten * num as f64),
                     ),
                 ];
             } else if pattern == 4 {
                 ps = vec![
                     P(
                         inp.stage1.0 - 10.0,
-                        inp.pos[id].1 + (5.00 + 10.0 * num as f64),
+                        inp.pos[id].1 + (5.00 + ten * num as f64),
                     ),
                     P(
                         inp.stage1.0 - 10.0,
-                        inp.pos[id].1 - (5.00 + 10.0 * num as f64),
+                        inp.pos[id].1 - (5.00 + ten * num as f64),
                     ),
                 ];
             }
@@ -223,23 +233,23 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
 
             if pattern == 2 {
                 ps = vec![
-                    P(inp.pos[id].0 + (10.0 * num as f64), inp.stage0.1 + 10.0),
-                    P(inp.pos[id].0 - (10.0 * num as f64), inp.stage0.1 + 10.0),
+                    P(inp.pos[id].0 + (ten * num as f64), inp.stage0.1 + 10.0),
+                    P(inp.pos[id].0 - (ten * num as f64), inp.stage0.1 + 10.0),
                 ];
             } else if pattern == 8 {
                 ps = vec![
-                    P(inp.pos[id].0 + (10.0 * num as f64), inp.stage1.1 - 10.0),
-                    P(inp.pos[id].0 - (10.0 * num as f64), inp.stage1.1 - 10.0),
+                    P(inp.pos[id].0 + (ten * num as f64), inp.stage1.1 - 10.0),
+                    P(inp.pos[id].0 - (ten * num as f64), inp.stage1.1 - 10.0),
                 ];
             } else if pattern == 1 {
                 ps = vec![
-                    P(inp.stage0.0 + 10.0, inp.pos[id].1 + (10.0 * num as f64)),
-                    P(inp.stage0.0 + 10.0, inp.pos[id].1 - (10.0 * num as f64)),
+                    P(inp.stage0.0 + 10.0, inp.pos[id].1 + (ten * num as f64)),
+                    P(inp.stage0.0 + 10.0, inp.pos[id].1 - (ten * num as f64)),
                 ];
             } else if pattern == 4 {
                 ps = vec![
-                    P(inp.stage1.0 - 10.0, inp.pos[id].1 + (10.0 * num as f64)),
-                    P(inp.stage1.0 - 10.0, inp.pos[id].1 - (10.0 * num as f64)),
+                    P(inp.stage1.0 - 10.0, inp.pos[id].1 + (ten * num as f64)),
+                    P(inp.stage1.0 - 10.0, inp.pos[id].1 - (ten * num as f64)),
                 ];
             }
 
@@ -256,8 +266,60 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
         }
     }
 
+    let now_n = candidate.len();
+    for i in 0..now_n {
+        'jloop: for j in i..now_n {
+            if (candidate[i] - candidate[j]).abs2() >= 400.0 {
+                continue;
+            }
+
+            if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
+                continue;
+            }
+
+            //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
+
+            let d1 = (candidate[i] - candidate[j]).abs();
+            let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.001;
+
+            if candidate[i].0 == candidate[j].0 {
+                let next_p = {
+                    if candidate[i].0 <= inp.stage0.0 + 15.0 {
+                        P(candidate[i].0 + d2, (candidate[i].1 + candidate[j].1) / 2.0)
+                    } else {
+                        P(candidate[i].0 - d2, (candidate[i].1 + candidate[j].1) / 2.0)
+                    }
+                };
+
+                if check_all_cand(&inp, &candidate, next_p) {
+                    candidate.push(next_p);
+                }
+
+                //dbg!((ret_ps[i] - next_p).abs2());
+                //dbg!((ret_ps[j] - next_p).abs2());
+            }
+
+            if candidate[i].1 == candidate[j].1 {
+                let next_p = {
+                    if candidate[i].1 <= inp.stage0.1 + 15.0 {
+                        P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 + d2)
+                    } else {
+                        P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 - d2)
+                    }
+                };
+                if check_all_cand(&inp, &candidate, next_p) {
+                    candidate.push(next_p);
+                }
+
+                //dbg!((ret_ps[i] - next_p).abs2());
+                //dbg!((ret_ps[j] - next_p).abs2());
+            }
+        }
+    }
+
     //dbg!(candidate.len());
 
+    /*
     let add_l = vec![
         0.01, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, r3, 9.0,
     ];
@@ -309,6 +371,7 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
             candidate.push(P(nx, ny));
         }
     }
+    */
 
     candidate = set_more_candidate(&inp, candidate);
 
