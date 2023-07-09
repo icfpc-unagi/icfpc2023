@@ -4,6 +4,8 @@ use num::traits::Zero;
 
 use super::{Input, Output, P};
 
+type OutputV1 = Vec<P>;
+
 type BigF = num::BigRational;
 
 fn from_f64(f: f64) -> BigF {
@@ -123,6 +125,7 @@ impl From<Input> for BigInput {
 type BigOutput = Vec<BigP>;
 
 pub fn compute_score(input: &Input, output: &Output) -> i64 {
+    let output: OutputV1 = output.0;
     let input = BigInput::from(input.clone());
     let output = output.iter().cloned().map(BigP::from).collect::<Vec<_>>();
     if !is_valid_output(&input, &output) {
@@ -236,7 +239,7 @@ enum Event {
 
 fn compute_score_for_a_musician_fast(
     input: &Input,
-    output: &Output,
+    output: &OutputV1,
     big_input: &BigInput,
     big_output: &BigOutput,
     musician_id: usize,
@@ -330,6 +333,7 @@ fn compute_score_for_a_musician_fast(
 
 /// Returns (score, musician_scores, attendee_scores)
 pub fn compute_score_fast(input: &Input, output: &Output) -> (i64, Vec<i64>, Vec<i64>) {
+    let output: &OutputV1 = &output.0;
     let big_input = BigInput::from(input.clone());
     let big_output = output.iter().cloned().map(BigP::from).collect::<Vec<_>>();
     if !is_valid_output(&big_input, &big_output) {
