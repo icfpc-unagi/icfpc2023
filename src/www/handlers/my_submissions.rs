@@ -3,6 +3,7 @@ use crate::*;
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use mysql::params;
+use num_format::{Locale, ToFormattedString};
 use serde::Deserialize;
 use std::{collections::HashMap, fmt::Write};
 
@@ -112,7 +113,7 @@ WHERE
             let submission_created: String = row.get("submission_created")?;
             let score = match submission_score {
                 Some(score) => {
-                    format!("{}", score)
+                    format!("{}", score.to_formatted_string(&Locale::en))
                 }
                 None => match submission_error {
                     Some(error) => {

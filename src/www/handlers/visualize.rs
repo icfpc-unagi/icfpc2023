@@ -24,19 +24,7 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
                 "<li>Submitted at: {}</li>",
                 submission.submission.submitted_at
             ));
-            let mut score_str = String::new();
-            match &submission.submission.score {
-                api::SubmissionStatus::Processing => {
-                    score_str.push_str("Pending");
-                }
-                api::SubmissionStatus::Success(score) => {
-                    score_str.push_str(&format!("{}", score));
-                }
-                api::SubmissionStatus::Failure(e) => {
-                    score_str.push_str(&format!("{}", e));
-                }
-            }
-            buf.push_str(&format!("<li>Score: {}</li>", score_str));
+            buf.push_str(&format!("<li>Score: {}</li>", submission.submission.score));
             buf.push_str(&format!(
                 "<pre style=\"white-space: pre-wrap;\"><code>{}</code></pre>",
                 submission.contents

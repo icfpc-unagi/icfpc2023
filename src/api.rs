@@ -6,6 +6,8 @@ use crate::*;
 use anyhow::anyhow;
 use anyhow::Result;
 use mysql::params;
+use num_format::Locale;
+use num_format::ToFormattedString;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
@@ -27,7 +29,7 @@ impl fmt::Display for SubmissionStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SubmissionStatus::Processing => write!(f, "Pending"),
-            SubmissionStatus::Success(score) => write!(f, "{}", score),
+            SubmissionStatus::Success(score) => write!(f, "{}", score.to_formatted_string(&Locale::en)),
             SubmissionStatus::Failure(e) => write!(f, "{}", e),
         }
     }
