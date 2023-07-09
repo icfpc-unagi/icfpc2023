@@ -32,6 +32,9 @@ pub fn get_candidate_tree(
     let mut max_points = vec![];
     let mut pair = vec![];
 
+    let mut base_num = vec![];
+    let mut base_pat = vec![];
+
     let mut dist_ar = vec![];
     for i in 0..inp.pos.len() {
         let dist = get_stage_diff(inp.pos[i], inp.stage0, inp.stage1) as i64;
@@ -57,7 +60,7 @@ pub fn get_candidate_tree(
     }
     dist_ar.sort();
 
-    let target_num = 100;
+    let target_num = 200;
     let target_dist = {
         if dist_ar.len() < target_num - 1 {
             99999999
@@ -104,15 +107,17 @@ pub fn get_candidate_tree(
 
         //dbg!(d2);
 
+        let mut max_num = 4;
+
         if d2 > target_dist as f64 {
-            continue;
+            max_num = 0;
         }
 
         let mut ps = vec![];
         let mut ids = vec![];
 
         for pat in 0..3 {
-            for num in 0..3 {
+            for num in 0..max_num {
                 let pre_ps = ps.clone();
                 let pre_id = ids.clone();
                 ps = vec![];
@@ -167,11 +172,16 @@ pub fn get_candidate_tree(
                         ret_ps.push(ps[1]);
                         parent.push(vec![]);
                         child.push(vec![]);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[2]);
                         parent.push(vec![]);
                         child.push(vec![]);
+                        base_num.push(i);
+                        base_pat.push(pat);
+
                         pair.push(ids[1]);
                         pair.push(ids[0]);
 
@@ -182,6 +192,8 @@ pub fn get_candidate_tree(
                         set_oyako(&mut parent, &mut child, ids[0], ids[2]);
                         set_oyako(&mut parent, &mut child, ids[1], ids[2]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[3]);
@@ -190,6 +202,8 @@ pub fn get_candidate_tree(
                         set_oyako(&mut parent, &mut child, ids[0], ids[3]);
                         set_oyako(&mut parent, &mut child, ids[2], ids[3]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[4]);
@@ -198,6 +212,8 @@ pub fn get_candidate_tree(
                         set_oyako(&mut parent, &mut child, ids[1], ids[4]);
                         set_oyako(&mut parent, &mut child, ids[2], ids[4]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
                     } else {
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[1]);
@@ -205,6 +221,8 @@ pub fn get_candidate_tree(
                         child.push(vec![]);
                         set_oyako(&mut parent, &mut child, pre_id[0], ids[0]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[2]);
@@ -212,6 +230,8 @@ pub fn get_candidate_tree(
                         child.push(vec![]);
                         set_oyako(&mut parent, &mut child, pre_id[1], ids[1]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
                     }
                 } else if pat == 1 {
                     //横置き
@@ -275,11 +295,15 @@ pub fn get_candidate_tree(
                         ret_ps.push(ps[0]);
                         parent.push(vec![]);
                         child.push(vec![]);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[1]);
                         parent.push(vec![]);
                         child.push(vec![]);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         pair.push(ids[1]);
                         pair.push(ids[0]);
@@ -300,6 +324,8 @@ pub fn get_candidate_tree(
                         child.push(vec![]);
                         set_oyako(&mut parent, &mut child, pre_id[0], ids[0]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[1]);
@@ -307,6 +333,8 @@ pub fn get_candidate_tree(
                         child.push(vec![]);
                         set_oyako(&mut parent, &mut child, pre_id[1], ids[1]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         /*
                         ids.push(ret_ps.len());
@@ -386,6 +414,8 @@ pub fn get_candidate_tree(
                         parent.push(vec![]);
                         child.push(vec![]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
                     } else {
                         ids.push(ret_ps.len());
                         ret_ps.push(ps[0]);
@@ -393,6 +423,8 @@ pub fn get_candidate_tree(
                         child.push(vec![]);
                         set_oyako(&mut parent, &mut child, pre_id[0], ids[0]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         let pre = pre_id.len() - 1;
                         ids.push(ret_ps.len());
@@ -401,6 +433,8 @@ pub fn get_candidate_tree(
                         child.push(vec![]);
                         set_oyako(&mut parent, &mut child, pre_id[pre], ids[1]);
                         pair.push(ng_num);
+                        base_num.push(i);
+                        base_pat.push(pat);
 
                         /*
 
@@ -431,7 +465,7 @@ pub fn get_candidate_tree(
         let mut ids = vec![];
 
         for pat in 0..3 {
-            for num in 0..5 {
+            for num in 0..6 {
                 let pre_ps = ps.clone();
                 let pre_id = ids.clone();
                 ps = vec![];
@@ -465,12 +499,17 @@ pub fn get_candidate_tree(
                     parent.push(vec![]);
                     child.push(vec![]);
                     pair.push(ng_num);
+
+                    base_num.push(10000 + pat);
+                    base_pat.push(0);
                 } else {
                     ids.push(ret_ps.len());
                     ret_ps.push(ps[0]);
                     parent.push(vec![]);
                     child.push(vec![]);
                     pair.push(ng_num);
+                    base_num.push(10000 + pat);
+                    base_pat.push(0);
 
                     set_oyako(&mut parent, &mut child, ids[0], pre_id[0]);
 
@@ -479,6 +518,8 @@ pub fn get_candidate_tree(
                     parent.push(vec![]);
                     child.push(vec![]);
                     pair.push(ng_num);
+                    base_num.push(10000 + pat);
+                    base_pat.push(0);
 
                     set_oyako(&mut parent, &mut child, ids[1], pre_id[pre_id.len() - 1]);
                 }
@@ -508,7 +549,7 @@ pub fn get_candidate_tree(
         if !valid[i] {
             continue;
         }
-        for j in i..now_n {
+        'jloop: for j in i..now_n {
             if !valid[j] {
                 continue;
             }
@@ -522,6 +563,25 @@ pub fn get_candidate_tree(
 
             if (ret_ps[i] - ret_ps[j]).abs2() < 100.0 - 0.000000001 {
                 continue;
+            }
+
+            //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
+
+            if base_num[i] == base_num[j] && base_pat[i] != base_pat[j] {
+                //dbg!("find!")
+                continue;
+            }
+
+            for t1 in 0..parent[i].len() {
+                if (ret_ps[parent[i][t1]] - ret_ps[j]).abs2() < 100.0 - 0.000000001 {
+                    continue 'jloop;
+                }
+            }
+
+            for t1 in 0..parent[j].len() {
+                if (ret_ps[parent[j][t1]] - ret_ps[i]).abs2() < 100.0 - 0.000000001 {
+                    continue 'jloop;
+                }
             }
 
             let d1 = (ret_ps[i] - ret_ps[j]).abs();
@@ -538,6 +598,8 @@ pub fn get_candidate_tree(
                 ret_ps.push(next_p);
                 parent.push(vec![]);
                 child.push(vec![]);
+                base_num.push(100000);
+                base_pat.push(0);
 
                 set_oyako(&mut parent, &mut child, i, now);
                 set_oyako(&mut parent, &mut child, j, now);
@@ -559,11 +621,11 @@ pub fn get_candidate_tree(
                 ret_ps.push(next_p);
                 parent.push(vec![]);
                 child.push(vec![]);
-                parent[now].push(i);
-                parent[now].push(j);
-                child[i].push(now);
-                child[j].push(now);
+                set_oyako(&mut parent, &mut child, i, now);
+                set_oyako(&mut parent, &mut child, j, now);
                 pair.push(ng_num);
+                base_num.push(100000);
+                base_pat.push(0);
 
                 //dbg!((ret_ps[i] - next_p).abs2());
                 //dbg!((ret_ps[j] - next_p).abs2());
@@ -590,6 +652,8 @@ pub fn get_candidate_tree(
                 parent.push(vec![]);
                 child.push(vec![]);
                 pair.push(ng_num);
+                base_num.push(100000);
+                base_pat.push(0);
                 add_cnt += 1;
 
                 if pre_parent != 9999999 {
@@ -650,6 +714,29 @@ pub fn get_candidate_tree(
             }
 
             //TODO: 仮想的な横ブロックによる除外入れる？要検討　入れないと楽観する
+            let mut test_block = vec![];
+            if ret_ps[i].0 < inp.stage0.0 + 19.9 || ret_ps[i].0 > inp.stage1.0 - 19.9 {
+                if ret_ps[i].1 >= inp.stage0.1 + 10.0 {
+                    test_block.push(P(ret_ps[i].0, ret_ps[i].1 - 10.0));
+                }
+                if ret_ps[i].1 <= inp.stage1.1 - 10.0 {
+                    test_block.push(P(ret_ps[i].0, ret_ps[i].1 + 10.0));
+                }
+            }
+            if ret_ps[i].1 < inp.stage0.1 + 19.9 || ret_ps[i].1 > inp.stage1.1 - 19.9 {
+                if ret_ps[i].0 >= inp.stage0.0 + 10.0 {
+                    test_block.push(P(ret_ps[i].0 - 10.0, ret_ps[i].1));
+                }
+                if ret_ps[i].0 <= inp.stage1.0 - 10.0 {
+                    test_block.push(P(ret_ps[i].0 + 10.0, ret_ps[i].1));
+                }
+            }
+
+            for t_i in 0..test_block.len() {
+                if is_blocked(ret_ps[i], inp.pos[j], test_block[t_i]) {
+                    continue 'jloop;
+                }
+            }
 
             let d = (ret_ps[i] - inp.pos[j]).abs2();
 
