@@ -290,11 +290,14 @@ pub fn enumerate_candidate_positions_with_config(
     }
     if config.use_pattern2 {
         cp2 = filter_outside(pattern2(input, output), input);
-        if config.filter_by_reach23 {
-            cp2 = filter_by_reach(cp2, input, output);
-        }
         if let Some(limit) = config.filter_by_intersections234 {
             cp2 = filter_by_intersections(cp2, output, limit);
+        }
+        if let Some(limit) = config.limit_pattern2 {
+            cp2 = cp2.into_iter().take(limit * 10).collect();
+        }
+        if config.filter_by_reach23 {
+            cp2 = filter_by_reach(cp2, input, output);
         }
         if let Some(limit) = config.limit_pattern2 {
             cp2 = cp2.into_iter().take(limit).collect();
@@ -302,11 +305,14 @@ pub fn enumerate_candidate_positions_with_config(
     }
     if config.use_pattern3 {
         cp3 = filter_outside(pattern3(input, output), input);
-        if config.filter_by_reach23 {
-            cp3 = filter_by_reach(cp3, input, output);
-        }
         if let Some(limit) = config.filter_by_intersections234 {
             cp3 = filter_by_intersections(cp3, output, limit);
+        }
+        if let Some(limit) = config.limit_pattern3 {
+            cp3 = cp3.into_iter().take(limit * 10).collect();
+        }
+        if config.filter_by_reach23 {
+            cp3 = filter_by_reach(cp3, input, output);
         }
         if let Some(limit) = config.limit_pattern3 {
             cp3 = cp3.into_iter().take(limit).collect();
@@ -320,11 +326,11 @@ pub fn enumerate_candidate_positions_with_config(
     }
     if config.use_pattern23 {
         cp23 = filter_outside(pattern23(input, output, config), input);
-        if config.filter_by_reach23 {
-            cp23 = filter_by_reach(cp23, input, output);
-        }
         if let Some(limit) = config.filter_by_intersections234 {
             cp23 = filter_by_intersections(cp23, output, limit);
+        }
+        if config.filter_by_reach23 {
+            cp23 = filter_by_reach(cp23, input, output);
         }
         if let Some(limit) = config.limit_pattern23 {
             cp23 = cp23.into_iter().take(limit).collect();
