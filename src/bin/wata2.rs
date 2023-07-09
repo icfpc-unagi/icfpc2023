@@ -34,7 +34,7 @@ pub fn compute_dist2_from_stage(input: &Input, p: P) -> f64 {
     }
 }
 
-// 環境変数 PREPROCESS=1 を設定するとステージから遠い客を無視する
+// 環境変数 PREP=1 を設定するとステージから遠い客を無視する
 // デフォルトは何もしない
 fn preprocess(mut input: Input) -> Input {
     if std::env::var("PREP").unwrap_or(String::new()).len() == 0
@@ -192,7 +192,7 @@ impl State {
                     }
                 }
             }
-            score += (1.0 + closeness[i]) * coef_musicians[i];
+            score += (1.0 + closeness[i]) * coef_musicians[i].max(0.0);
         }
         State {
             block_count,
@@ -206,7 +206,7 @@ impl State {
     /// 指定された音楽家のclosenessとスコアへの影響を取り除き、coef_musiciansを0にする
     fn forget_musician(&mut self, input: &Input, cand: &Vec<P>, musician: usize) {
         for &k in &input.inst_musicians[input.musicians[musician]] {
-            self.score -= (1.0 + self.closeness[k]) * self.coef_musicians[k];
+            self.score -= (1.0 + self.closeness[k]) * self.coef_musicians[k].max(0.0);
             if input.version != Version::One {
                 if k == musician {
                     self.closeness[k] = 0.0;
@@ -226,7 +226,7 @@ impl State {
                     self.closeness[k] += c;
                     self.closeness[musician] += c;
                 }
-                self.score += (1.0 + self.closeness[k]) * self.coef_musicians[k];
+                self.score += (1.0 + self.closeness[k]) * self.coef_musicians[k].max(0.0);
             }
         }
         let p = self.to[musician];
@@ -236,7 +236,7 @@ impl State {
                     score1(input, cand[p], input.musicians[musician], j);
             }
         }
-        self.score += (1.0 + self.closeness[musician]) * self.coef_musicians[musician];
+        self.score += (1.0 + self.closeness[musician]) * self.coef_musicians[musician].max(0.0);
     }
     // 位置i1とi2の音楽家を交換する
     fn swap(&mut self, input: &Input, cand: &Vec<P>, i1: usize, i2: usize) -> Option<f64> {
@@ -282,11 +282,11 @@ impl State {
                 let k2 = self.musicians[p];
                 if self.block_count[p][a] == 0 && k2 != !0 {
                     if input.musicians[k2] != input.musicians[k] {
-                        self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                        self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2].max(0.0);
                     }
                     self.coef_musicians[k2] += score1(input, cand[p], input.musicians[k2], a);
                     if input.musicians[k2] != input.musicians[k] {
-                        self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                        self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2].max(0.0);
                     }
                 }
             }
@@ -297,11 +297,11 @@ impl State {
                 let k2 = self.musicians[p];
                 if self.block_count[p][a] == 0 && k2 != !0 {
                     if input.musicians[k2] != input.musicians[k] {
-                        self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                        self.score -= (1.0 + self.closeness[k2]) * self.coef_musicians[k2].max(0.0);
                     }
                     self.coef_musicians[k2] -= score1(input, cand[p], input.musicians[k2], a);
                     if input.musicians[k2] != input.musicians[k] {
-                        self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2];
+                        self.score += (1.0 + self.closeness[k2]) * self.coef_musicians[k2].max(0.0);
                     }
                 }
                 self.block_count[p][a] += 1;
@@ -324,7 +324,7 @@ impl State {
                         coef += score1(input, cand[p], i, a).ceil() as i64;
                     }
                 }
-                ws[i][j] = coef;
+                ws[i][j] = coef.max(0);
             }
         }
         let (_, tos) = weighted_matching_with_capacity(&ws, &cap);
@@ -350,7 +350,7 @@ impl State {
                     }
                 }
             }
-            score += (1.0 + closeness[i]) * coef_musicians[i];
+            score += (1.0 + closeness[i]) * coef_musicians[i].max(0.0);
         }
         if self.score >= score {
             false
@@ -364,6 +364,14 @@ impl State {
             self.closeness = closeness;
             true
         }
+    }
+    fn get_output(&self) -> (Vec<usize>, Vec<f64>) {
+        let volume = self
+            .coef_musicians
+            .iter()
+            .map(|&v| if v > 0.0 { 10.0 } else { 0.0 })
+            .collect();
+        (self.to.clone(), volume)
     }
 }
 
@@ -448,80 +456,75 @@ fn main() {
         }
     }
     let mut state = State::initialize(&input, &cand, &block, &to);
-    let mut best = state.to.clone();
+    let mut best = state.get_output();
     let mut best_score = state.score;
     eprintln!("{:.3}: {}", get_time(), best_score);
-    let REP = std::env::var("REP")
+    let mut sum = 1.0;
+    let mut cnt = 0;
+
+    let TL: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(1);
-    for _ in 0..REP {
-        let mut sum = 1.0;
-        let mut cnt = 0;
+        .unwrap_or(600.0);
+    let stime = get_time();
+    let _num_used = vec![0i64; cand.len()];
+    for iter in 0.. {
+        if iter & 0xff == 0 {}
+        let t = (get_time() - stime) / TL;
+        if t >= 1.0 {
+            eprintln!("Iter = {}", iter);
+            break;
+        }
+        let i1 = state.to[rng.gen_range(0, input.n_musicians())];
+        let i2 = if rng.gen_bool(0.1) {
+            rng.gen_range(0, cand.len())
+        } else {
+            near[i1].choose(&mut rng).unwrap().1
+        };
+        if state.musicians[i2] == !0 {
+            if let Some(diff) = state.mov(&input, &cand, &block, &conflict, i1, i2) {
+                sum += diff.abs() as f64;
+                cnt += 1;
 
-        let TL: f64 = std::env::var("TL")
-            .map(|a| a.parse().unwrap())
-            .unwrap_or(600.0);
-        let stime = get_time();
-        let _num_used = vec![0i64; cand.len()];
-        for iter in 0.. {
-            if iter & 0xff == 0 {}
-            let t = (get_time() - stime) / TL;
-            if t >= 1.0 {
-                eprintln!("Iter = {}", iter);
-                break;
-            }
-            let i1 = state.to[rng.gen_range(0, input.n_musicians())];
-            let i2 = if rng.gen_bool(0.1) {
-                rng.gen_range(0, cand.len())
-            } else {
-                near[i1].choose(&mut rng).unwrap().1
-            };
-            if state.musicians[i2] == !0 {
-                if let Some(diff) = state.mov(&input, &cand, &block, &conflict, i1, i2) {
-                    sum += diff.abs() as f64;
-                    cnt += 1;
-
-                    let ave = sum / cnt as f64;
-                    let mut T = ave * (1.0 - t) * (1.0 - t);
-                    if T <= 1.0 {
-                        T = 1.0;
-                    }
-
-                    if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
-                    } else {
-                        state.mov(&input, &cand, &block, &conflict, i2, i1).unwrap();
-                    }
+                let ave = sum / cnt as f64;
+                let mut T = ave * (1.0 - t) * (1.0 - t);
+                if T <= 1.0 {
+                    T = 1.0;
                 }
-            } else {
-                if let Some(diff) = state.swap(&input, &cand, i1, i2) {
-                    sum += diff.abs() as f64;
-                    cnt += 1;
 
-                    let ave = sum / cnt as f64;
-                    let mut T = ave * (1.0 - t) * (1.0 - t);
-                    if T <= 1.0 {
-                        T = 1.0;
-                    }
-                    if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
-                    } else {
-                        state.swap(&input, &cand, i1, i2).unwrap();
-                    }
+                if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
+                } else {
+                    state.mov(&input, &cand, &block, &conflict, i2, i1).unwrap();
                 }
             }
-            if best_score + 0.1 < state.score {
-                if state.optimize_mcf(&input, &cand) {
-                    eprintln!("{:.0} -> {:.0}", best_score, state.score);
+        } else {
+            if let Some(diff) = state.swap(&input, &cand, i1, i2) {
+                sum += diff.abs() as f64;
+                cnt += 1;
+
+                let ave = sum / cnt as f64;
+                let mut T = ave * (1.0 - t) * (1.0 - t);
+                if T <= 1.0 {
+                    T = 1.0;
                 }
-                best_score.setmax(state.score);
-                best = state.to.clone();
-                eprintln!("{:.3}: {:.0}", get_time(), best_score);
+                if diff >= 0.0 || rng.gen_bool((diff as f64 / T).exp()) {
+                } else {
+                    state.swap(&input, &cand, i1, i2).unwrap();
+                }
             }
         }
-        let out = best.iter().map(|&p| cand[p]).collect();
-        let volumes = vec![1.0; input.n_musicians()];
-        write_output_to_file(
-            &(out, volumes),
-            &format!("{}/{}.json", outdir, input.problem_id.unwrap_or(0)),
-        )
+        if best_score + 0.1 < state.score {
+            if state.optimize_mcf(&input, &cand) {
+                eprintln!("{:.0} -> {:.0}", best_score, state.score);
+            }
+            best_score.setmax(state.score);
+            best = state.get_output();
+            eprintln!("{:.3}: {:.0}", get_time(), best_score);
+        }
     }
+    let out = best.0.iter().map(|&p| cand[p]).collect();
+    let volumes = best.1;
+    write_output_to_file(
+        &(out, volumes),
+        &format!("{}/{}.json", outdir, input.problem_id.unwrap_or(0)),
+    )
 }
