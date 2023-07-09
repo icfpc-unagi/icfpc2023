@@ -28,7 +28,7 @@ fn main() {
     let output = cli
         .output
         .map(|f| read_output_from_file(&f))
-        .unwrap_or(vec![]);
+        .unwrap_or((vec![], vec![]));
     let color_type = cli.c.unwrap_or(1);
     let svg = vis::vis(&input, &output, color_type, cli.f.unwrap_or(!0), None);
     eprintln!("Score = {}", svg.0);
