@@ -16,9 +16,12 @@ fn main() {
     if old_score < score {
         eprintln!("Update!!!!!!!!!!!!!!!!!!");
     }
-    let mut out = (vec![], output.1);
+    let mut out = (vec![], vec![]);
     for i in 0..input.musicians.len() {
         out.0.push(output.0[to[i]]);
+        if output.1.len() > to[i] {
+            out.1.push(output.1[to[i]]);
+        }
     }
     write_output(&out);
 }
