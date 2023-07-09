@@ -110,6 +110,13 @@ impl Input {
     pub fn is_same_instrument(&self, musician_id1: usize, musician_id2: usize) -> bool {
         self.musicians[musician_id1] == self.musicians[musician_id2]
     }
+
+    pub fn in_stage(&self, p: P) -> bool {
+        p.0 >= self.stage0.0 + 10.0
+            && p.0 <= self.stage1.0 - 10.0
+            && p.1 >= self.stage0.1 + 10.0
+            && p.1 <= self.stage1.1 - 10.0
+    }
 }
 
 pub type Output = Vec<P>;
