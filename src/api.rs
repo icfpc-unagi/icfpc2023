@@ -285,7 +285,7 @@ async fn tag_submission(local_submission_id: u64, tags: &[&str]) -> Result<()> {
     let official_id = local_submission_id;
     sql::exec_batch(
         "
-INSERT INTO submission_tags
+INSERT IGNORE INTO submission_tags
     (submission_id, submission_tag)
 VALUES
     (:local_id, :submission_tag)
@@ -324,7 +324,7 @@ pub async fn submit(
 pub async fn insert_placeholder_submission(problem_id: u32, official_id: &str) -> Result<u64> {
     let local_id = sql::insert(
         "
-INSERT INTO submissions
+INSERT IGNORE INTO submissions
     (problem_id, official_id)
 VALUES
     (:problem_id, :official_id)",
