@@ -487,6 +487,6 @@ fn main() {
             out[j] = cand[i];
         }
     }
-    let mut volumes = [1.0; input.n_musicians()];
+    let volumes = vec![1.0; input.n_musicians()];
     write_output(&(out, volumes));
 }
