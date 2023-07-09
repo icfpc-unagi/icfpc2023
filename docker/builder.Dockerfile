@@ -23,5 +23,5 @@ RUN gcloud auth activate-service-account icfpc2022@icfpc-primary.iam.gserviceacc
         --key-file=/service_account.json \
     && gcloud config set project icfpc-primary
 
-COPY --from=go-builder /usr/local/bin/* /usr/local/bin/
+COPY --from=rust-builder /usr/local/bin/* /usr/local/bin/
 COPY scripts/deploy_binaries.sh /work/scripts/deploy_binaries.sh
