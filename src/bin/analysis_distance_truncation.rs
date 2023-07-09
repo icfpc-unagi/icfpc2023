@@ -14,7 +14,7 @@ struct Args {
 fn compute_max_distance(input: &Input, output: &Output) -> f64 {
     let mut d: f64 = 0.0;
     for p in &input.pos {
-        for q in output {
+        for q in &output.0 {
             d = d.max((*p - *q).abs2().sqrt());
         }
     }
@@ -34,7 +34,7 @@ fn compute_score_with_distance_limit(
     let mut n_pairs = 0;
     for musician_id in 0..input.n_musicians() {
         for attendee_id in 0..input.n_attendees() {
-            let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
+            let d2 = (input.pos[attendee_id] - output.0[musician_id]).abs2();
             if d2 >= dist_limit * dist_limit {
                 continue;
             }

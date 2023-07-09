@@ -17,7 +17,7 @@ fn main() {
 
         let input = read_input_from_file(&input_path);
         let output = read_output_from_file(&output_path);
-        if output.is_empty() {
+        if output.0.is_empty() {
             continue;
         }
 
