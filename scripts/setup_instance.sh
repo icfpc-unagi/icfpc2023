@@ -5,7 +5,9 @@ set -eux
 apt-get update -qq
 apt-get install -qq -y make docker.io git sudo curl jq libssl-dev clang pkg-config
 
-id unagi || useradd -m -s /bin/bash -G sudo -G docker -G adm unagi
+id unagi || useradd -m -s /bin/bash unagi
+gpasswd -a unagi docker
+gpasswd -a unagi sudo
 mkdir -p /home/unagi/.ssh
 for github_id in imos chokudai wata-orz sulume toslunar iwiwi; do
     curl -s "https://github.com/${github_id}.keys" >> /home/unagi/.ssh/authorized_keys;
