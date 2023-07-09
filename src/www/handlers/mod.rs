@@ -5,6 +5,7 @@ pub mod cron;
 pub mod my_submission;
 pub mod my_submissions;
 pub mod my_userboard;
+pub mod problem_png;
 pub mod submission;
 pub mod submissions;
 pub mod template;

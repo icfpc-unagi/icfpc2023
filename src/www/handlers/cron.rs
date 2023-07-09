@@ -142,6 +142,47 @@ pub async fn update_official_problems() -> Result<Vec<u32>> {
     Ok(updated_ids)
 }
 
+pub mod update_problem_png {
+    use super::*;
+
+    use crate::api;
+
+    pub async fn update(problem_id: u32) -> Result<()> {
+        eprintln!("Updating the problem png: {}", problem_id);
+        let problem = api::get_problem(problem_id).await?;
+        let svg = vis::vis(&problem.into(), &Vec::new(), 1, !0);
+        let png_data = svg_to_png::svg_to_png(&svg.2.into())?;
+        sql::exec(
+            "
+INSERT INTO problem_pngs(
+    problem_id,
+    problem_png_data
+) VALUES (
+    :problem_id,
+    :problem_png_data
+) ON DUPLICATE KEY UPDATE
+    problem_png_data = :problem_png_data",
+            params! {
+                "problem_id" => problem_id,
+                "problem_png_data" => &png_data,
+            },
+        )
+    }
+
+    pub async fn update_all() -> Result<Vec<u32>> {
+        let mut problem_ids = Vec::new();
+        for row in sql::select(
+            "SELECT DISTINCT problem_id FROM problem_chunks",
+            mysql::Params::Empty,
+        )? {
+            let problem_id = row.get("problem_id")?;
+            update(problem_id).await?;
+            problem_ids.push(problem_id);
+        }
+        Ok(problem_ids)
+    }
+}
+
 pub async fn handler() -> impl Responder {
     let mut buf = String::new();
     match update_official_submissions(0, 100).await {

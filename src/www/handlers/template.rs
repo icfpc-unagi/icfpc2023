@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder};
+use actix_web::{HttpResponse, HttpResponseBuilder, Responder};
 use anyhow::Result;
 use handlebars::Handlebars;
 use once_cell::sync::Lazy;
@@ -248,17 +248,32 @@ pub fn render(contents: &str) -> String {
         .unwrap()
 }
 
+pub fn to_error_response(result: &anyhow::Error) -> HttpResponse {
+    HttpResponse::InternalServerError()
+        .content_type("text/html")
+        .body(render(&format!(
+            "<h1>エラー</h1><pre><code>{}</code></pre>",
+            escape_html(&format!("{:?}", result))
+        )))
+}
+
+pub fn to_html_response(result: &str) -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(render(result))
+}
+
+pub fn to_png_response(result: &Vec<u8>) -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("image/png")
+        .append_header(("Cache-Control", "public, max-age=600"))
+        .body(result.clone())
+}
+
 pub fn to_response(result: Result<String>) -> impl Responder {
     match result {
-        Ok(contents) => HttpResponse::Ok()
-            .content_type("text/html")
-            .body(render(&contents)),
-        Err(e) => HttpResponse::InternalServerError()
-            .content_type("text/html")
-            .body(render(&format!(
-                "<h1>エラー</h1><pre><code>{}</code></pre>",
-                escape_html(&format!("{:?}", e))
-            ))),
+        Ok(x) => to_html_response(&x),
+        Err(e) => to_error_response(&e),
     }
 }
 

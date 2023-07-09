@@ -5,7 +5,6 @@ use anyhow::Result;
 
 pub async fn internal_handler() -> Result<String> {
     let mut buf = String::new();
-    buf.push_str("<table><tr><td>問題番号</td><td>スコア</td></tr>");
     let mut total_score = 0;
     for row in sql::select(
         "
@@ -43,30 +42,35 @@ NATURAL RIGHT JOIN(
         mysql::Params::Empty,
     )? {
         let problem_id: i64 = row.get("problem_id")?;
-        let _submission_id = row.get_option::<i64>("submission_id")?;
-        let official_id = row.get_option::<String>("official_id")?;
+        let submission_id = row.get_option::<i64>("submission_id")?;
+        let _official_id = row.get_option::<String>("official_id")?;
         let submission_score = row.get_option::<i64>("submission_score")?;
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
-        buf.push_str(&format!("<tr><td>{}</td>", problem_id));
-        match official_id {
-            Some(official_id) => {
-                buf.push_str(&format!(
-                    "<td><a href=\"/my_submission?submission_id={}\">{}</a></td></tr>",
-                    official_id, submission_score
-                ));
-            }
-            None => {
-                buf.push_str(&format!("<td>{}</td></tr>", submission_score));
-            }
-        }
+        let score = match submission_id {
+            Some(id) => format!(
+                "<a href=\"/my_submission?submission_id={}\">{}</a>",
+                id, submission_score
+            ),
+
+            None => format!("{}", submission_score),
+        };
+        buf.push_str(&format!(
+            r#"
+<div style="display: inline-block; min-width: 200px; width: 20%; margin: 1em; text-align: right">
+問題番号: {}<br>
+スコア: {}<br>
+<img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;">
+</div>
+"#,
+            problem_id, score, problem_id,
+        ));
     }
-    buf.push_str("</table>");
     Ok(format!(
         "
         <h1>Unagi Userboard</h1>
         <p>合計点: {}</p>
-        {}",
+        <center>{}</center>",
         total_score, buf
     ))
 }
