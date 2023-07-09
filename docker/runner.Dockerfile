@@ -16,10 +16,18 @@ RUN chmod +x /usr/local/bin/exec.sh
 COPY ./bin/gcsrun /usr/local/bin/gcsrun
 RUN chmod +x /usr/local/bin/gcsrun
 
+FROM rust-builder AS problems
+ARG UNAGI_PASSWORD
+ENV UNAGI_PASSWORD ${UNAGI_PASSWORD}
+RUN mkdir /problems \
+    && gcsrun a4b2bf0 download_problems -o /problems
+
+FROM rust-builder AS runner
+COPY --from=problems /problems /problems
+
 WORKDIR /work
+RUN ln -s /problems /work/problems
 
 ENV RUST_BACKTRACE=1
 ARG UNAGI_PASSWORD
 ENV UNAGI_PASSWORD ${UNAGI_PASSWORD}
-
-# ENTRYPOINT ["/usr/local/bin/exec.sh"]
