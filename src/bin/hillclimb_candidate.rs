@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use clap::Parser;
 use icfpc2023::*;
-use rand::seq::SliceRandom;
+// use rand::seq::SliceRandom;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -13,8 +13,8 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let input = read_input_from_file(&args.input_path);
-    let mut output = read_output_from_file(&args.output_path);
-    let mut rng = rand::thread_rng();
+    let output = read_output_from_file(&args.output_path);
+    // let rng = rand::thread_rng();
 
     simple_hillclimb::simple_hillclimb(&input, output, &args.save_dir);
 

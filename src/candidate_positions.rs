@@ -227,7 +227,7 @@ pub fn pattern4(input: &Input, output: &Output) -> Vec<P> {
 /// Filters
 ///////////////////////////////////////////////////////////////////////////////
 
-pub fn filter(mut cp: Vec<P>, input: &Input, output: &Output, config: &CandidateConfig) -> Vec<P> {
+pub fn filter_outside(mut cp: Vec<P>, input: &Input) -> Vec<P> {
     let len_old = cp.len();
     cp = cp.into_iter().filter(|p| input.in_stage(*p)).collect();
     eprintln!("Filter valid: {} -> {}", len_old, cp.len());
@@ -244,12 +244,7 @@ pub fn filter_by_reach(mut cp: Vec<P>, input: &Input, output: &Output) -> Vec<P>
     cp
 }
 
-pub fn filter_by_intersections(
-    mut cp: Vec<P>,
-    input: &Input,
-    output: &Output,
-    limit: usize,
-) -> Vec<P> {
+pub fn filter_by_intersections(mut cp: Vec<P>, output: &Output, limit: usize) -> Vec<P> {
     let len_old = cp.len();
     cp = cp
         .into_iter()
@@ -284,16 +279,16 @@ pub fn enumerate_candidate_positions_with_config(
 
     // Generation
     if config.use_pattern1 {
-        cp1 = filter(pattern1(input, output), input, output, config);
+        cp1 = filter_outside(pattern1(input, output), input);
         if let Some(limit) = config.filter_by_intersections1 {
-            cp1 = filter_by_intersections(cp1, input, output, limit);
+            cp1 = filter_by_intersections(cp1, output, limit);
         }
         if config.filter_by_reach14 {
             cp1 = filter_by_reach(cp1, input, output);
         }
     }
     if config.use_pattern2 {
-        cp2 = filter(pattern2(input, output), input, output, config);
+        cp2 = filter_outside(pattern2(input, output), input);
         if config.filter_by_reach23 {
             cp2 = filter_by_reach(cp2, input, output);
         }
@@ -302,7 +297,7 @@ pub fn enumerate_candidate_positions_with_config(
         }
     }
     if config.use_pattern3 {
-        cp3 = filter(pattern3(input, output), input, output, config);
+        cp3 = filter_outside(pattern3(input, output), input);
         if config.filter_by_reach23 {
             cp3 = filter_by_reach(cp3, input, output);
         }
@@ -311,10 +306,10 @@ pub fn enumerate_candidate_positions_with_config(
         }
     }
     if config.use_pattern4 {
-        cp4 = filter(pattern4(input, output), input, output, config);
+        cp4 = filter_outside(pattern4(input, output), input);
     }
     if config.use_pattern23 {
-        cp23 = filter(pattern23(input, output, config), input, output, config);
+        cp23 = filter_outside(pattern23(input, output, config), input);
         if config.filter_by_reach23 {
             cp23 = filter_by_reach(cp23, input, output);
         }

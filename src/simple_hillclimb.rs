@@ -20,6 +20,8 @@ fn dump_output(output: &Output, save_dir: &str, score: i64) {
     write_output_to_file(&output, &latest_path);
 }
 
+/*
+/// 更新できたらすぐスワップする版
 fn hillclimb_candidate(
     input: &Input,
     mut output: Output,
@@ -108,13 +110,14 @@ fn hillclimb_candidate(
 
     output
 }
+*/
 
 /// 改善できたら移動するんじゃなくて、一番いいとこに移動する
 fn hillclimb_candidate_findbest(
     input: &Input,
     mut output: Output,
     save_dir: &str,
-    mut candidate_limit: usize,
+    candidate_limit: usize,
     max_iters: i64,
 ) -> Output {
     let mut rng = rand::thread_rng();
@@ -123,7 +126,7 @@ fn hillclimb_candidate_findbest(
     dbg!(scorer.get_score());
 
     loop {
-        let mut candidate_poss = candidate_positions::enumerate_candidate_positions_with_config(
+        let candidate_poss = candidate_positions::enumerate_candidate_positions_with_config(
             &input,
             &output,
             &candidate_positions::CandidateConfig {
@@ -150,7 +153,7 @@ fn hillclimb_candidate_findbest(
         eprintln!("Candidate set size: {}", candidate_poss.len());
 
         let mut updated = false;
-        'outer: loop {
+        loop {
             let mut musician_ids: Vec<usize> = (0..input.n_musicians()).collect();
             musician_ids.shuffle(&mut rng);
 
@@ -216,8 +219,8 @@ fn hillclimb_candidate_findbest(
 pub fn simple_hillclimb(input: &Input, mut output: Output, save_dir: &str) -> Output {
     let save_dir = prepare_output_dir(input, save_dir);
 
-    let mut max_iters = 10000;
-    let mut candidate_limit = 1000;
+    // let max_iters = 10000;
+    let candidate_limit = 1000;
     loop {
         // output = hillclimb_candidate(input, output, &save_dir, candidate_limit, max_iters);
         output =
@@ -229,5 +232,4 @@ pub fn simple_hillclimb(input: &Input, mut output: Output, save_dir: &str) -> Ou
     }
 
     // unimplemented!();
-    output
 }
