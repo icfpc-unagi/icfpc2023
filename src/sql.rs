@@ -8,7 +8,10 @@ use std::env;
 static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
     let password = env::var("UNAGI_PASSWORD").unwrap_or_else(|_| "".into());
     let url = match env::var("MYSQL_SOCKET") {
-        Ok(socket) => format!("mysql://root:{}@localhost:3306/unagi?socket={}", password, socket),
+        Ok(socket) => format!(
+            "mysql://root:{}@localhost:3306/unagi?socket={}",
+            password, socket
+        ),
         Err(_) => format!("mysql://root:{}@34.146.125.93:3306/unagi", password),
     };
     let pool = Pool::new(url).unwrap();
@@ -67,15 +70,29 @@ impl Row {
             Some(Ok(x)) => Some(mysql::from_value_opt::<T>(x.clone())),
             Some(Err(e)) => Some(Err(e)),
             None => None,
-        }.transpose().map_err(|e| anyhow::anyhow!("Column {}: {}", idx, e))
+        }
+        .transpose()
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "Error in column {} (#{}): {}",
+                self.row.columns_ref()[idx].name_str(),
+                idx,
+                e
+            )
+        })
     }
 
     pub fn at<T>(&self, idx: usize) -> Result<T>
     where
         T: FromValue,
     {
-        self.at_option(idx)?
-            .ok_or_else(|| anyhow::anyhow!("Column {} is null", idx))
+        self.at_option(idx)?.ok_or_else(|| {
+            anyhow::anyhow!(
+                "Column {} (#{}) is unexpectedly null",
+                self.row.columns_ref()[idx].name_str(),
+                idx
+            )
+        })
     }
 
     fn idx(&self, name: &str) -> Result<usize> {
