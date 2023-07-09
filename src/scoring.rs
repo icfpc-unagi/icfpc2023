@@ -88,17 +88,17 @@ pub fn is_blocked(musician: P, attendee: P, blocking_musician: P) -> bool {
 
 pub fn is_blocked_by_someone(
     input: &Input,
-    output: &Output,
+    output: &Vec<P>,
     musician_id: usize,
     attendee_id: usize,
 ) -> bool {
-    let musician_pos = output.0[musician_id];
+    let musician_pos = output[musician_id];
     let attendee_pos = input.pos[attendee_id];
-    for i in 0..output.0.len() {
+    for i in 0..output.len() {
         if i == musician_id {
             continue;
         }
-        if is_blocked(musician_pos, attendee_pos, output.0 .0[i]) {
+        if is_blocked(musician_pos, attendee_pos, output[i]) {
             return true;
         }
     }
@@ -123,7 +123,7 @@ pub fn compute_score_for_pair(
     musician_id: usize,
     attendee_id: usize,
 ) -> i64 {
-    if is_blocked_by_someone(input, output, musician_id, attendee_id) {
+    if is_blocked_by_someone(input, &output.0, musician_id, attendee_id) {
         return 0;
     } else {
         let d2 = (input.pos[attendee_id] - output.0[musician_id]).abs2();
@@ -271,6 +271,7 @@ pub fn compute_score_for_a_musician_fast(
     let mut events = vec![];
 
     let circles: Vec<_> = output
+        .0
         .iter()
         .enumerate()
         .filter_map(|(i, p)| {
