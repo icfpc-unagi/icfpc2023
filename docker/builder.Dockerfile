@@ -4,6 +4,8 @@ RUN mkdir -p /work/src
 WORKDIR /work
 COPY Cargo.toml /work/Cargo.toml
 RUN touch ./src/lib.rs && cargo vendor && cargo build --release && rm -rf ./src
+
+FROM rust-builder AS rust-binaries
 COPY src/ /work/src/
 RUN find /work/src -print -exec touch "{}" \; \
     && cargo build --release --bins
@@ -22,5 +24,5 @@ RUN gcloud auth activate-service-account icfpc2023@icfpc-primary.iam.gserviceacc
         --key-file=/service_account.json \
     && gcloud config set project icfpc-primary
 
-COPY --from=rust-builder /usr/local/bin/* /usr/local/bin/
+COPY --from=rust-binaries /usr/local/bin/* /usr/local/bin/
 COPY scripts/deploy_binaries.sh /work/scripts/deploy_binaries.sh
