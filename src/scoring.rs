@@ -92,13 +92,13 @@ pub fn is_blocked_by_someone(
     musician_id: usize,
     attendee_id: usize,
 ) -> bool {
-    let musician_pos = output[musician_id];
+    let musician_pos = output.0[musician_id];
     let attendee_pos = input.pos[attendee_id];
-    for i in 0..output.len() {
+    for i in 0..output.0.len() {
         if i == musician_id {
             continue;
         }
-        if is_blocked(musician_pos, attendee_pos, output[i]) {
+        if is_blocked(musician_pos, attendee_pos, output.0 .0[i]) {
             return true;
         }
     }
@@ -126,14 +126,14 @@ pub fn compute_score_for_pair(
     if is_blocked_by_someone(input, output, musician_id, attendee_id) {
         return 0;
     } else {
-        let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
+        let d2 = (input.pos[attendee_id] - output.0[musician_id]).abs2();
         let instrument_id = input.musicians[musician_id];
         return score_fn(input.tastes[attendee_id][instrument_id], d2);
     }
 }
 
 pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> bool {
-    if output.len() != input.n_musicians() {
+    if output.0.len() != input.n_musicians() {
         if print_error {
             eprintln!("Number of musicians is wrong");
         }
@@ -142,7 +142,7 @@ pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> boo
 
     // musician VS stage bbox
     for i in 0..input.n_musicians() {
-        let p = &output[i];
+        let p = &output.0[i];
         if p.0 < input.stage0.0 + 10.0
             || p.0 > input.stage1.0 - 10.0
             || p.1 < input.stage0.1 + 10.0
@@ -158,11 +158,11 @@ pub fn is_valid_output(input: &Input, output: &Output, print_error: bool) -> boo
     // musician VS musician
     for i in 0..input.n_musicians() {
         for j in 0..i {
-            if (output[i] - output[j]).abs2() < 100.0 {
+            if (output.0[i] - output.0[j]).abs2() < 100.0 {
                 if print_error {
                     eprintln!(
                         "Musicians too close: {} and {} ({:?}, {:?})",
-                        j, i, output[j], output[i]
+                        j, i, output.0[j], output.0[i]
                     );
                 }
                 return false;
@@ -183,7 +183,7 @@ pub fn compute_closeness_factor(input: &Input, output: &Output, musician_id: usi
         if i == musician_id || input.musicians[i] != input.musicians[musician_id] {
             continue;
         }
-        q += 1.0 / (output[musician_id] - output[i]).abs2().sqrt();
+        q += 1.0 / (output.0[musician_id] - output.0[i]).abs2().sqrt();
     }
     q
 }
@@ -267,7 +267,7 @@ pub fn compute_score_for_a_musician_fast(
     musician_id: usize,
 ) -> (i64, Vec<i64>) {
     let eps = 1e-5;
-    let p = output[musician_id];
+    let p = output.0[musician_id];
     let mut events = vec![];
 
     let circles: Vec<_> = output
@@ -334,7 +334,7 @@ pub fn compute_score_for_a_musician_fast(
                     }
                 }
                 if !f {
-                    let d2 = (input.pos[attendee_id] - output[musician_id]).abs2();
+                    let d2 = (input.pos[attendee_id] - output.0[musician_id]).abs2();
                     let instrument_id = input.musicians[musician_id];
                     let s = score_fn(input.tastes[attendee_id][instrument_id], d2);
                     let s = (closeness_factor * s as f64).ceil() as i64;
@@ -401,7 +401,7 @@ impl Scorerer {
     pub fn new_with_output(input: &Input, output: &Output) -> Self {
         let mut scorerer = Self::new(input);
         for musician_id in 0..input.n_musicians() {
-            scorerer.add_musician(musician_id, output[musician_id]);
+            scorerer.add_musician(musician_id, output.0[musician_id]);
         }
         scorerer
     }
@@ -603,7 +603,7 @@ impl DynamicScorer {
     pub fn new_with_output(input: &Input, output: &Output) -> Self {
         let mut scorer = Self::new(input);
         for musician_id in 0..input.n_musicians() {
-            scorer.add_musician(musician_id, output[musician_id]);
+            scorer.add_musician(musician_id, output.0[musician_id]);
         }
         scorer
     }
@@ -888,11 +888,12 @@ mod tests {
 
         let mut scorerer = Scorerer::new(&input);
         for i in 0..input.n_musicians() {
-            scorerer.add_musician(i, output[i]);
+            scorerer.add_musician(i, output.0[i]);
 
             let remove_musician_id = (i * 12308120398123 + 120938102938) % (i + 1);
             let score_diff2 = scorerer.remove_musician(remove_musician_id);
-            let score_diff3 = scorerer.add_musician(remove_musician_id, output[remove_musician_id]);
+            let score_diff3 =
+                scorerer.add_musician(remove_musician_id, output.0[remove_musician_id]);
             assert_eq!(score_diff2, -score_diff3);
 
             if i > 0 {
@@ -916,7 +917,7 @@ mod tests {
 
         let mut scorerer = Scorerer::new(&input);
         for i in 0..input.n_musicians() {
-            scorerer.add_musician(i, output[i]);
+            scorerer.add_musician(i, output.0[i]);
         }
 
         dbg!(&scorerer.closeness_factor);
@@ -950,10 +951,10 @@ mod tests {
         for i in 0..input.n_musicians() {
             let j = (i + 1).min(input.n_musicians() - 1);
             let score_before = scorer.get_score();
-            scorer.add_musician(j, output[j]);
+            scorer.add_musician(j, output.0[j]);
             scorer.remove_musician(j);
             assert_eq!(score_before, scorer.get_score());
-            scorer.add_musician(i, output[i]);
+            scorer.add_musician(i, output.0[i]);
         }
         assert_eq!(scorer.get_score(), expected);
 
