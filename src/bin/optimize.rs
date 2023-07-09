@@ -7,7 +7,7 @@ fn main() {
     let mut ws = mat![0; input.musicians.len(); output.len()];
     for i in 0..input.musicians.len() {
         for j in 0..output.len() {
-            ws[i][j] = score_pos_inst[j][input.musicians[i]];
+            ws[i][j] = score_pos_inst[j][input.musicians[i]].max(0);
         }
     }
     let (score, to) = icfpc2023::mcf::weighted_matching(&ws);
@@ -17,8 +17,14 @@ fn main() {
         eprintln!("Update!!!!!!!!!!!!!!!!!!");
     }
     let mut out = vec![];
+    let mut volumes = vec![0.0; input.musicians.len()];
     for i in 0..input.musicians.len() {
         out.push(output[to[i]]);
+        if score_pos_inst[to[i]][input.musicians[i]] < 0 {
+            volumes[i] = 0.0;
+        } else {
+            volumes[i] = 10.0;
+        }
     }
-    write_output(&out);
+    write_output(&(out, volumes));
 }

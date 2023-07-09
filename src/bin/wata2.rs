@@ -377,7 +377,7 @@ fn main() {
     let input = preprocess(read_input_from_file(&inputfile));
     let mut cand = vec![];
     for ans in std::env::args().skip(3) {
-        for p in read_output_from_file(&ans) {
+        for p in read_output_from_file(&ans).0 {
             cand.push(p);
         }
     }
@@ -429,8 +429,8 @@ fn main() {
             id.insert(cand[i], i);
         }
         let ans = read_output_from_file(&std::env::args().nth(3).unwrap());
-        for i in 0..ans.len() {
-            to[i] = id[&ans[i]];
+        for i in 0..ans.0.len() {
+            to[i] = id[&ans.0[i]];
         }
     } else {
         let mut used = vec![false; cand.len()];
@@ -518,8 +518,9 @@ fn main() {
             }
         }
         let out = best.iter().map(|&p| cand[p]).collect();
+        let volumes = vec![1.0; input.n_musicians()];
         write_output_to_file(
-            &out,
+            &(out, volumes),
             &format!("{}/{}.json", outdir, input.problem_id.unwrap_or(0)),
         )
     }

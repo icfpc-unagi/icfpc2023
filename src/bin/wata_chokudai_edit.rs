@@ -422,5 +422,6 @@ fn main() {
             out[j] = cand[i];
         }
     }
-    write_output(&out);
+    let volumes = vec![1.0; input.n_musicians()];
+    write_output(&(out, volumes));
 }
