@@ -106,7 +106,7 @@ pub async fn get_raw_problem_db(problem_id: u32) -> Result<String> {
         SELECT problem_chunk_index, problem_chunk
         FROM problem_chunks
         WHERE problem_id = :problem_id
-        ORDER BY problem_chunk_id",
+        ORDER BY problem_chunk_index",
         params! {
             "problem_id" => problem_id
         },
@@ -128,7 +128,7 @@ pub async fn get_raw_problem_db(problem_id: u32) -> Result<String> {
 /// Returns the problem with the given ID.
 /// Authentication is not required.
 pub async fn get_problem(problem_id: u32) -> Result<Problem> {
-    let problem = get_raw_problem_cdn(problem_id).await?;
+    let problem = get_raw_problem_db(problem_id).await?;
     let problem: Problem = serde_json::from_str(&problem)?;
     Ok(problem)
 }
