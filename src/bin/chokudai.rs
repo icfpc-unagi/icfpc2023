@@ -45,6 +45,7 @@ fn main() {
     let mut best_ret = output.clone();
     let mut best_score = compute_score_fast(&inp, &best_ret).0;
     let mut best_cand: Vec<P> = best_ret.0.clone();
+    let first_score = best_score;
 
     let mut rng = rand::thread_rng();
 
@@ -158,11 +159,12 @@ fn main() {
             best_score = score;
             best_cand = candidate.clone();
             eprintln!(
-                "{} {} {} {}",
+                "{} {} {} {} +{}",
                 &cli.input,
                 (get_time() - stime),
                 iter,
-                best_score
+                best_score,
+                best_score - first_score
             );
         }
         //write_output(&best_ret);
