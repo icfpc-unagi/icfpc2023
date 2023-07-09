@@ -131,6 +131,7 @@ fn main() {
         }
         let candidate = cand2;
 
+        let positions = Vec::from_iter(candidate.iter().map(|a| a.0));
         let pos_to_music = compute_score_for_instruments(&inp, &candidate);
 
         let mut ar = Vec::new();
