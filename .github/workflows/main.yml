@@ -129,11 +129,11 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v1'
       - name: 'Use gcloud CLI'
         run: |
+          gcloud info
           gcloud auth activate-service-account \
               icfpc2023@icfpc-primary.iam.gserviceaccount.com \
               --key-file=secrets/service_account.json
           gcloud config set project icfpc-primary
-          gcloud info
       - name: Initialize Rust toolchain
         run: rustup toolchain install stable --profile minimal
       - name: Cache Rust crates
