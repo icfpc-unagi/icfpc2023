@@ -7,7 +7,10 @@ use std::env;
 
 static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
     let password = env::var("UNAGI_PASSWORD").unwrap_or_else(|_| "".into());
-    let url = format!("mysql://root:{}@34.146.125.93:3306/unagi", password);
+    let url = match env::var("MYSQL_SOCKET") {
+        Ok(socket) => format!("mysql://root:{}@/unagi?socket={}", password, socket),
+        Err(_) => format!("mysql://root:{}@localhost:3306/unagi", password),
+    };
     let pool = Pool::new(url).unwrap();
     eprintln!("MySQL connection established.");
     pool
