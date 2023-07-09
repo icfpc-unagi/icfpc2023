@@ -72,29 +72,6 @@ pub async fn download_all_best_submissions(output_dir: &Path) -> Result<()> {
             }));
         }
     }
-    // let submission_ids = best_submissions
-    //     .into_iter()
-    //     .filter_map(|s| s.map(|s| s._id))
-    //     .collect_vec();
-    // let tasks = submission_ids
-    //     .into_iter()
-    //     .map(|s| {
-    //         let output_path = output_dir.join(format!(
-    //             "{}-{}.json",
-    //             response.submission.problem_id, response.submission._id
-    //         ));
-    //         tokio::spawn(async move {
-    //             match get_submission(&s).await {
-    //                 Err(e) => eprintln!("Error getting submission {}: {}", s, e),
-    //                 Ok(response) => {
-    //                     let mut file = File::create(&output_path).unwrap();
-    //                     file.write_all(response.contents.as_bytes()).unwrap();
-    //                     eprintln!("Wrote {}", output_path.display());
-    //                 }
-    //             }
-    //         })
-    //     })
-    //     .collect_vec();
     for task in tasks {
         task.await?;
     }
