@@ -1,14 +1,18 @@
 steps:
+  - id: 'hash-cargo-toml'
+    name: 'ubuntu'
+    entrypoint: 'bash'
+    args: ['-c', 'openssl dgst -sha1 -binary Cargo.toml | xxd -p > Cargo.sha1']
   - id: 'pull-rust-cache'
     name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
-    args: ['-c', 'docker pull asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder || exit 0']
+    args: ['-c', 'docker pull asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder:$(cat Cargo.sha1) || exit 0']
   - id: 'build-rust-cache'
     name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
       '-t', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder',
-      '--cache-from', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder',
+      '--cache-from', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder:$(cat Cargo.sha1)',
       '-f', 'docker/builder.Dockerfile',
       '--target', 'rust-builder',
       '--build-arg', 'BUILDKIT_INLINE_CACHE=1',
@@ -16,7 +20,7 @@ steps:
     ]
   - id: 'push-rust-cache'
     name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder']
+    args: ['push', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder:$(cat Cargo.sha1)']
   - id: 'build-secrets'
     name: 'gcr.io/cloud-builders/docker'
     entrypoint: '/usr/bin/bash'
