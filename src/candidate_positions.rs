@@ -14,7 +14,7 @@ pub struct CandidateConfig {
 }
 
 pub fn is_blocked_by_existing(input: &Input, output: &Output, p: P, q: P) -> bool {
-    for r in output {
+    for r in &output.0 {
         if is_blocked(p, q, *r) {
             return true;
         }
@@ -43,7 +43,10 @@ pub fn pattern1(input: &Input, output: &Output) -> Vec<P> {
     let mut cposs = vec![];
     for i in 0..input.n_musicians() {
         for j in 0..i {
-            cposs.extend(P::pi_cc((output[i], 10.0 + eps), (output[j], 10.0 + eps)));
+            cposs.extend(P::pi_cc(
+                (output.0[i], 10.0 + eps),
+                (output.0[j], 10.0 + eps),
+            ));
         }
     }
     cposs
@@ -60,7 +63,7 @@ pub fn pattern2(input: &Input, output: &Output) -> Vec<P> {
             if is_blocked_by_someone(input, output, musician_id, attendee_id) {
                 continue;
             }
-            let d = (input.pos[attendee_id] - output[musician_id]).abs2();
+            let d = (input.pos[attendee_id] - output.0[musician_id]).abs2();
             am_pairs.push((d, attendee_id, musician_id))
         }
     }
@@ -69,7 +72,7 @@ pub fn pattern2(input: &Input, output: &Output) -> Vec<P> {
     let mut cposs = vec![];
     for (_, attendee_id, musician_id) in am_pairs {
         let attendee_pos = input.pos[attendee_id];
-        let musician_pos = output[musician_id];
+        let musician_pos = output.0[musician_id];
         for p in P::tan_cp((musician_pos, 5.0 + eps), attendee_pos) {
             for q in P::pi_cl((musician_pos, 10.0 + eps), (attendee_pos, p)) {
                 // attendee_pos -> q がブロックされてたらこれいらないでしょっていう
@@ -111,7 +114,7 @@ pub fn pattern3(input: &Input, output: &Output) -> Vec<P> {
             if is_blocked_by_someone(input, output, musician_id, attendee_id) {
                 continue;
             }
-            let d = (input.pos[attendee_id] - output[musician_id]).abs2();
+            let d = (input.pos[attendee_id] - output.0[musician_id]).abs2();
             am_pairs.push((d, attendee_id, musician_id))
         }
     }
@@ -120,7 +123,7 @@ pub fn pattern3(input: &Input, output: &Output) -> Vec<P> {
     let mut cposs = vec![];
     for (_, attendee_id, musician_id) in am_pairs {
         let a = input.pos[attendee_id];
-        let m = output[musician_id];
+        let m = output.0[musician_id];
         let vec = (m - a).rot();
         let vec = vec * ((5.0 + eps) / vec.abs());
 
@@ -152,7 +155,7 @@ pub fn pattern23(input: &Input, output: &Output, config: &CandidateConfig) -> Ve
             if is_blocked_by_someone(input, output, musician_id, attendee_id) {
                 continue;
             }
-            let d = (input.pos[attendee_id] - output[musician_id]).abs2();
+            let d = (input.pos[attendee_id] - output.0[musician_id]).abs2();
             am_pairs.push((d, attendee_id, musician_id))
         }
     }
@@ -161,7 +164,7 @@ pub fn pattern23(input: &Input, output: &Output, config: &CandidateConfig) -> Ve
     let mut cposs = vec![];
     for (_, attendee_id, musician_id) in am_pairs {
         let attendee_pos = input.pos[attendee_id];
-        let musician_pos = output[musician_id];
+        let musician_pos = output.0[musician_id];
 
         // Pattern 2
         for p in P::tan_cp((musician_pos, 5.0 + eps), attendee_pos) {
@@ -209,7 +212,7 @@ pub fn pattern4(input: &Input, output: &Output) -> Vec<P> {
     let mut cposs = vec![];
 
     for side in 0..4 {
-        for musician_pos in output {
+        for musician_pos in &output.0 {
             let line = get_stage_line(input, side);
             cposs.extend(P::pi_cl((*musician_pos, 10.0 + eps), line));
         }
