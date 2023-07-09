@@ -201,6 +201,8 @@ pub async fn get_submissions(offset: u32, limit: u32) -> Result<Vec<Submission>>
 }
 
 pub async fn get_submission_db(submission_id: &str) -> Result<SubmissionResponse> {
+    let local_id = submission_id.parse().unwrap_or(0);
+    let official_id = submission_id;
     let rows = sql::select(
         "
 SELECT
@@ -214,9 +216,10 @@ SELECT
 FROM
     submissions
 WHERE
-    submission_id = :submission_id OR official_id = :submission_id",
+    submission_id = :local_id OR official_id = :official_id",
         params! {
-            "submission_id" => submission_id
+            "local_id" => local_id,
+            "official_id" => official_id,
         },
     )?;
     let row = rows
@@ -246,6 +249,7 @@ WHERE
     })
 }
 
+/// Returns the submission with the given ID of either local or offical format.
 pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
     // Try to get from DB.
     match get_submission_db(submission_id).await {
