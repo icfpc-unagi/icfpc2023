@@ -1,0 +1,13 @@
+steps:
+  - name: 'rust:1.70.0'
+    entrypoint: /bin/bash
+    args: 
+      - -c
+      - cargo build --bins --release
+    timeout: 600s
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['-m', 'cp', '-Z', './target/release', 'gs://icfpc2023/bin/$SHORT_SHA']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_32'
