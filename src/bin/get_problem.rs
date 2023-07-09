@@ -10,7 +10,7 @@ struct Cli {
     problem_id: u32,
 }
 
-/// Print a number of submissions sorted by submission time most recent first.
+/// Print a problem from the problem database.
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Cli::parse();
