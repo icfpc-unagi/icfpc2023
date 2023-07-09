@@ -353,3 +353,14 @@ article #vis {
 
 /* For visualizer */
 rect:hover { fill: #ffff0066; }
+
+/* For submission tags */
+.tag {
+	display: inline-block;
+	padding: 0.3ex 0.6ex;
+	border-radius: 10px;
+	background: #eee;
+	color: #666;
+	border: 1px solid #ccc;
+	margin: 0 0.5ex;
+}

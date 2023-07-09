@@ -2,6 +2,7 @@ use crate::{input_stats::get_stats, *};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
+use mysql::params;
 use serde::Deserialize;
 use svg;
 
@@ -35,6 +36,27 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
 async fn handle(info: web::Query<Query>) -> Result<String> {
     let mut buf = String::new();
     let submission = api::get_submission(&info.submission_id).await?;
+    // Fetch submission tags
+    let rows = sql::select(
+        "
+SELECT
+    submission_tag
+FROM
+    submission_tags
+NATURAL LEFT JOIN
+    submissions
+WHERE
+    CAST(submission_id AS CHAR) = :submission_id OR official_id = :submission_id",
+        params! {
+            "submission_id" => &info.submission_id,
+        },
+    )?;
+
+    let mut tags = Vec::new();
+    for row in rows {
+        tags.push(row.get::<String>("submission_tag")?);
+    }
+
     // TODO: Cache problem data
     let problem_id = submission.submission.problem_id;
     let input: Input = api::get_problem(problem_id).await?.into();
@@ -51,6 +73,9 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         "<h1>Submission ID: {}</h1>",
         submission.submission._id
     )?;
+    for tag in tags {
+        write!(&mut buf, "<span class=\"tag\">{}</span> ", tag)?;
+    }
     write!(
         &mut buf,
         "<ul><li>Problem ID: {}</li><ul>",

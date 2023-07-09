@@ -271,7 +271,12 @@ pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
     // Try to get from DB.
     match get_submission_db(submission_id).await {
         Ok(submission) => return Ok(submission),
-        Err(error) => eprintln!("Failed to get submission from DB: {}", error),
+        Err(error) => {
+            if submission_id.len() != 24 {
+                return Err(error);
+            }
+            eprintln!("Failed to get submission from DB: {}", error)
+        }
     }
     get_submission_api(submission_id).await
 }
