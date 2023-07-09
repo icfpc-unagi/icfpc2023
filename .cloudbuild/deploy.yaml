@@ -2,7 +2,7 @@ steps:
   - id: 'hash-cargo-toml'
     name: 'ubuntu'
     entrypoint: 'bash'
-    args: ['-c', 'openssl dgst -sha1 -binary Cargo.toml | xxd -p > Cargo.sha1']
+    args: ['-c', 'sha1sum Cargo.toml | cut -d" " -f1 > Cargo.sha1']
   - id: 'pull-rust-cache'
     name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
