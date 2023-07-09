@@ -31,10 +31,6 @@ async fn main() -> std::io::Result<()> {
                 web::get().to(www::handlers::my_userboard::handler),
             )
             .route(
-                "/my_submission",
-                web::get().to(www::handlers::my_submission::handler),
-            )
-            .route(
                 "/my_submissions",
                 web::get().to(www::handlers::my_submissions::handler),
             )

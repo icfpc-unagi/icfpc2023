@@ -78,7 +78,7 @@ LIMIT :offset, :limit
                         },
                     };
                     Ok(format!(
-                        "<tr><td><a href=\"/my_submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                        "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td></tr>",
                         submission_id,
                         official_id.unwrap_or("N/A".into()),
                         submission_created,
