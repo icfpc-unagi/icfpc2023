@@ -286,15 +286,15 @@ async fn tag_submission(local_submission_id: u64, tags: &[&str]) -> Result<()> {
     sql::exec_batch(
         "
 INSERT INTO submission_tags
-    (submission_id, tag_name)
+    (submission_id, submission_tag)
 VALUES
-    (:local_id, :tag_name)
+    (:local_id, :submission_tag)
 ",
         tags.iter().map(|&tag| {
             params! {
                 "local_id" => local_id,
                 "official_id" => official_id,
-                "tag_name" => tag,
+                "submission_tag" => tag,
             }
         }),
     )?;
@@ -314,21 +314,22 @@ pub async fn submit(
         return Ok(local_id.to_string());
     } else {
         let official_id = submit_api(problem_id, output).await?;
-        let local_id = insert_placeholder_submission(&official_id).await?;
+        let local_id = insert_placeholder_submission(problem_id, &official_id).await?;
         tag_submission(local_id, tags).await?;
         return Ok(official_id);
     }
 }
 
 /// Inserts a placeholder submission to local DB and returns the local submission ID.
-pub async fn insert_placeholder_submission(official_id: &str) -> Result<u64> {
+pub async fn insert_placeholder_submission(problem_id: u32, official_id: &str) -> Result<u64> {
     let local_id = sql::insert(
         "
 INSERT INTO submissions
-    (official_id)
+    (problem_id, official_id)
 VALUES
-    (:official_id)",
+    (:problem_id, :official_id)",
         params! {
+            "problem_id" => problem_id,
             "official_id" => official_id,
         },
     )?;
