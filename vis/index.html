@@ -64,14 +64,12 @@
   <div id="result">
   </div>
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.0/svg.min.js" integrity="sha512-EmfT33UCuNEdtd9zuhgQClh7gidfPpkp93WO8GEfAP3cLD++UM1AG9jsTUitCI9DH5nF72XaFePME92r767dHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.pan-zoom.js/2.8.0/svg.pan-zoom.min.js"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.pan-zoom.js/2.8.0/svg.pan-zoom.js"></script> -->
   <script type="module">
     import init, { vis, get_max_turn } from './vis.js';
 
     var seed0 = "";
     let globalSvg = null;
+    let gOrigViewBox = "";
 
     async function run() {
       for (const [key, value] of new URL(location).searchParams.entries()) {
@@ -116,9 +114,9 @@
         // https://www.kabuku.co.jp/developers/how-to-enable-zoom-in-svg
 
         // 現在のviewBoxを取得する
-        const [minX, minY, width, height] = svg.attr('viewBox')
-            .split(' ')
-            .map(s => parseFloat(s));
+        const [minX, minY, width, height] = svg.getAttribute('viewBox')
+          .split(' ')
+          .map(s => parseFloat(s));
 
         const minX1 = minX + dx * width;
         const minY1 = minY + dy * height;
@@ -137,7 +135,7 @@
 
         // viewBoxを更新
         const zoomedViewBox = [zoomedMinX, zoomedMinY, zoomedWidth, zoomedHeight].join(' ');
-        svg.attr('viewBox', zoomedViewBox);
+        svg.setAttribute('viewBox', zoomedViewBox);
       };
     }
     run();
@@ -196,10 +194,21 @@
         if (ret.error != "") {
           document.getElementById("score").innerHTML += " <font color='red'>(" + ret.error + ")</font>";
         }
-        // document.getElementById("result").innerHTML = ret.svg;
-        globalSvg = SVG(ret.svg);
-        document.getElementById("result").innerHTML = "";
-        globalSvg.addTo("#result");
+        const currentViewBox = globalSvg?.getAttribute("viewBox");
+        document.getElementById("result").innerHTML = ret.svg;
+        const svg = document.getElementById("result").children[0];
+        // const width = svg.getAttribute("width");
+        // const height = svg.getAttribute("height");
+        const viewBox = svg.getAttribute("viewBox");
+        if (viewBox === gOrigViewBox) {
+          svg.setAttribute("viewBox", currentViewBox);
+        } else {
+          // const W = 1200;
+          // const H = 800;
+          gOrigViewBox = viewBox;
+          // gCurrentViewBox = viewBox;
+        }
+        globalSvg = svg;
       } catch (error) {
         console.log(error);
         document.getElementById("result").innerHTML = "<p>Invalid</p>";
