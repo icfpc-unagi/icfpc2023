@@ -248,20 +248,6 @@ pub fn render(contents: &str) -> String {
         .unwrap()
 }
 
-pub async fn render_handler<F>(f: F) -> impl Responder
-where
-    F: FnOnce() -> Result<String, Box<dyn std::error::Error>>,
-{
-    match f() {
-        Ok(contents) => HttpResponse::Ok()
-            .content_type("text/html")
-            .body(render(&contents)),
-        Err(e) => HttpResponse::InternalServerError()
-            .content_type("text/html")
-            .body(render(&format!("{}", e))),
-    }
-}
-
 pub fn to_response(result: Result<String>) -> impl Responder {
     match result {
         Ok(contents) => HttpResponse::Ok()
