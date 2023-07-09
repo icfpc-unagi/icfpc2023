@@ -10,31 +10,42 @@ pub async fn internal_handler() -> Result<String> {
     for row in sql::select(
         "
 SELECT
-    problem_id,
-    submission_score,
-    MIN(submission_id) AS submission_id,
-    MIN(official_id) AS official_id
+    *
 FROM
-    submissions
-NATURAL JOIN(
+    (
     SELECT
         problem_id,
-        MAX(submission_score) AS submission_score
+        submission_score,
+        MIN(submission_id) AS submission_id,
+        MIN(official_id) AS official_id
     FROM
         submissions
-    GROUP BY
-        problem_id
-) AS t
+    NATURAL JOIN(
+        SELECT
+            problem_id,
+            MAX(submission_score) AS submission_score
+        FROM
+            submissions
+        GROUP BY
+            problem_id
+    ) AS t
 GROUP BY
     problem_id
 ORDER BY
-    problem_id",
+    problem_id
+) AS t1
+NATURAL RIGHT JOIN(
+    SELECT DISTINCT
+        problem_id
+    FROM
+        problem_chunks
+) AS t2",
         mysql::Params::Empty,
     )? {
-        let _submission_id: i64 = row.get("submission_id")?;
-        let official_id: Option<String> = row.get("official_id")?;
         let problem_id: i64 = row.get("problem_id")?;
-        let submission_score: Option<i64> = row.get("submission_score")?;
+        let _submission_id = row.get_option::<i64>("submission_id")?;
+        let official_id = row.get_option::<String>("official_id")?;
+        let submission_score = row.get_option::<i64>("submission_score")?;
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
         buf.push_str(&format!("<tr><td>{}</td>", problem_id));
