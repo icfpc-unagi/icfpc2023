@@ -4,7 +4,7 @@ use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use mysql::params;
 use serde::Deserialize;
-use std::fmt::Write;
+use std::{collections::HashMap, fmt::Write};
 
 #[derive(Deserialize)]
 pub struct Query {
@@ -24,19 +24,31 @@ fn default_limit() -> u32 {
 
 // Implement the handler function to list submissions from MySQL database with offset and limit.
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
+    let response = match handle(&info).await {
+        Ok(content) => HttpResponse::Ok()
+            .content_type("text/html")
+            .body(www::handlers::template::render(&content)),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Internal server error: {}", e)),
+    };
+
+    response
+}
+
+async fn handle(info: &web::Query<Query>) -> Result<String, Box<dyn std::error::Error>> {
     let mut buf = String::new();
     write!(
         &mut buf,
         "<a href=\"/submissions\">[Load from the official API]</a>"
-    )
-    .unwrap();
+    )?;
+
     write!(
         &mut buf,
         "<h1>Submissions from local DB copy (excl. pending submissions)</h1>"
-    )
-    .unwrap();
+    )?;
+
     buf.push_str("<table>");
-    match sql::select(
+
+    let rows = sql::select(
         r#"
 SELECT
     submission_id,
@@ -56,59 +68,92 @@ LIMIT :offset, :limit
             "offset" => info.offset,
             "limit" => info.limit
         },
-    ) {
-        Ok(rows) => {
-            for row in rows {
-                match || -> Result<String> {
-                    let submission_id: u32 = row.get("submission_id")?;
-                    let official_id: Option<String> = row.get_option("official_id")?;
-                    let problem_id: u32 = row.get("problem_id")?;
-                    let submission_score: Option<i64> = row.get_option("submission_score")?;
-                    let submission_error: Option<String> = row.get_option("submission_error")?;
-                    let submission_created: String = row.get("submission_created")?;
-                    let score = match submission_score {
-                        Some(score) => {
-                            format!("{}", score)
-                        }
-                        None => match submission_error {
-                            Some(error) => {
-                                format!("{}", error)
-                            }
-                            None => "Processing".to_string(),
-                        },
-                    };
-                    Ok(format!(
-                        "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td></tr>",
-                        submission_id,
-                        official_id.unwrap_or("N/A".into()),
-                        submission_created,
-                        problem_id,
-                        score,
-                    ))
-                }() {
-                    Ok(s) => {
-                        buf.push_str(&s);
+    )?;
+
+    let submission_ids = rows
+        .iter()
+        .map(|row| {
+            let submission_id: u32 = row.get("submission_id")?;
+            Ok(submission_id.to_string())
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let tag_rows = sql::select(
+        &format!(
+            r#"
+SELECT
+    submission_id,
+    submission_tag
+FROM   
+    submission_tags
+WHERE
+    submission_id IN ({})
+"#,
+            submission_ids.join(",")
+        ),
+        mysql::Params::Empty,
+    )?;
+    let mut tag_map = HashMap::<_, Vec<_>>::new();
+    for row in tag_rows {
+        let submission_id: u32 = row.get("submission_id")?;
+        let submission_tag: String = row.get("submission_tag")?;
+        tag_map
+            .entry(submission_id)
+            .or_default()
+            .push(submission_tag);
+    }
+
+    for row in rows {
+        match || -> Result<String> {
+            let submission_id: u32 = row.get("submission_id")?;
+            let official_id: Option<String> = row.get_option("official_id")?;
+            let problem_id: u32 = row.get("problem_id")?;
+            let submission_score: Option<i64> = row.get_option("submission_score")?;
+            let submission_error: Option<String> = row.get_option("submission_error")?;
+            let submission_created: String = row.get("submission_created")?;
+            let score = match submission_score {
+                Some(score) => {
+                    format!("{}", score)
+                }
+                None => match submission_error {
+                    Some(error) => {
+                        format!("{}", error)
                     }
-                    Err(e) => {
-                        buf.push_str(&format!("<tr><td>{}</td></tr>", e));
-                    }
-                };
+                    None => "Processing".to_string(),
+                },
+            };
+            let mut tag_str = String::new();
+            if let Some(tags) = tag_map.get(&submission_id) {
+                for tag in tags {
+                    write!(&mut tag_str, "<span class=\"tag\">{}</span>", tag)?;
+                }
+            }
+            Ok(format!(
+                "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                submission_id,
+                official_id.unwrap_or("N/A".into()),
+                submission_created,
+                problem_id,
+                score,
+                tag_str,
+            ))
+        }() {
+            Ok(s) => {
+                buf.push_str(&s);
+            }
+            Err(e) => {
+                write!(&mut buf, "<tr><td>{}</td></tr>", e)?;
             }
         }
-        Err(e) => {
-            buf.push_str(&format!("<tr><td>{}</td></tr>", e));
-        }
     }
+
     buf.push_str("</table>");
-    buf.push_str(
-        format!(
-            "<a href=\"/my_submissions?offset={}&limit={}\">Next</a>",
-            info.offset + info.limit,
-            info.limit
-        )
-        .as_str(),
-    );
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(www::handlers::template::render(&buf))
+
+    write!(
+        &mut buf,
+        "<a href=\"/my_submissions?offset={}&limit={}\">Next</a>",
+        info.offset + info.limit,
+        info.limit
+    )?;
+
+    Ok(buf)
 }
