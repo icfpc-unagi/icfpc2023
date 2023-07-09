@@ -70,6 +70,7 @@
     var seed0 = "";
     let globalSvg = null;
     let gOrigViewBox = "";
+    let gFitViewBox = "";
 
     async function run() {
       for (const [key, value] of new URL(location).searchParams.entries()) {
@@ -95,7 +96,9 @@
         let scale = 1;
         let dx = 0;
         let dy = 0;
-        if (key === 'i') {
+        if (key === '0') {
+          globalSvg.setAttribute("viewBox", gFitViewBox);
+        } else if (key === 'i') {
           scale = 0.5;
         } else if (key === 'o') {
           scale = 2;
@@ -110,32 +113,7 @@
         } else {
           return;
         }
-        const svg = globalSvg;
-        // https://www.kabuku.co.jp/developers/how-to-enable-zoom-in-svg
-
-        // 現在のviewBoxを取得する
-        const [minX, minY, width, height] = svg.getAttribute('viewBox')
-          .split(' ')
-          .map(s => parseFloat(s));
-
-        const minX1 = minX + dx * width;
-        const minY1 = minY + dy * height;
-
-        // 大きさをscale倍する
-        const zoomedWidth = width * scale;
-        const zoomedHeight = height * scale;
-
-        // 中心の座標を計算する
-        const centerX = minX1 + width / 2.0;
-        const centerY = minY1 + height / 2.0;
-
-        // scale倍したあとのmin-xとmin-yを計算する
-        const zoomedMinX = centerX - zoomedWidth / 2.0;
-        const zoomedMinY = centerY - zoomedHeight / 2.0;
-
-        // viewBoxを更新
-        const zoomedViewBox = [zoomedMinX, zoomedMinY, zoomedWidth, zoomedHeight].join(' ');
-        svg.setAttribute('viewBox', zoomedViewBox);
+        updateViewBox(globalSvg, scale, scale, dx, dy);
       };
     }
     run();
@@ -197,17 +175,22 @@
         const currentViewBox = globalSvg?.getAttribute("viewBox");
         document.getElementById("result").innerHTML = ret.svg;
         const svg = document.getElementById("result").children[0];
-        // const width = svg.getAttribute("width");
-        // const height = svg.getAttribute("height");
         const viewBox = svg.getAttribute("viewBox");
+        // console.log(viewBox);
+        const W = 1200;
+        const H = 800;
         if (viewBox === gOrigViewBox) {
           svg.setAttribute("viewBox", currentViewBox);
         } else {
-          // const W = 1200;
-          // const H = 800;
           gOrigViewBox = viewBox;
-          // gCurrentViewBox = viewBox;
+          const width = parseFloat(svg.getAttribute("width"));
+          const height = parseFloat(svg.getAttribute("height"));
+          const aspectChange = (W / H) / (width / height);
+          gFitViewBox = updateViewBox(svg, Math.max(1, aspectChange), Math.max(1, 1 / aspectChange), 0, 0);
+          // console.log('changed to ', svg.getAttribute("viewBox"));
         }
+        svg.setAttribute("width", W);
+        svg.setAttribute("height", H);
         globalSvg = svg;
       } catch (error) {
         console.log(error);
@@ -215,6 +198,35 @@
       }
     }
     window.visualize = visualize;
+
+    function updateViewBox(svg, scalex, scaley, dx, dy) {
+      // https://www.kabuku.co.jp/developers/how-to-enable-zoom-in-svg
+
+      // 現在のviewBoxを取得する
+      const [minX, minY, width, height] = svg.getAttribute('viewBox')
+        .split(' ')
+        .map(s => parseFloat(s));
+
+      const minX1 = minX + dx * width;
+      const minY1 = minY + dy * height;
+
+      // 大きさをscale倍する
+      const zoomedWidth = width * scalex;
+      const zoomedHeight = height * scaley;
+
+      // 中心の座標を計算する
+      const centerX = minX1 + width / 2.0;
+      const centerY = minY1 + height / 2.0;
+
+      // scale倍したあとのmin-xとmin-yを計算する
+      const zoomedMinX = centerX - zoomedWidth / 2.0;
+      const zoomedMinY = centerY - zoomedHeight / 2.0;
+
+      // viewBoxを更新
+      const zoomedViewBox = [zoomedMinX, zoomedMinY, zoomedWidth, zoomedHeight].join(' ');
+      svg.setAttribute('viewBox', zoomedViewBox);
+      return zoomedViewBox;
+    }
 
     function update_t(t) {
       const max_turn = Number(document.getElementById("turn").max);
