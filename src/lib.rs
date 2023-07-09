@@ -449,6 +449,7 @@ pub mod vis;
 pub mod input_stats;
 
 pub mod candidate;
+pub mod candidate2;
 
 pub mod bigint_scoring;
 

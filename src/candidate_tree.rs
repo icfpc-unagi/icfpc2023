@@ -1,6 +1,10 @@
 #![allow(unused_imports)]
 #![allow(unused)] // とりあえず警告でないようしました。完成したらこの行（←）を消してwarning出ないか見ても良いかも。
-use std::{collections::BinaryHeap, net::SocketAddr, ops::Sub};
+use std::{
+    collections::{BinaryHeap, HashSet},
+    net::SocketAddr,
+    ops::Sub,
+};
 
 use aead::NewAead;
 
@@ -70,6 +74,9 @@ pub fn get_candidate_tree(
     };
 
     dbg!(target_dist);
+
+    let mut hs: HashSet<i64> = vec![].into_iter().collect();
+
     for i in 0..inp.pos.len() {
         let dist = get_stage_diff(inp.pos[i], inp.stage0, inp.stage1) as i64;
 
@@ -105,12 +112,32 @@ pub fn get_candidate_tree(
 
         let d2 = get_stage_diff(inp.pos[i], inp.stage0, inp.stage1);
 
+        let def_p = {
+            let num = 0;
+            if pattern == 2 {
+                P(inp.pos[i].0 + (10.0 * num as f64), inp.stage0.1 + 10.0)
+            } else if pattern == 8 {
+                P(inp.pos[i].0 + (10.0 * num as f64), inp.stage1.1 - 10.0)
+            } else if pattern == 1 {
+                P(inp.stage0.0 + 10.0, inp.pos[i].1 + (10.0 * num as f64))
+            } else if pattern == 4 {
+                P(inp.stage1.0 - 10.0, inp.pos[i].1 + (10.0 * num as f64))
+            } else {
+                P(0.0, 0.0)
+            }
+        };
+        let hash = (def_p.0 * 126351.0 + def_p.1 * 16237813.0) as i64;
+        if hs.insert(hash) {
+            continue;
+        }
+
         //dbg!(d2);
 
         let mut max_num = 4;
 
         if d2 > target_dist as f64 {
-            max_num = 0;
+            continue;
+            //max_num = 4;
         }
 
         let mut ps = vec![];
@@ -353,6 +380,7 @@ pub fn get_candidate_tree(
                         */
                     }
                 } else if pat == 2 {
+                    //def
                     let r3 = 5.0 * 1.73205 + 0.1;
                     if pattern == 2 {
                         ps = vec![
@@ -754,6 +782,46 @@ pub fn get_candidate_tree(
         max_points.push(ma);
     }
 
+    let mut ps_ar = vec![];
+
+    for i in 0..ret_ps.len() {
+        if !valid[i] {
+            continue;
+        }
+        ps_ar.push((ret_ps[i].0, i));
+    }
+
+    ps_ar.sort_by(|a, b| (a.0).partial_cmp(&(b.0)).unwrap());
+
+    dbg!(ps_ar.len());
+    let mut pre_start = 0;
+    let mut add_connect = 0;
+    for ii in 0..ps_ar.len() {
+        let i = ps_ar[ii].1;
+
+        while ps_ar[ii].0 - ps_ar[pre_start].0 > 10.0 {
+            pre_start += 1;
+        }
+
+        for jj in pre_start..ps_ar.len() {
+            if ii == jj {
+                continue;
+            }
+            let j = ps_ar[jj].1;
+
+            if ret_ps[j].0 - ret_ps[i].0 > 10.0 {
+                break;
+            }
+
+            let diff = ret_ps[i] - ret_ps[j];
+            if diff.abs2() < 100.0 - 0.0001 {
+                connect[i].push(j);
+                connect[j].push(i);
+                add_connect += 1;
+            }
+        }
+    }
+
     for i in 0..ret_ps.len() {
         if !valid[i] {
             continue;
@@ -769,6 +837,7 @@ pub fn get_candidate_tree(
             }
         }
     }
+    dbg!(add_connect);
 
     (
         ret_ps,
