@@ -45,6 +45,7 @@ fn main() {
     let mut best_ret = output.clone();
     let mut best_score = compute_score_fast(&inp, &best_ret).0;
     let mut best_cand: Vec<P> = best_ret.0.clone();
+    let first_score = best_score;
 
     let mut rng = rand::thread_rng();
 
@@ -87,7 +88,7 @@ fn main() {
             }
         }
 
-        let candidate = get_candidate3(&inp, &first_cand, iter % 2 == 0);
+        let candidate = get_candidate3(&inp, &first_cand, iter);
 
         let pos_to_music = compute_score_for_instruments(&inp, &candidate);
 
@@ -157,7 +158,14 @@ fn main() {
             best_ret = ret.clone();
             best_score = score;
             best_cand = candidate.clone();
-            eprintln!("{} {} {}", (get_time() - stime), iter, best_score);
+            eprintln!(
+                "{} {} {} {} +{}",
+                &cli.input,
+                (get_time() - stime),
+                iter,
+                best_score,
+                best_score - first_score
+            );
         }
         //write_output(&best_ret);
     }

@@ -2,6 +2,7 @@ use crate::*;
 
 use actix_web::Responder;
 use anyhow::Result;
+use num_format::{Locale, ToFormattedString};
 
 pub async fn internal_handler() -> Result<String> {
     let mut buf = String::new();
@@ -47,12 +48,10 @@ NATURAL RIGHT JOIN(
         let submission_score = row.get_option::<i64>("submission_score")?;
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
+        let score = submission_score.to_formatted_string(&Locale::en);
         let score = match official_id.or_else(|| submission_id.map(|x| x.to_string())) {
-            Some(id) => format!(
-                "<a href=\"/submission?submission_id={}\">{}</a>",
-                id, submission_score
-            ),
-            None => format!("{}", submission_score),
+            Some(id) => format!("<a href=\"/submission?submission_id={}\">{}</a>", id, score),
+            None => format!("{}", score),
         };
         buf.push_str(&format!(
             r#"
@@ -70,7 +69,8 @@ NATURAL RIGHT JOIN(
         <h1>Unagi Userboard</h1>
         <p>合計点: {}</p>
         <center>{}</center>",
-        total_score, buf
+        total_score.to_formatted_string(&Locale::en),
+        buf
     ))
 }
 
