@@ -120,7 +120,8 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("width", 200)
         .set("height", 200)
         .set("transform", "scale(1, -1)")
-        .set("style", "margin: 10pt;");
+        .set("style", "margin: 10pt;")
+        .set("fill", "blue");
     musicians_svg = musicians_svg.add(
         svg::node::element::Group::new()
             .set("transform", "scale(1, -1)")
@@ -151,8 +152,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
                 .set("x", i as f64 / musician_scores.len() as f64)
                 .set("y", 0)
                 .set("width", 1.0 / musician_scores.len() as f64)
-                .set("height", normalized)
-                .set("fill", "blue"),
+                .set("height", normalized),
         );
     }
     write!(&mut buf, "{}", musicians_svg)?;
@@ -165,7 +165,8 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("width", 200)
         .set("height", 200)
         .set("transform", "scale(1, -1)")
-        .set("style", "margin: 10pt;");
+        .set("style", "margin: 10pt;")
+        .set("fill", "red");
     attendees_svg = attendees_svg.add(
         svg::node::element::Group::new()
             .set("transform", "scale(1, -1)")
@@ -196,8 +197,7 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
                 .set("x", i as f64 / attendee_scores.len() as f64)
                 .set("y", 0)
                 .set("width", 1.0 / attendee_scores.len() as f64)
-                .set("height", normalized)
-                .set("fill", "red"),
+                .set("height", normalized),
         );
     }
     write!(&mut buf, "{}", attendees_svg)?;
