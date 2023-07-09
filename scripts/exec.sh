@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 gcloud auth activate-service-account icfpc2023@icfpc-primary.iam.gserviceaccount.com --key-file=/service_account.json
 
