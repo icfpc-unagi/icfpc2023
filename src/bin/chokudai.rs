@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use std::{collections::BinaryHeap, net::SocketAddr};
+use std::{cmp::max, collections::BinaryHeap, net::SocketAddr};
 
 use aead::NewAead;
 use icfpc2023::{
@@ -12,18 +12,39 @@ use icfpc2023::{
 };
 use rand::Rng;
 
+use clap::Parser;
+use icfpc2023::*;
+
+#[derive(Parser, Debug)]
+struct Cli {
+    /// Input path to input.txt
+    input: String,
+    /// Input path to output.txt
+    output: Option<String>,
+    /// color_type
+    #[clap(long = "color_type")]
+    c: Option<i32>,
+    /// focus
+    #[clap(long = "focus")]
+    f: Option<usize>,
+    // Output path to a png file to be saved.
+    #[clap(long = "png")]
+    png: Option<String>,
+}
+
 fn main() {
-    let inp = read_input();
+    let cli = Cli::parse();
+    let inp = read_input_from_file(&cli.input);
+    let output = cli
+        .output
+        .map(|f| read_output_from_file(&f))
+        .unwrap_or((vec![], vec![]));
 
-    let mut start = vec![];
-    for _i in 0..inp.pos.len() {
-        start.push(1);
-    }
+    //let inp = read_input();
 
-    let mut best_score = 0;
-    let mut best_ret = (vec![], vec![]);
-    let mut best_start = start.clone();
-    let mut best_cand: Vec<P> = vec![];
+    let mut best_ret = output.clone();
+    let mut best_score = compute_score_fast(&inp, &best_ret).0;
+    let mut best_cand: Vec<P> = best_ret.0.clone();
 
     let mut rng = rand::thread_rng();
 
@@ -40,7 +61,7 @@ fn main() {
 
     let tl: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(1200.0);
+        .unwrap_or(120.0);
     let stime = get_time();
 
     let mut iter = 0;
@@ -52,25 +73,6 @@ fn main() {
             break;
         }
 
-        start = best_start.clone();
-        let mut next_start = start.clone();
-        let mut chflag = false;
-
-        if iter != 0 {
-            for i in 0..inp.pos.len() {
-                if rng.gen_range(0, inp.pos.len()) <= 100 {
-                    next_start[i] = rng.gen_range(0, 3);
-                    chflag = true;
-                } else {
-                    next_start[i] = best_start[i];
-                }
-            }
-        } else {
-            chflag = true;
-        }
-        if !chflag {
-            continue;
-        }
         iter += 1;
 
         let mut first_cand = vec![];
@@ -85,87 +87,11 @@ fn main() {
             }
         }
 
-        let candidate = get_candidate3(&inp, &first_cand);
+        let candidate = get_candidate3(&inp, &first_cand, iter % 2 == 0);
 
         let pos_to_music = compute_score_for_instruments(&inp, &candidate);
 
         //dbg!(candidate.len());
-        let mut ar = Vec::new();
-        for i in 0..inp.musicians.len() {
-            let mut br = Vec::new();
-            for j in 0..candidate.len() {
-                br.push(pos_to_music[j][inp.musicians[i]]);
-            }
-            ar.push(br);
-        }
-
-        let ans = weighted_matching(&ar);
-        let mut ret = Vec::new();
-        for i in 0..inp.musicians.len() {
-            ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
-        }
-
-        //let score = ans.0;
-
-        let mut cand2 = Vec::new();
-        for i in 0..inp.musicians.len() {
-            cand2.push(ret[i]);
-            //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
-            //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
-        }
-        let candidate = cand2;
-
-        let pos_to_music = compute_score_for_instruments(&inp, &candidate);
-
-        let mut ar = Vec::new();
-        for i in 0..inp.musicians.len() {
-            let mut br = Vec::new();
-            for j in 0..candidate.len() {
-                br.push(pos_to_music[j][inp.musicians[i]]);
-            }
-            ar.push(br);
-        }
-
-        let ans = weighted_matching(&ar);
-
-        let mut ret = (vec![], vec![]);
-        for i in 0..inp.musicians.len() {
-            ret.0.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
-            ret.1.push(10.0); // default volume
-        }
-
-        let score = compute_score_fast(&inp, &ret).0;
-
-        //dbg!(score);
-        if score > best_score {
-            best_ret = ret.clone();
-            best_score = score;
-            best_start = next_start.clone();
-            best_cand = candidate.clone();
-            eprintln!("{} {} {}", (get_time() - stime), iter, best_score);
-        }
-        //write_output(&best_ret);
-    }
-
-    {
-        //dbg!(ans.0);
-        //dbg!(compute_score_fast(&inp, &ret).0);
-
-        let mut cand2 = Vec::new();
-        for i in 0..inp.musicians.len() {
-            cand2.push((best_ret.0[i], best_ret.1[i]));
-            //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
-            //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
-        }
-        let candidate = cand2.clone();
-        let mut position = vec![];
-        for i in 0..cand2.len() {
-            position.push(cand2[i].0.clone());
-        }
-
-        let pos_to_music = compute_score_for_instruments(&inp, &position);
-
-        let positions = Vec::from_iter(candidate.iter().map(|a| a.0));
         let mut ar = Vec::new();
         for i in 0..pos_to_music[0].len() {
             let mut br = Vec::new();
@@ -180,15 +106,60 @@ fn main() {
         let mut ret = (vec![P(0.0, 0.0); m], vec![10.0; m]);
         for i in 0..ans.1.len() {
             for j in 0..ans.1[i].len() {
-                ret.0[music_index[i][j]] = cand2[ans.1[i][j]].0;
+                ret.0[music_index[i][j]] = candidate[ans.1[i][j]];
+                if ar[i][ans.1[i][j]] == 0 {
+                    ret.1[music_index[i][j]] = 0.0;
+                }
+            }
+        }
+        //let score = ans.0;
+
+        let mut cand2 = Vec::new();
+        for i in 0..inp.musicians.len() {
+            cand2.push(ret.0[i]);
+            //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
+            //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
+        }
+
+        let candidate = cand2.clone();
+        let mut position = vec![];
+        for i in 0..cand2.len() {
+            position.push(cand2[i].clone());
+        }
+
+        let pos_to_music = compute_score_for_instruments(&inp, &position);
+
+        let mut ar = Vec::new();
+        for i in 0..pos_to_music[0].len() {
+            let mut br = Vec::new();
+            for j in 0..pos_to_music.len() {
+                br.push(pos_to_music[j][i]);
+            }
+            ar.push(br);
+        }
+
+        let ans = weighted_matching_with_capacity(&ar, &music_num);
+
+        let mut ret = (vec![P(0.0, 0.0); m], vec![10.0; m]);
+        for i in 0..ans.1.len() {
+            for j in 0..ans.1[i].len() {
+                ret.0[music_index[i][j]] = cand2[ans.1[i][j]];
+                if ar[i][ans.1[i][j]] == 0 {
+                    ret.1[music_index[i][j]] = 0.0;
+                }
             }
         }
 
-        let score = compute_score_fast(&inp, &ret);
-
-        best_ret = ret;
+        let score = compute_score_fast(&inp, &ret).0;
 
         //dbg!(score);
+        if score > best_score {
+            best_ret = ret.clone();
+            best_score = score;
+            best_cand = candidate.clone();
+            eprintln!("{} {} {}", (get_time() - stime), iter, best_score);
+        }
+        //write_output(&best_ret);
     }
 
     write_output(&best_ret);
