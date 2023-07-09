@@ -25,8 +25,16 @@ fn default_limit() -> u32 {
 // Implement the handler function to list submissions from MySQL database with offset and limit.
 pub async fn handler(info: web::Query<Query>) -> impl Responder {
     let mut buf = String::new();
-    write!(&mut buf, "<a href=\"/submissions\">[Load from the official API]</a>").unwrap();
-    write!(&mut buf, "<h1>Submissions from local DB copy (excl. pending submissions)</h1>").unwrap();
+    write!(
+        &mut buf,
+        "<a href=\"/submissions\">[Load from the official API]</a>"
+    )
+    .unwrap();
+    write!(
+        &mut buf,
+        "<h1>Submissions from local DB copy (excl. pending submissions)</h1>"
+    )
+    .unwrap();
     buf.push_str("<table>");
     match sql::select(
         r#"
@@ -72,10 +80,11 @@ LIMIT :offset, :limit
                     Ok(format!(
                         "<tr><td><a href=\"/my_submission?submission_id={}\">{}</a></td><td>{}</td><td>{}</td><td>{}</td></tr>",
                         submission_id,
+                        official_id.unwrap_or("N/A".into()),
                         submission_created,
                         problem_id,
                         score,
-                        official_id.unwrap_or("N/A".into())))
+                    ))
                 }() {
                     Ok(s) => {
                         buf.push_str(&s);
