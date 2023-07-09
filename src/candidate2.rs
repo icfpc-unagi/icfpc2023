@@ -6,7 +6,7 @@ use rand::Rng;
 
 use crate::{Input, P};
 
-pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<P> {
+pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: usize) -> Vec<P> {
     let mut candidate = Vec::new();
 
     let mut heap = BinaryHeap::new();
@@ -20,10 +20,22 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
     let random_space = rng.gen_range(0.0, 3.0);
 
     let ten = {
-        if rand_flag {
+        if rand_flag % 2 == 0 {
             10.0 + random_space
         } else {
             10.0
+        }
+    };
+
+    let base_pos = {
+        if (rand_flag >> 1) % 2 == 0 {
+            if rng.gen_bool(0.5) {
+                rng.gen_range(-5, 6) as f64
+            } else {
+                rng.gen_range(-5.0, 5.0)
+            }
+        } else {
+            0.0
         }
     };
 
@@ -55,6 +67,10 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
         }
 
         for j in 0..3 {
+            if base_pos != 0.0 && j == 0 {
+                continue;
+            }
+
             heap.push((
                 (-dist as f64 * 100000.0 / maxpower) as i64 + rng.gen_range(0.0, 100.0) as i64,
                 pattern,
@@ -65,7 +81,7 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
         }
     }
 
-    let r3 = 5.0 * 1.73205 + 0.1;
+    let _r3 = 5.0 * 1.73205 + 0.1;
 
     while !heap.is_empty() {
         let node = heap.pop().unwrap();
@@ -84,9 +100,15 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
                 let a = (inp.stage0.0 + 10.0) - inp.pos[id].0;
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
-                let p_0 = P(inp.stage0.0 + 10.0 + c, inp.pos[id].1);
-                let p_1 = P(inp.stage0.0 + 10.0, inp.pos[id].1 + b + ten * num as f64);
-                let p_2 = P(inp.stage0.0 + 10.0, inp.pos[id].1 - b - ten * num as f64);
+                let p_0 = P(inp.stage0.0 + 10.0 + c, base_pos + inp.pos[id].1);
+                let p_1 = P(
+                    inp.stage0.0 + 10.0,
+                    base_pos + inp.pos[id].1 + b + ten * num as f64,
+                );
+                let p_2 = P(
+                    inp.stage0.0 + 10.0,
+                    base_pos + inp.pos[id].1 - b - ten * num as f64,
+                );
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -94,9 +116,15 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
                 let a = inp.pos[id].0 - (inp.stage1.0 - 10.0);
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
-                let p_0 = P(inp.stage1.0 - 10.0 - c, inp.pos[id].1);
-                let p_1 = P(inp.stage1.0 - 10.0, inp.pos[id].1 - b - ten * num as f64);
-                let p_2 = P(inp.stage1.0 - 10.0, inp.pos[id].1 + b + ten * num as f64);
+                let p_0 = P(inp.stage1.0 - 10.0 - c, base_pos + inp.pos[id].1);
+                let p_1 = P(
+                    inp.stage1.0 - 10.0,
+                    base_pos + inp.pos[id].1 - b - ten * num as f64,
+                );
+                let p_2 = P(
+                    inp.stage1.0 - 10.0,
+                    base_pos + inp.pos[id].1 + b + ten * num as f64,
+                );
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -104,9 +132,15 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
                 let a = (inp.stage0.1 + 10.0) - inp.pos[id].1;
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
-                let p_0 = P(inp.pos[id].0, inp.stage0.1 + 10.0 + c);
-                let p_1 = P(inp.pos[id].0 + b + ten * num as f64, inp.stage0.1 + 10.0);
-                let p_2 = P(inp.pos[id].0 - b - ten * num as f64, inp.stage0.1 + 10.0);
+                let p_0 = P(base_pos + inp.pos[id].0, inp.stage0.1 + 10.0 + c);
+                let p_1 = P(
+                    base_pos + inp.pos[id].0 + b + ten * num as f64,
+                    inp.stage0.1 + 10.0,
+                );
+                let p_2 = P(
+                    base_pos + inp.pos[id].0 - b - ten * num as f64,
+                    inp.stage0.1 + 10.0,
+                );
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -114,9 +148,15 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
                 let a = inp.pos[id].1 - (inp.stage1.1 - 10.0);
                 let b = calc_y_to_x(a);
                 let c = (a * a + b * b).sqrt() - a;
-                let p_0 = P(inp.pos[id].0, inp.stage1.1 - 10.0 - c);
-                let p_1 = P(inp.pos[id].0 + b + ten * num as f64, inp.stage1.1 - 10.0);
-                let p_2 = P(inp.pos[id].0 - b - ten * num as f64, inp.stage1.1 - 10.0);
+                let p_0 = P(base_pos + inp.pos[id].0, inp.stage1.1 - 10.0 - c);
+                let p_1 = P(
+                    base_pos + inp.pos[id].0 + b + ten * num as f64,
+                    inp.stage1.1 - 10.0,
+                );
+                let p_2 = P(
+                    base_pos + inp.pos[id].0 - b - ten * num as f64,
+                    inp.stage1.1 - 10.0,
+                );
                 let p_3 = p_1 + (p_0 - p_1).rot60();
                 let p_4 = p_0 + (p_2 - p_0).rot60();
                 ps = vec![p_0, p_1, p_2, p_3, p_4];
@@ -175,22 +215,22 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
             if pattern == 2 {
                 ps = vec![
                     P(
-                        inp.pos[id].0 + (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].0 + (5.00 + ten * num as f64),
                         inp.stage0.1 + 10.0,
                     ),
                     P(
-                        inp.pos[id].0 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].0 - (5.00 + ten * num as f64),
                         inp.stage0.1 + 10.0,
                     ),
                 ];
             } else if pattern == 8 {
                 ps = vec![
                     P(
-                        inp.pos[id].0 + (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].0 + (5.00 + ten * num as f64),
                         inp.stage1.1 - 10.0,
                     ),
                     P(
-                        inp.pos[id].0 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].0 - (5.00 + ten * num as f64),
                         inp.stage1.1 - 10.0,
                     ),
                 ];
@@ -198,22 +238,22 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
                 ps = vec![
                     P(
                         inp.stage0.0 + 10.0,
-                        inp.pos[id].1 + (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].1 + (5.00 + ten * num as f64),
                     ),
                     P(
                         inp.stage0.0 + 10.0,
-                        inp.pos[id].1 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].1 - (5.00 + ten * num as f64),
                     ),
                 ];
             } else if pattern == 4 {
                 ps = vec![
                     P(
                         inp.stage1.0 - 10.0,
-                        inp.pos[id].1 + (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].1 + (5.00 + ten * num as f64),
                     ),
                     P(
                         inp.stage1.0 - 10.0,
-                        inp.pos[id].1 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].1 - (5.00 + ten * num as f64),
                     ),
                 ];
             }
@@ -233,23 +273,47 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
 
             if pattern == 2 {
                 ps = vec![
-                    P(inp.pos[id].0 + (ten * num as f64), inp.stage0.1 + 10.0),
-                    P(inp.pos[id].0 - (ten * num as f64), inp.stage0.1 + 10.0),
+                    P(
+                        base_pos + inp.pos[id].0 + (ten * num as f64),
+                        inp.stage0.1 + 10.0,
+                    ),
+                    P(
+                        base_pos + inp.pos[id].0 - (ten * num as f64),
+                        inp.stage0.1 + 10.0,
+                    ),
                 ];
             } else if pattern == 8 {
                 ps = vec![
-                    P(inp.pos[id].0 + (ten * num as f64), inp.stage1.1 - 10.0),
-                    P(inp.pos[id].0 - (ten * num as f64), inp.stage1.1 - 10.0),
+                    P(
+                        base_pos + inp.pos[id].0 + (ten * num as f64),
+                        inp.stage1.1 - 10.0,
+                    ),
+                    P(
+                        base_pos + inp.pos[id].0 - (ten * num as f64),
+                        inp.stage1.1 - 10.0,
+                    ),
                 ];
             } else if pattern == 1 {
                 ps = vec![
-                    P(inp.stage0.0 + 10.0, inp.pos[id].1 + (ten * num as f64)),
-                    P(inp.stage0.0 + 10.0, inp.pos[id].1 - (ten * num as f64)),
+                    P(
+                        inp.stage0.0 + 10.0,
+                        base_pos + inp.pos[id].1 + (ten * num as f64),
+                    ),
+                    P(
+                        inp.stage0.0 + 10.0,
+                        base_pos + inp.pos[id].1 - (ten * num as f64),
+                    ),
                 ];
             } else if pattern == 4 {
                 ps = vec![
-                    P(inp.stage1.0 - 10.0, inp.pos[id].1 + (ten * num as f64)),
-                    P(inp.stage1.0 - 10.0, inp.pos[id].1 - (ten * num as f64)),
+                    P(
+                        inp.stage1.0 - 10.0,
+                        base_pos + inp.pos[id].1 + (ten * num as f64),
+                    ),
+                    P(
+                        inp.stage1.0 - 10.0,
+                        base_pos + inp.pos[id].1 - (ten * num as f64),
+                    ),
                 ];
             }
 
@@ -268,7 +332,7 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: bool) -> Vec<
 
     let now_n = candidate.len();
     for i in 0..now_n {
-        'jloop: for j in i..now_n {
+        for j in i..now_n {
             if (candidate[i] - candidate[j]).abs2() >= 400.0 {
                 continue;
             }

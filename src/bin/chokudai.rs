@@ -87,7 +87,7 @@ fn main() {
             }
         }
 
-        let candidate = get_candidate3(&inp, &first_cand, iter % 2 == 0);
+        let candidate = get_candidate3(&inp, &first_cand, iter);
 
         let pos_to_music = compute_score_for_instruments(&inp, &candidate);
 
@@ -157,7 +157,13 @@ fn main() {
             best_ret = ret.clone();
             best_score = score;
             best_cand = candidate.clone();
-            eprintln!("{} {} {}", (get_time() - stime), iter, best_score);
+            eprintln!(
+                "{} {} {} {}",
+                &cli.input,
+                (get_time() - stime),
+                iter,
+                best_score
+            );
         }
         //write_output(&best_ret);
     }
