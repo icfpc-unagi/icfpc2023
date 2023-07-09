@@ -17,11 +17,7 @@ fn dump_output(output: &Output, save_dir: &str, score: i64) {
     write_output_to_file(&output, &out_path);
 
     let latest_path = format!("{}/latest.txt", save_dir);
-    let _ = std::fs::remove_file(&latest_path).ok();
-    let ret = std::os::unix::fs::symlink(out_name, latest_path);
-    if let Err(e) = ret {
-        eprintln!("Failed to create symlink: {:?}", e);
-    }
+    write_output_to_file(&output, &latest_path);
 }
 
 fn hillclimb_candidate(
