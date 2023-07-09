@@ -117,6 +117,19 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("transform", "scale(1, -1)")
         .set("style", "margin: 10pt;");
     musicians_svg = musicians_svg.add(
+        svg::node::element::Group::new()
+            .set("transform", "scale(1, -1)")
+            .add(
+                svg::node::element::Text::new()
+                    .set("x", 0.95)
+                    .set("y", -0.95)
+                    .set("text-anchor", "end")
+                    .set("dominant-baseline", "text-before-edge")
+                    .set("font-size", 0.2)
+                    .add(svg::node::Text::new("🎤")),
+            ),
+    );
+    musicians_svg = musicians_svg.add(
         svg::node::element::Rectangle::new()
             .set("x", 0)
             .set("y", 0)
@@ -148,6 +161,19 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("height", 200)
         .set("transform", "scale(1, -1)")
         .set("style", "margin: 10pt;");
+    attendees_svg = attendees_svg.add(
+        svg::node::element::Group::new()
+            .set("transform", "scale(1, -1)")
+            .add(
+                svg::node::element::Text::new()
+                    .set("x", 0.95)
+                    .set("y", -0.95)
+                    .set("text-anchor", "end")
+                    .set("dominant-baseline", "text-before-edge")
+                    .set("font-size", 0.2)
+                    .add(svg::node::Text::new("👂")),
+            ),
+    );
     attendees_svg = attendees_svg.add(
         svg::node::element::Rectangle::new()
             .set("x", 0)
