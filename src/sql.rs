@@ -60,15 +60,11 @@ impl Row {
         T: FromValue,
     {
         match self.row.get_opt::<mysql::Value, usize>(idx) {
-            Some(Ok(value)) => match value {
-                mysql::Value::NULL => Ok(None),
-                x => mysql::from_value_opt::<T>(x.clone())
-                    .map_err(|e| anyhow::anyhow!("Column {}: {}", idx, e))
-                    .map(Some),
-            },
-            Some(Err(e)) => return Err(anyhow::anyhow!("Column {}: {}", idx, e)),
-            None => Ok(None),
-        }
+            Some(Ok(mysql::Value::NULL)) => None,
+            Some(Ok(x)) => Some(mysql::from_value_opt::<T>(x.clone())),
+            Some(Err(e)) => Some(Err(e)),
+            None => None,
+        }.transpose().map_err(|e| anyhow::anyhow!("Column {}: {}", idx, e))
     }
 
     pub fn at<T>(&self, idx: usize) -> Result<T>
