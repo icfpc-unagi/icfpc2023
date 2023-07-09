@@ -7,6 +7,7 @@ use std::io::BufWriter;
 
 pub mod candidate_positions;
 pub mod secret;
+pub mod simple_hillclimb;
 
 #[cfg(feature = "tokio")]
 #[cfg(feature = "reqwest")]

@@ -16,6 +16,9 @@ fn main() {
     let mut output = read_output_from_file(&args.output_path);
     let mut rng = rand::thread_rng();
 
+    simple_hillclimb::simple_hillclimb(&input, output, &args.save_dir);
+
+    /*
     let mut scorer = DynamicScorer::new_with_output(&input, &output);
     dbg!(scorer.get_score());
 
@@ -59,6 +62,9 @@ fn main() {
                         println!("{} {:10} -> {:10}", musician_id, score_old, score_new);
                         dbg!(compute_score(&input, &output));
                         updated = true;
+
+                        write_output_to_file(&output, "tmp.json");
+
                         continue 'outer;
                     }
                 }
@@ -72,6 +78,5 @@ fn main() {
             break;
         }
     }
-
-    write_output_to_file(&output, "tmp.json");
+    */
 }
