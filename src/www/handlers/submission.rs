@@ -43,6 +43,11 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
 
     write!(
         &mut buf,
+        "<a href=\"/visualizer?submission_id={}\">[Show on Visualizer]</a>",
+        submission.submission._id,
+    )?;
+    write!(
+        &mut buf,
         "<h1>Submission ID: {}</h1>",
         submission.submission._id
     )?;

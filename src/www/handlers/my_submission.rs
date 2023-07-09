@@ -62,14 +62,17 @@ WHERE
         }
         None => "N/A".to_string(),
     };
+    let official_id = official_id.unwrap_or("N/A".into());
     let mut buf = String::new();
+    buf.push_str(&format!(
+        "<a href=\"/submission?submission_id={}\">[Load Offical Submission]</a>
+        <a href=\"/visualizer?submission_id={}\">[Show on Visualizer]</a>",
+        official_id, official_id,
+    ));
     buf.push_str(&format!("<h1>Submission ID: {}</h1>", submission_id));
     buf.push_str(&format!("<ul><li>Problem ID: {}</li>", problem_id));
     buf.push_str(&format!("<li>Score: {}</li>", score));
-    buf.push_str(&format!(
-        "<li>Official ID: {}</li>",
-        official_id.unwrap_or("N/A".into())
-    ));
+    buf.push_str(&format!("<li>Official ID: {}</li>", official_id));
     buf.push_str(&format!("<li>Created at: {}</li></ul>", submission_created));
     let input: Input = api::get_problem(problem_id).await.unwrap().into();
     let output = parse_output(&contents)?;
