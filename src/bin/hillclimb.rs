@@ -37,16 +37,17 @@ fn main() {
     let save_dir = args.save_dir.to_owned() + "/" + problem_name;
     std::fs::create_dir_all(save_dir.to_owned()).unwrap();
 
-    let mut scorerer = Scorerer::new_with_output(&input, &output);
-    let score_original = scorerer.score;
+    let mut scorerer = DynamicScorer::new_with_output(&input, &output);
+    let score_original = scorerer.get_score();
     let mut iter_last_update = 0;
-    println!("{}", scorerer.score);
+    println!("{}", score_original);
 
-    let mut d: f64 = 100.0;
+    let mut d: f64 = 1.0;
 
     for iter in 0.. {
+        let current_score = scorerer.get_score();
         if iter > 0 && iter % 1000 == 0 {
-            dump_output(&output, &save_dir, scorerer.score as i64);
+            dump_output(&output, &save_dir, current_score);
         }
 
         if iter - iter_last_update > 10000 {
@@ -78,6 +79,7 @@ fn main() {
 
         loop {
             let p_old = output.0[musician_id];
+            let vol = output.1[musician_id];
             let mut p_new = p_old + vec * d * rng.gen::<f64>();
             p_new = P((p_new.0 as f32) as f64, (p_new.1 as f32) as f64);
             p_new.0 = p_new
@@ -89,9 +91,9 @@ fn main() {
                 .max(input.stage0.0 + 10.0)
                 .min(input.stage1.0 - 10.0);
 
-            let score_old = scorerer.score;
+            let score_old = scorerer.get_score();
             output.0[musician_id] = p_new;
-            scorerer.move_musician(musician_id, p_new);
+            scorerer.move_musician(musician_id, p_new, vol);
 
             let mut is_improved = false;
 
@@ -101,15 +103,16 @@ fn main() {
                     //assert_eq!(compute_score(&input, &output), scorerer.score);
                 }
 
-                if scorerer.score > score_old {
+                let score_new = scorerer.get_score();
+                if score_new > score_old {
                     is_improved = true;
                     println!(
                         "{} {} -> ... -> {} -> {} (+{}) --- {} {}",
                         iter,
                         score_original,
                         score_old,
-                        scorerer.score,
-                        scorerer.score - score_original,
+                        score_new,
+                        score_new - score_original,
                         musician_id,
                         is_orthogonal
                     );
@@ -121,7 +124,7 @@ fn main() {
                 continue;
             } else {
                 output.0[musician_id] = p_old;
-                scorerer.move_musician(musician_id, p_old);
+                scorerer.move_musician(musician_id, p_old, vol);
                 break;
             }
         }
