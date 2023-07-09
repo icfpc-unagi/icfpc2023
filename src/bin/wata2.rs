@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use icfpc2023::{candidate::get_all_candidate, mcf::weighted_matching_with_capacity, *};
+use num_format::{Locale, ToFormattedString};
 use rand::prelude::*;
 use rayon::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
@@ -410,6 +411,10 @@ fn main() {
     if start_from_ans {
         best = read_output_from_file(&std::env::args().nth(3).unwrap()).0;
     }
+    let mut init_score = 0.0;
+    let mul_t = std::env::var("MUL_T")
+        .map(|m| m.parse().unwrap())
+        .unwrap_or(0.2);
     for rep in 0..REP {
         eprintln!("========== {} ==========", rep);
         if !best.is_empty() {
@@ -484,7 +489,15 @@ fn main() {
         }
         let mut state = State::initialize(&input, &cand, block_count, &block, &to);
         let mut best_score = state.score;
-        eprintln!("{:.3}: {:.0}", get_time(), best_score);
+        if rep == 0 {
+            init_score = best_score;
+        }
+        eprintln!(
+            "{:.3}: {} (+{})",
+            get_time(),
+            (best_score.round() as i64).to_formatted_string(&Locale::en),
+            ((best_score - init_score).round() as i64).to_formatted_string(&Locale::en)
+        );
         let mut sum = 1.0;
         let mut cnt = 0;
 
@@ -518,7 +531,7 @@ fn main() {
                     cnt += 1;
 
                     let ave = sum / cnt as f64;
-                    let mut T = 0.2 * ave * (1.0 - t) * (1.0 - t);
+                    let mut T = mul_t * ave * (1.0 - t) * (1.0 - t);
                     if T <= 1.0 {
                         T = 1.0;
                     }
@@ -534,7 +547,7 @@ fn main() {
                     cnt += 1;
 
                     let ave = sum / cnt as f64;
-                    let mut T = 0.2 * ave * (1.0 - t) * (1.0 - t);
+                    let mut T = mul_t * ave * (1.0 - t) * (1.0 - t);
                     if T <= 1.0 {
                         T = 1.0;
                     }
@@ -549,11 +562,16 @@ fn main() {
                     && state.optimize_mcf(&input, &cand)
                 {
                     mcf_success += 1;
-                    eprintln!("{:.0} -> {:.0}", best_score, state.score);
+                    eprintln!("mcf: {:.0} -> {:.0}", best_score, state.score);
                 }
                 mcf_count += 1;
                 best_score.setmax(state.score);
-                eprintln!("{:.3}: {:.0}", get_time(), best_score);
+                eprintln!(
+                    "{:.3}: {} (+{})",
+                    get_time(),
+                    (best_score.round() as i64).to_formatted_string(&Locale::en),
+                    ((best_score - init_score).round() as i64).to_formatted_string(&Locale::en)
+                );
                 let out = state.get_output(&cand);
                 write_output_to_file(
                     &out,
