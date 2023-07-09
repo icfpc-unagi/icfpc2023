@@ -120,7 +120,7 @@ pub fn new_engine() -> Handlebars<'static> {
     const select = document.getElementById("color_type");
     const color_type = parseInt(select.options[select.selectedIndex].value);
     try {
-        const ret = vis(input, output, t, color_type);
+        const ret = vis(input, output, t, color_type, -1);
         document.getElementById("score").innerHTML = "Score = " + ret.score;
         if (ret.error != "") {
         document.getElementById("score").innerHTML += " <font color='red'>(" + ret.error + ")</font>";
@@ -202,7 +202,7 @@ pub fn new_engine() -> Handlebars<'static> {
     const t = document.getElementById("turn").value;
     const select = document.getElementById("color_type");
     const color_type = parseInt(select.options[select.selectedIndex].value);
-    const svgData = vis(input, output, t, color_type).svg;
+    const svgData = vis(input, output, t, color_type, -1).svg;
     const svg = new DOMParser().parseFromString(svgData, "image/svg+xml").getElementById("vis");
     const canvas = document.createElement("canvas");
     canvas.width = svg.width.baseVal.value;

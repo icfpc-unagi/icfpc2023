@@ -76,7 +76,7 @@ WHERE
     buf.push_str(&format!("<li>Created at: {}</li></ul>", submission_created));
     let input: Input = api::get_problem(problem_id).await.unwrap().into();
     let output = parse_output(&contents)?;
-    let svg = vis::vis(&input, &output, info.color_type, !0);
+    let svg = vis::vis(&input, &output, info.color_type, !0, None);
     buf.push_str(&svg.2);
     buf.push_str(&format!(
         "<pre style=\"white-space: pre-wrap;\"><code>{}</code></pre>",
