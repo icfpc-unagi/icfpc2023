@@ -576,6 +576,8 @@ impl Scorerer {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+/// DynamicScorer
+///////////////////////////////////////////////////////////////////////////////
 
 pub struct DynamicScorer {
     pub input: Input,
@@ -583,8 +585,6 @@ pub struct DynamicScorer {
     pub is_blocked_by_pillar: Vec<Vec<bool>>,
     pub n_blocking_musicians: Vec<Vec<usize>>,
     pub musician_pos: Vec<Option<P>>,
-    // blocking_pairs[musician_id] = pairs which are blocked by `musician_id`
-    pub blocking_pairs: Vec<Vec<(usize, usize)>>,
 }
 
 impl DynamicScorer {
@@ -597,7 +597,6 @@ impl DynamicScorer {
             is_blocked_by_pillar: vec![vec![false; na]; nm],
             n_blocking_musicians: vec![vec![0; na]; nm],
             musician_pos: vec![None; nm],
-            blocking_pairs: vec![vec![]; nm],
         }
     }
 
@@ -712,6 +711,7 @@ impl DynamicScorer {
 
             self.pair_score[musician_id][attendee_id] =
                 self.bare_score_fn(musician_id, attendee_id);
+            self.n_blocking_musicians[musician_id][attendee_id] = 0;
 
             for blocking_musician_id in 0..self.n_musicians() {
                 let blocking_pos = self.musician_pos[blocking_musician_id];
@@ -745,17 +745,35 @@ impl DynamicScorer {
                 }
             }
         }
-        self.blocking_pairs[musician_id] = blocking_pairs;
     }
 
     // O(# of blocked edges)
     pub fn remove_musician(&mut self, musician_id: usize) {
         assert_ne!(self.musician_pos[musician_id], None);
-        for (blocked_musician_id, attendee_id) in &self.blocking_pairs[musician_id] {
-            self.n_blocking_musicians[*blocked_musician_id][*attendee_id] -= 1;
+        let pos = self.musician_pos[musician_id].unwrap();
+
+        for blocked_musician_id in 0..self.n_musicians() {
+            let blocked_pos = self.musician_pos[blocked_musician_id];
+            if blocked_pos == None || blocked_musician_id == musician_id {
+                continue;
+            }
+            let blocked_pos = blocked_pos.unwrap();
+
+            for attendee_id in 0..self.n_attendees() {
+                if self.is_blocked_by_pillar[blocked_musician_id][attendee_id] {
+                    continue;
+                }
+                if is_blocked(blocked_pos, self.input.pos[attendee_id], pos) {
+                    self.n_blocking_musicians[blocked_musician_id][attendee_id] -= 1;
+                }
+            }
         }
-        self.blocking_pairs[musician_id].clear();
         self.musician_pos[musician_id] = None;
+    }
+
+    pub fn move_musician(&mut self, musician_id: usize, pos: P) {
+        self.remove_musician(musician_id);
+        self.add_musician(musician_id, pos);
     }
 }
 

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufWriter;
 
+pub mod candidate_positions;
 pub mod secret;
 
 #[cfg(feature = "tokio")]
