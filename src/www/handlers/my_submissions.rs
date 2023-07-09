@@ -63,7 +63,7 @@ LIMIT :offset, :limit
                     let submission_id: u32 = row.get("submission_id")?;
                     let official_id: Option<String> = row.get_option("official_id")?;
                     let problem_id: u32 = row.get("problem_id")?;
-                    let submission_score: Option<u32> = row.get_option("submission_score")?;
+                    let submission_score: Option<i64> = row.get_option("submission_score")?;
                     let submission_error: Option<String> = row.get_option("submission_error")?;
                     let submission_created: String = row.get("submission_created")?;
                     let score = match submission_score {
