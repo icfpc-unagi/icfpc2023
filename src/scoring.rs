@@ -547,7 +547,7 @@ mod tests {
     fn test_example_ver1_naive() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
         let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
-        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(crate::EXAMPLE_OUTPUT);
         assert_eq!(compute_score(&input, &output), 5343);
     }
 
@@ -555,7 +555,7 @@ mod tests {
     fn test_example_ver1_fast() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1126926792024932492
         let input = parse_input_with_version(crate::EXAMPLE_INPUT, crate::Version::One);
-        let output = parse_output(crate::EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(crate::EXAMPLE_OUTPUT);
         assert_eq!(
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
@@ -566,14 +566,14 @@ mod tests {
     fn test_example_ver2_naive() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1127221807137701898
         let input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
         assert_eq!(compute_score(&input, &output), 5357);
     }
 
     #[test]
     fn test_example_ver2_fast() {
         let input = parse_input_with_version(EXAMPLE_INPUT, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
         assert_eq!(
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
@@ -584,14 +584,14 @@ mod tests {
     fn test_example2_naive() {
         // https://discord.com/channels/1118159165060292668/1126853058186444942/1127270474586538166
         let input = parse_input_with_version(EXAMPLE_INPUT2, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
         assert_eq!(compute_score(&input, &output), 3270);
     }
 
     #[test]
     fn test_example2_fast() {
         let input = parse_input_with_version(EXAMPLE_INPUT2, Version::Two);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
         assert_eq!(
             compute_score_fast(&input, &output),
             compute_score_naive(&input, &output)
