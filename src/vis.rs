@@ -138,13 +138,17 @@ pub fn vis(
                         .set("r", 5.0 * mul)
                         .set(
                             "fill",
-                            match color_type {
-                                0 => color(input.musicians[i] as f64 / t as f64),
-                                1 => color(
-                                    0.5 + 0.5 * score_musicians[i] as f64
-                                        / score_musician_max as f64,
-                                ),
-                                _ => unimplemented!(),
+                            if color_instrument.map_or(true, |c| c == input.musicians[i]) {
+                                match color_type {
+                                    0 => color(input.musicians[i] as f64 / t as f64),
+                                    1 => color(
+                                        0.5 + 0.5 * score_musicians[i] as f64
+                                            / score_musician_max as f64,
+                                    ),
+                                    _ => unimplemented!(),
+                                }
+                            } else {
+                                "black".to_owned()
                             },
                         )
                         .set("onclick", format!("visualize({})", i)),
