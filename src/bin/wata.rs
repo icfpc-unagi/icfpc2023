@@ -399,6 +399,6 @@ fn main() {
             out[j] = cand[i];
         }
     }
-    let mut volumes = vec![1.0; out.len()];
+    let volumes = vec![1.0; out.len()];
     write_output(&(out, volumes));
 }

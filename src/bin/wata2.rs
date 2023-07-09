@@ -462,7 +462,7 @@ fn main() {
             .map(|a| a.parse().unwrap())
             .unwrap_or(600.0);
         let stime = get_time();
-        let mut num_used = vec![0i64; cand.len()];
+        let _num_used = vec![0i64; cand.len()];
         for iter in 0.. {
             if iter & 0xff == 0 {}
             let t = (get_time() - stime) / TL;
