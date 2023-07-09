@@ -6,7 +6,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
     | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - \
     && apt-get update -y && apt-get install google-cloud-sdk -y
 COPY ./secrets/service_account.json /service_account.json
-RUN gcloud auth activate-service-account icfpc2022@icfpc-primary.iam.gserviceaccount.com \
+RUN gcloud auth activate-service-account icfpc2023@icfpc-primary.iam.gserviceaccount.com \
         --key-file=/service_account.json \
     && gcloud config set project icfpc-primary
 COPY ./scripts/exec.sh /usr/local/bin/exec.sh
