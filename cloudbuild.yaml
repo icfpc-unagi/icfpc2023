@@ -4,6 +4,7 @@ steps:
     args: 
       - -c
       - make test/rust
+    timeout: 600s
 
 options:
   logging: CLOUD_LOGGING_ONLY

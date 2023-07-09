@@ -270,7 +270,12 @@ pub async fn get_submission_api(submission_id: &str) -> Result<SubmissionRespons
 pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
     // Try to get from DB.
     match get_submission_db(submission_id).await {
-        Ok(submission) => return Ok(submission),
+        Ok(submission) => {
+            if submission.contents != "" {
+                return Ok(submission);
+            }
+            // If the submission in DB is incomplete, try to get from API.
+        }
         Err(error) => {
             if submission_id.len() != 24 {
                 return Err(error);
