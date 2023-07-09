@@ -294,7 +294,7 @@ impl State {
                 ws[i][j] = coef;
             }
         }
-        let (_, tos) = weighted_matching_with_capacity(&ws, cap);
+        let (_, tos) = weighted_matching_with_capacity(&ws, &cap);
         let mut ps = vec![0; input.n_instruments()];
         let mut to = vec![!0; input.n_musicians()];
         for i in 0..input.n_musicians() {

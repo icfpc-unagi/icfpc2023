@@ -226,7 +226,7 @@ pub fn weighted_matching(w: &Vec<Vec<i64>>) -> (i64, Vec<usize>) {
 
 pub fn weighted_matching_with_capacity(
     w: &Vec<Vec<i64>>,
-    cap: Vec<usize>,
+    cap: &Vec<usize>,
 ) -> (i64, Vec<Vec<usize>>) {
     let n = w.len();
     let m = w[0].len();
