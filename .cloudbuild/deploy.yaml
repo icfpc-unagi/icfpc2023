@@ -1,13 +1,35 @@
 steps:
-  - name: 'rust:1.70.0'
-    entrypoint: /bin/bash
-    args: 
-      - -c
-      - cargo build --bins --release
-    timeout: 600s
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker pull asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder || exit 0']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+              'build',
+              '-t', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder',
+              '--cache-from', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder',
+              '-f', 'docker/builder.Dockerfile',
+              '--target', 'rust-builder',
+              '--build-arg', 'BUILDKIT_INLINE_CACHE=1',
+              '.'
+          ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+              'build',
+              '-t', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/builder',
+              '--cache-from', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/rust-builder',
+              '-f', 'docker/builder.Dockerfile',
+              '.'
+    ]
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['-m', 'cp', '-Z', './target/release', 'gs://icfpc2023/bin/$SHORT_SHA']
     timeout: 300s
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+              'run', '--rm', 'asia-docker.pkg.dev/icfpc-primary/asia/cache/builder',
+              'bash', '/work/scripts/deploy_binaries.sh', '$SHORT_SHA',
+      ]
 
 options:
   logging: CLOUD_LOGGING_ONLY
