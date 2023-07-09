@@ -125,7 +125,7 @@ impl From<Input> for BigInput {
 type BigOutput = Vec<BigP>;
 
 pub fn compute_score(input: &Input, output: &Output) -> i64 {
-    let output: OutputV1 = output.0;
+    let output: &OutputV1 = &output.0;
     let input = BigInput::from(input.clone());
     let output = output.iter().cloned().map(BigP::from).collect::<Vec<_>>();
     if !is_valid_output(&input, &output) {
