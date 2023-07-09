@@ -771,13 +771,13 @@ mod tests {
 
     fn prepare_example(version: Version) -> (Input, Output) {
         let input = parse_input_with_version(EXAMPLE_INPUT, version);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
         (input, output)
     }
 
     fn prepare_example2(version: Version) -> (Input, Output) {
         let input = parse_input_with_version(EXAMPLE_INPUT2, version);
-        let output = parse_output(EXAMPLE_OUTPUT);
+        let output = parse_output_or_die(EXAMPLE_OUTPUT);
         (input, output)
     }
 
@@ -844,7 +844,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fast_example2_ve2() {
+    fn test_example2_fast() {
         let (input, output) = prepare_example2(Version::Two);
         assert_eq!(
             compute_score_fast(&input, &output),

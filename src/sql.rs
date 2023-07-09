@@ -7,7 +7,10 @@ use std::env;
 
 static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
     let password = env::var("UNAGI_PASSWORD").unwrap_or_else(|_| "".into());
-    let url = format!("mysql://root:{}@34.146.125.93:3306/unagi", password);
+    let url = match env::var("MYSQL_SOCKET") {
+        Ok(socket) => format!("mysql://root:{}@localhost:3306/unagi?socket={}", password, socket),
+        Err(_) => format!("mysql://root:{}@34.146.125.93:3306/unagi", password),
+    };
     let pool = Pool::new(url).unwrap();
     eprintln!("MySQL connection established.");
     pool
@@ -60,15 +63,11 @@ impl Row {
         T: FromValue,
     {
         match self.row.get_opt::<mysql::Value, usize>(idx) {
-            Some(Ok(value)) => match value {
-                mysql::Value::NULL => Ok(None),
-                x => mysql::from_value_opt::<T>(x.clone())
-                    .map_err(|e| anyhow::anyhow!("Column {}: {}", idx, e))
-                    .map(Some),
-            },
-            Some(Err(e)) => return Err(anyhow::anyhow!("Column {}: {}", idx, e)),
-            None => Ok(None),
-        }
+            Some(Ok(mysql::Value::NULL)) => None,
+            Some(Ok(x)) => Some(mysql::from_value_opt::<T>(x.clone())),
+            Some(Err(e)) => Some(Err(e)),
+            None => None,
+        }.transpose().map_err(|e| anyhow::anyhow!("Column {}: {}", idx, e))
     }
 
     pub fn at<T>(&self, idx: usize) -> Result<T>

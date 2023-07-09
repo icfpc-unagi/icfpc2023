@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{input_stats::get_stats, *};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -35,6 +35,12 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
 async fn handle(info: web::Query<Query>) -> Result<String> {
     let mut buf = String::new();
     let submission = api::get_submission(&info.submission_id).await?;
+    // TODO: Cache problem data
+    let problem_id = submission.submission.problem_id;
+    let input: Input = api::get_problem(problem_id).await?.into();
+    let output = parse_output(&submission.contents)?;
+    let computed_scores = compute_score_fast(&input, &output);
+
     write!(
         &mut buf,
         "<h1>Submission ID: {}</h1>",
@@ -42,19 +48,57 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
     )?;
     write!(
         &mut buf,
-        "<ul><li>Problem ID: {}</li>",
+        "<ul><li>Problem ID: {}</li><ul>",
         submission.submission.problem_id
+    )?;
+    let (musicians_info, attendees_info, pillars_info) = get_stats(&input);
+    write!(
+        &mut buf,
+        "<li>n_musicians: {}</li>",
+        musicians_info.n_musicians
     )?;
     write!(
         &mut buf,
-        "<li>Submitted at: {}</li>",
+        "<li>area_per_musician: {}</li>",
+        musicians_info.area_per_musician
+    )?;
+    write!(
+        &mut buf,
+        "<li>border_len_per_musician: {}</li>",
+        musicians_info.border_len_per_musician
+    )?;
+    write!(
+        &mut buf,
+        "<li>n_instruments: {}</li>",
+        musicians_info.n_instruments
+    )?;
+    write!(
+        &mut buf,
+        "<li>stats_musicians_per_instrument: {:?}</li>",
+        musicians_info.stats_musicians_per_instrument
+    )?;
+    write!(
+        &mut buf,
+        "<li>n_attendees: {}</li>",
+        attendees_info.n_attendees
+    )?;
+    write!(
+        &mut buf,
+        "<li>stats_tastes: {:?}</li>",
+        attendees_info.stats_tastes
+    )?;
+    write!(&mut buf, "<li>n_pillars: {}</li>", pillars_info.n_pillars)?;
+    write!(
+        &mut buf,
+        "<li>stats_radius: {:?}</li>",
+        pillars_info.stats_radius
+    )?;
+
+    write!(
+        &mut buf,
+        "</uL><li>Submitted at: {}</li>",
         submission.submission.submitted_at
     )?;
-    // TODO: Cache problem data
-    let problem_id = submission.submission.problem_id;
-    let input: Input = api::get_problem(problem_id).await?.into();
-    let output = parse_output(&submission.contents);
-    let computed_scores = compute_score_fast(&input, &output);
     write!(
         &mut buf,
         "<li>Score: {} (computed score: {})</li>",
@@ -72,6 +116,19 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("height", 200)
         .set("transform", "scale(1, -1)")
         .set("style", "margin: 10pt;");
+    musicians_svg = musicians_svg.add(
+        svg::node::element::Group::new()
+            .set("transform", "scale(1, -1)")
+            .add(
+                svg::node::element::Text::new()
+                    .set("x", 0.95)
+                    .set("y", -0.95)
+                    .set("text-anchor", "end")
+                    .set("dominant-baseline", "text-before-edge")
+                    .set("font-size", 0.2)
+                    .add(svg::node::Text::new("🎤")),
+            ),
+    );
     musicians_svg = musicians_svg.add(
         svg::node::element::Rectangle::new()
             .set("x", 0)
@@ -104,6 +161,19 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         .set("height", 200)
         .set("transform", "scale(1, -1)")
         .set("style", "margin: 10pt;");
+    attendees_svg = attendees_svg.add(
+        svg::node::element::Group::new()
+            .set("transform", "scale(1, -1)")
+            .add(
+                svg::node::element::Text::new()
+                    .set("x", 0.95)
+                    .set("y", -0.95)
+                    .set("text-anchor", "end")
+                    .set("dominant-baseline", "text-before-edge")
+                    .set("font-size", 0.2)
+                    .add(svg::node::Text::new("👂")),
+            ),
+    );
     attendees_svg = attendees_svg.add(
         svg::node::element::Rectangle::new()
             .set("x", 0)
