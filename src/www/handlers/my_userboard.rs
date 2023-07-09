@@ -52,7 +52,7 @@ NATURAL RIGHT JOIN(
         match official_id {
             Some(official_id) => {
                 buf.push_str(&format!(
-                    "<td><a href=\"/submission?submission_id={}\">{}</a></td></tr>",
+                    "<td><a href=\"/my_submission?submission_id={}\">{}</a></td></tr>",
                     official_id, submission_score
                 ));
             }
