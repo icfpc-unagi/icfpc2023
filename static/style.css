@@ -1,5 +1,5 @@
 :root {
-	--width: calc(max(100vw, 320px));
+	--width: calc(max(100vw, 900px));
 	--height: calc(max(100vh, 800px));
 	--main-left: calc(max(var(--width) / 2 - 600px, 0px));
 	--main-right: calc(min(var(--width) / 2 + 600px, var(--width)));
