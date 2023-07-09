@@ -2,36 +2,20 @@
 use std::{collections::BinaryHeap, net::SocketAddr};
 
 use aead::NewAead;
+use rand::Rng;
 
 use crate::{Input, P};
 
-pub fn get_all_candidate(inp: &Input) -> Vec<P> {
-    let mut ret = vec![];
-    for i in 0..3 {
-        let mut start = vec![];
-        for _ in 0..inp.pos.len() {
-            start.push(i);
-        }
-
-        let r2 = get_candidate(inp, &start);
-        for r in r2 {
-            ret.push(r);
-        }
-    }
-    ret
-}
-
-pub fn get_candidate2(inp: &Input, start: &Vec<i32>) -> Vec<P> {
-    let ret = get_candidate(inp, start);
-    dbg!(ret.len());
-    let ret = set_more_candidate(inp, ret);
-    return ret;
-}
-
-pub fn get_candidate(inp: &Input, start: &Vec<i32>) -> Vec<P> {
+pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>) -> Vec<P> {
     let mut candidate = Vec::new();
 
     let mut heap = BinaryHeap::new();
+
+    let mut rng = rand::thread_rng();
+
+    for i in 0..first_cand.len() {
+        candidate.push(first_cand[i]);
+    }
 
     for i in 0..inp.pos.len() {
         let dist = get_stage_diff(inp.pos[i], inp.stage0, inp.stage1) as i64;
@@ -59,13 +43,16 @@ pub fn get_candidate(inp: &Input, start: &Vec<i32>) -> Vec<P> {
         if inp.pos[i].1 > inp.stage1.1 {
             pattern += 8;
         }
-        heap.push((
-            (-dist as f64 * 100000.0 / maxpower) as i64,
-            pattern,
-            0,
-            i,
-            start[i],
-        ));
+
+        for j in 0..3 {
+            heap.push((
+                (-dist as f64 * 100000.0 / maxpower) as i64 + rng.gen_range(0.0, 100.0) as i64,
+                pattern,
+                0,
+                i,
+                j,
+            ));
+        }
     }
 
     let r3 = 5.0 * 1.73205 + 0.1;
@@ -322,6 +309,8 @@ pub fn get_candidate(inp: &Input, start: &Vec<i32>) -> Vec<P> {
             candidate.push(P(nx, ny));
         }
     }
+
+    candidate = set_more_candidate(&inp, candidate);
 
     candidate
 }

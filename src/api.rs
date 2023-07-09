@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::Path;
 
 use crate::*;
 
@@ -308,14 +309,34 @@ pub async fn submit(
     tags: &[&str],
     local: bool,
 ) -> Result<String> {
+    // Prepare builtin tags; NAME, CMD and USER.
+    let mut builtin_tags = Vec::new();
+    let cmd = format!("CMD={}", std::env::args().collect::<Vec<_>>().join(" "));
+    builtin_tags.push(cmd);
+    if let Some(arg0) = std::env::args().nth(0) {
+        if let Some(arg0) = Path::new(&arg0).file_name() {
+            if let Some(arg0) = arg0.to_str() {
+                builtin_tags.push(format!("NAME={}", arg0));
+            }
+        }
+    }
+    if let Ok(user) = std::env::var("USER") {
+        builtin_tags.push(format!("USER={}", user));
+    }
+    let tags: Vec<&str> = builtin_tags
+        .iter()
+        .map(|s| s.as_str())
+        .chain(tags.iter().map(|&s| s))
+        .collect();
+    // Submit to local DB or official API.
     if local {
         let local_id = submit_local(problem_id, output).await?;
-        tag_submission(local_id, tags).await?;
+        tag_submission(local_id, &tags).await?;
         return Ok(local_id.to_string());
     } else {
         let official_id = submit_api(problem_id, output).await?;
         let local_id = insert_placeholder_submission(problem_id, &official_id).await?;
-        tag_submission(local_id, tags).await?;
+        tag_submission(local_id, &tags).await?;
         return Ok(official_id);
     }
 }

@@ -321,6 +321,19 @@ fn main() {
     dbg!(st.active_list.len());
     dbg!(inp.musicians.len());
 
+    'outloop: for j in 0..chokudai_ret.len() {
+        for t in 0..st.ps.len() {
+            if (chokudai_ret[j].0 - st.ps[t].0).abs() < 0.01
+                && (chokudai_ret[j].1 - st.ps[t].1).abs() < 0.01
+            {
+                eprintln!("Found {} {}", chokudai_ret[j].0, chokudai_ret[j].1);
+                continue 'outloop;
+            }
+        }
+        eprintln!("Not Found {} {}", chokudai_ret[j].0, chokudai_ret[j].1);
+    }
+    eprintln!("matching end");
+
     let tl: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
         .unwrap_or(600.0);
@@ -471,7 +484,7 @@ fn main() {
 
         //let score2 = compute_score(&inp, &ret);
 
-        //dbg!(score);
+        //dbg!(score);A
         //if score > best_score{
 
         //dbg!(diff, T, (diff as f64 / T).exp());
@@ -516,7 +529,7 @@ fn chokudai_solve(inp: Input) -> Vec<P> {
 
     let tl: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(30.0);
+        .unwrap_or(10.0);
     let stime = get_time();
 
     let mut iter = 0;
@@ -597,7 +610,7 @@ fn chokudai_solve(inp: Input) -> Vec<P> {
             ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
         }
 
-        let score = compute_score_fast(&inp, &(best_ret.clone(), volume_all_zero.clone())).0;
+        let score = compute_score_fast(&inp, &(ret.clone(), volume_all_zero.clone())).0;
 
         dbg!(score);
         if score > best_score {
@@ -639,7 +652,7 @@ fn chokudai_solve(inp: Input) -> Vec<P> {
             ret.push(P(candidate[ans.1[i]].0, candidate[ans.1[i]].1));
         }
 
-        let score = compute_score_fast(&inp, &(best_ret.clone(), volume_all_zero.clone())).0;
+        let score = compute_score_fast(&inp, &(ret.clone(), volume_all_zero.clone())).0;
 
         best_ret = ret;
 
