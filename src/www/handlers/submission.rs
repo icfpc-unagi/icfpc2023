@@ -113,93 +113,11 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
     write!(&mut buf, "{}", svg.2)?;
 
     // Construct a SVG for charting musician scores fit in a rect.
-    let mut musician_scores = computed_scores.1.clone();
-    musician_scores.sort_unstable_by(|a, b| b.cmp(&a));
-    let mut musicians_svg = svg::Document::new()
-        .set("viewBox", (0, 0, 1, 1))
-        .set("width", 200)
-        .set("height", 200)
-        .set("transform", "scale(1, -1)")
-        .set("style", "margin: 10pt;")
-        .set("fill", "blue");
-    musicians_svg = musicians_svg.add(
-        svg::node::element::Group::new()
-            .set("transform", "scale(1, -1)")
-            .add(
-                svg::node::element::Text::new()
-                    .set("x", 0.95)
-                    .set("y", -0.95)
-                    .set("text-anchor", "end")
-                    .set("dominant-baseline", "text-before-edge")
-                    .set("font-size", 0.2)
-                    .add(svg::node::Text::new("🎤")),
-            ),
-    );
-    musicians_svg = musicians_svg.add(
-        svg::node::element::Rectangle::new()
-            .set("x", 0)
-            .set("y", 0)
-            .set("width", 1)
-            .set("height", 1)
-            .set("fill", "none")
-            .set("stroke", "black")
-            .set("stroke-width", 0.01),
-    );
-    for i in 0..musician_scores.len() {
-        let normalized = musician_scores[i] as f64 / musician_scores[0] as f64;
-        musicians_svg = musicians_svg.add(
-            svg::node::element::Rectangle::new()
-                .set("x", i as f64 / musician_scores.len() as f64)
-                .set("y", 0)
-                .set("width", 1.0 / musician_scores.len() as f64)
-                .set("height", normalized),
-        );
-    }
+    let musicians_svg = generate_svg_chart(computed_scores.1.clone(), "blue", "🎤");
     write!(&mut buf, "{}", musicians_svg)?;
 
     // Construct a SVG for charting attendee scores fit in a rect.
-    let mut attendee_scores = computed_scores.2.clone();
-    attendee_scores.sort_unstable_by(|a, b| b.cmp(&a));
-    let mut attendees_svg = svg::Document::new()
-        .set("viewBox", (0, 0, 1, 1))
-        .set("width", 200)
-        .set("height", 200)
-        .set("transform", "scale(1, -1)")
-        .set("style", "margin: 10pt;")
-        .set("fill", "red");
-    attendees_svg = attendees_svg.add(
-        svg::node::element::Group::new()
-            .set("transform", "scale(1, -1)")
-            .add(
-                svg::node::element::Text::new()
-                    .set("x", 0.95)
-                    .set("y", -0.95)
-                    .set("text-anchor", "end")
-                    .set("dominant-baseline", "text-before-edge")
-                    .set("font-size", 0.2)
-                    .add(svg::node::Text::new("👂")),
-            ),
-    );
-    attendees_svg = attendees_svg.add(
-        svg::node::element::Rectangle::new()
-            .set("x", 0)
-            .set("y", 0)
-            .set("width", 1)
-            .set("height", 1)
-            .set("fill", "none")
-            .set("stroke", "black")
-            .set("stroke-width", 0.01),
-    );
-    for i in 0..attendee_scores.len() {
-        let normalized = attendee_scores[i] as f64 / attendee_scores[0] as f64;
-        attendees_svg = attendees_svg.add(
-            svg::node::element::Rectangle::new()
-                .set("x", i as f64 / attendee_scores.len() as f64)
-                .set("y", 0)
-                .set("width", 1.0 / attendee_scores.len() as f64)
-                .set("height", normalized),
-        );
-    }
+    let attendees_svg = generate_svg_chart(computed_scores.2.clone(), "red", "👂");
     write!(&mut buf, "{}", attendees_svg)?;
 
     write!(
@@ -208,4 +126,50 @@ async fn handle(info: web::Query<Query>) -> Result<String> {
         submission.contents
     )?;
     Ok(buf)
+}
+
+fn generate_svg_chart(scores: Vec<i64>, color: &str, symbol: &str) -> svg::Document {
+    let mut scores = scores.clone();
+    scores.sort_unstable_by(|a, b| b.cmp(&a));
+    let mut svg = svg::Document::new()
+        .set("viewBox", (0, 0, 1, 1))
+        .set("width", 200)
+        .set("height", 200)
+        .set("transform", "scale(1, -1)")
+        .set("style", "margin: 10pt;")
+        .set("fill", color);
+    svg = svg.add(
+        svg::node::element::Group::new()
+            .set("transform", "scale(1, -1)")
+            .add(
+                svg::node::element::Text::new()
+                    .set("x", 0.95)
+                    .set("y", -0.95)
+                    .set("text-anchor", "end")
+                    .set("dominant-baseline", "text-before-edge")
+                    .set("font-size", 0.2)
+                    .add(svg::node::Text::new(symbol)),
+            ),
+    );
+    svg = svg.add(
+        svg::node::element::Rectangle::new()
+            .set("x", 0)
+            .set("y", 0)
+            .set("width", 1)
+            .set("height", 1)
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", 0.01),
+    );
+    for i in 0..scores.len() {
+        let normalized = scores[i] as f64 / scores[0] as f64;
+        svg = svg.add(
+            svg::node::element::Rectangle::new()
+                .set("x", i as f64 / scores.len() as f64)
+                .set("y", 0)
+                .set("width", 1.0 / scores.len() as f64)
+                .set("height", normalized),
+        );
+    }
+    svg
 }
