@@ -1,6 +1,6 @@
-use anyhow::Result;
 use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
 use aes_gcm::Aes128Gcm;
+use anyhow::Result;
 use hex::decode;
 use std::env;
 
@@ -45,5 +45,6 @@ pub fn api_token() -> Result<String> {
         b8e2738292bc988a64d542eca09b1020cbc3f44b0b8c1682d536e9edb073e667\
         21c8f00148f0bea3384a26b889db6e3758f18199b046859da4621234e2504fd5\
         d3b104152232b5ac22343a6ac87824ad4dbbfbdabeee3218408dcfe3c416a595\
-        39b16248c39ee18d40477732aad5f930b88f1e8cc3b5cc5957980f5c")
+        39b16248c39ee18d40477732aad5f930b88f1e8cc3b5cc5957980f5c",
+    )
 }

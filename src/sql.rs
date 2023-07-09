@@ -20,7 +20,8 @@ pub fn select(query: &str, params: impl Into<Params>) -> Result<Vec<Row>> {
 }
 
 pub fn row(query: &str, params: impl Into<Params>) -> Result<Option<Row>> {
-    Ok(CLIENT.get_conn()?
+    Ok(CLIENT
+        .get_conn()?
         .exec_first(query, params)?
         .and_then(|r| Some(Row { row: r })))
 }
@@ -33,7 +34,10 @@ pub fn cell<T: FromValue>(query: &str, params: impl Into<Params>) -> Result<Opti
 }
 
 pub fn exec(query: &str, params: impl Into<Params>) -> Result<()> {
-    CLIENT.get_conn()?.exec_drop(query, params).map_err(|e| e.into())
+    CLIENT
+        .get_conn()?
+        .exec_drop(query, params)
+        .map_err(|e| e.into())
 }
 
 pub fn insert<T>(query: &str, values: &[T]) -> Result<u64>

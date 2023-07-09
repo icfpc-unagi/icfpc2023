@@ -4,10 +4,10 @@ use crate::*;
 
 use anyhow::anyhow;
 use anyhow::Result;
+use mysql::params;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
-use mysql::params;
 
 const API_BASE: &str = "https://api.icfpcontest.com";
 
@@ -101,24 +101,26 @@ pub async fn get_raw_problem_cdn(problem_id: u32) -> Result<String> {
 // Returns the problem but from DB.
 pub async fn get_raw_problem_db(problem_id: u32) -> Result<String> {
     let mut chunks = String::new();
-    let rows = sql::select("
+    let rows = sql::select(
+        "
         SELECT problem_chunk_index, problem_chunk
         FROM problem_chunks
         WHERE problem_id = :problem_id
         ORDER BY problem_chunk_id",
-        params!{
+        params! {
             "problem_id" => problem_id
-        })?;
+        },
+    )?;
     if rows.len() == 0 {
         return Err(anyhow::anyhow!("Problem {} not found", problem_id));
     }
     for (index, row) in rows.iter().enumerate() {
-            let chunk_index: usize = row.get("problem_chunk_index")?;
-            if index != chunk_index {
-                return Err(anyhow!("Problem chunk index mismatch"));
-            }
-            let chunk: String = row.get::<String>("problem_chunk")?;
-            chunks.push_str(&chunk);
+        let chunk_index: usize = row.get("problem_chunk_index")?;
+        if index != chunk_index {
+            return Err(anyhow!("Problem chunk index mismatch"));
+        }
+        let chunk: String = row.get::<String>("problem_chunk")?;
+        chunks.push_str(&chunk);
     }
     Ok(chunks)
 }

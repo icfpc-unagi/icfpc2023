@@ -599,6 +599,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(debug_assertions))] // release build only because it's too slow
     fn test_problem2_64a93f468c4efca8cb0a9c65() {
         let input = read_input_from_file("./problems/problem-2.json");
         let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");
@@ -608,6 +609,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(debug_assertions))] // release build only because it's too slow
     fn test_problem2_64a93f468c4efca8cb0a9c65_scorerer() {
         let input = read_input_from_file("./problems/problem-2.json");
         let output = read_output_from_file("./problems/out-2-64a93f468c4efca8cb0a9c65.json");

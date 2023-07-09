@@ -1,4 +1,5 @@
 #![allow(unused_imports)]
+#![allow(unused)] // とりあえず警告でないようしました。完成したらこの行（←）を消してwarning出ないか見ても良いかも。
 use std::{collections::BinaryHeap, net::SocketAddr};
 
 use aead::NewAead;

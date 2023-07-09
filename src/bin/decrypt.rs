@@ -1,5 +1,5 @@
-use std::env;
 use icfpc2023::secret::decrypt;
+use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
