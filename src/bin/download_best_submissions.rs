@@ -3,18 +3,23 @@ use std::{fs::File, path::Path};
 use anyhow::Result;
 use clap::Parser;
 use icfpc2023::{api::*, sql};
+use mysql::params;
 use std::io::*;
 
 #[derive(Parser, Debug)]
 struct Cli {
     /// Path to output directory.
     /// The best submission for each problem will be saved as {problem_id}-{score}-{submission_id}.json.
-    #[clap(short, long, default_value = "best_submissions/")]
+    #[arg(short, long, default_value = "best_submissions/")]
     output_dir: String,
 
     /// Use local database instead of API and count local only submissions as well.
     #[arg(short, long, default_value_t = true)]
     local: bool,
+
+    /// Submit local only submissions found.
+    #[arg(short, long, default_value_t = true)]
+    submit: bool,
 }
 
 #[tokio::main]
@@ -23,14 +28,17 @@ async fn main() -> Result<()> {
     let output_dir = Path::new(&args.output_dir);
     std::fs::create_dir_all(output_dir)?;
     if args.local {
-        download_all_best_submissions_db(output_dir).await?;
+        download_all_best_submissions_db(output_dir, args.submit).await?;
     } else {
         download_all_best_submissions_api(output_dir).await?;
     }
     Ok(())
 }
 
-async fn download_all_best_submissions_db(output_dir: &Path) -> Result<()> {
+async fn download_all_best_submissions_db(
+    output_dir: &Path,
+    submit_local_only: bool,
+) -> Result<()> {
     // Query all columns of the maximum submission_score for each problem_id,
     // but emit only one row for each problem_id.
     let rows = sql::select(
@@ -71,11 +79,27 @@ async fn download_all_best_submissions_db(output_dir: &Path) -> Result<()> {
             "{}-{}-{}.json",
             problem_id,
             submission_score,
-            official_id.unwrap_or(submission_id.to_string())
+            official_id.as_ref().unwrap_or(&submission_id.to_string())
         ));
         let mut file = File::create(&output_path)?;
         file.write_all(submission_contents.as_bytes()).unwrap();
         eprintln!("Wrote {}", output_path.display());
+
+        // Additionally, submit local-only submissions if requested.
+        if submit_local_only && official_id.is_none() {
+            eprintln!(
+                "!! Realizing best local-only submission: {} (score: {})",
+                submission_id, submission_score
+            );
+            let official_id = submit_raw_api(problem_id, &submission_contents).await?;
+            sql::exec(
+                "UPDATE submissions SET official_id = :official_id WHERE submission_id = :submission_id",
+                params! {
+                    "official_id" => official_id,
+                    "submission_id" => submission_id,
+                },
+            )?;
+        }
     }
     Ok(())
 }
