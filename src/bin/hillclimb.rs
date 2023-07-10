@@ -43,6 +43,7 @@ fn main() {
     println!("{}", score_original);
 
     let mut d: f64 = 1.0;
+    let time_start = get_time();
 
     for iter in 0.. {
         let current_score = scorerer.get_score();
@@ -106,6 +107,19 @@ fn main() {
                 let score_new = scorerer.get_score();
                 if score_new > score_old {
                     is_improved = true;
+                    let time_now = get_time();
+
+                    eprintln!(
+                        "UP t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
+                        time_now - time_start,
+                        iter,
+                        score_old,
+                        score_new,
+                        score_new - score_old,
+                        score_new - score_original,
+                    );
+
+                    /*
                     println!(
                         "{} {} -> ... -> {} -> {} (+{}) --- {} {}",
                         iter,
@@ -116,6 +130,7 @@ fn main() {
                         musician_id,
                         is_orthogonal
                     );
+                    */
                 }
             }
 
