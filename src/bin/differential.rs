@@ -32,8 +32,6 @@ fn compute_grad(input: &Input, scorer: &DynamicScorer, musician_id: usize) -> P 
         grad1 = grad1 + d * (2.0 * t / d.abs2() * closeness_factor[musician_id]);
     }
 
-    return grad1;
-
     if input.version == Version::One {
         return grad1;
     }
