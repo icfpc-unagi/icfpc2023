@@ -43,25 +43,23 @@ NATURAL RIGHT JOIN(
         mysql::Params::Empty,
     )? {
         let problem_id: i64 = row.get("problem_id")?;
-        let submission_id = row.get_option::<i64>("submission_id")?;
+        let submission_id = row.get::<i64>("submission_id")?;
         let official_id = row.get_option::<String>("official_id")?;
         let submission_score = row.get_option::<i64>("submission_score")?;
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
         let score = submission_score.to_formatted_string(&Locale::en);
-        let score = match official_id.or_else(|| submission_id.map(|x| x.to_string())) {
-            Some(id) => format!("<a href=\"/submission?submission_id={}\">{}</a>", id, score),
-            None => format!("{}", score),
-        };
+        let id = official_id.unwrap_or_else(|| submission_id.to_string());
+        let score = format!("<a href=\"/submission?submission_id={}\">{}</a>", id, score);
         buf.push_str(&format!(
             r#"
 <div style="display: inline-block; min-width: 200px; width: 20%; margin: 1em; text-align: right">
 問題番号: {}<br>
 スコア: {}<br>
-<img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;">
+<a href="/submission?submission_id={}"><img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;"></a>
 </div>
 "#,
-            problem_id, score, problem_id,
+            problem_id, score, id, problem_id,
         ));
     }
     Ok(format!(
