@@ -81,8 +81,8 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
     let stage0 = P(input.stage0.0 + 10.0, input.stage0.1 + 10.0);
     let stage1 = P(input.stage1.0 - 10.0, input.stage1.1 - 10.0);
     if std::env::var("CAND_CHOKUDAI")
-        .unwrap_or("1".to_owned())
-        .len()
+        .map(|c| c.parse().unwrap())
+        .unwrap_or(1)
         > 0
     {
         cand_list.extend(get_all_candidate(input));
@@ -136,10 +136,23 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
 /// 現在の解の周辺に候補点を拡張する
 fn extend_cand(input: &Input, cand: &mut Vec<P>, best: &Vec<P>) {
     let volumes = vec![10.0; best.len()];
-    cand.extend(candidate_positions::enumerate_candidate_positions_sa(
-        input,
-        &(best.clone(), volumes),
-    ));
+    let ex_cand =
+        candidate_positions::enumerate_candidate_positions_sa(input, &(best.clone(), volumes));
+    // let used = best.iter().cloned().collect::<BTreeSet<_>>();
+    // let (_, _, svg) = vis::vis_cand(
+    //     input,
+    //     &(best.clone(), vec![1.0; best.len()]),
+    //     0,
+    //     !0,
+    //     None,
+    //     &ex_cand
+    //         .iter()
+    //         .cloned()
+    //         .filter(|p| !used.contains(p))
+    //         .collect(),
+    // );
+    // println!("{}", svg);
+    cand.extend(ex_cand);
     cand.sort();
     cand.dedup();
     eprintln!("#cand = {}", cand.len());

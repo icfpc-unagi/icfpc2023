@@ -50,6 +50,17 @@ pub fn vis(
     focus: usize,
     color_instrument: Option<usize>,
 ) -> (i64, String, String) {
+    vis_cand(input, out, color_type, focus, color_instrument, &vec![])
+}
+
+pub fn vis_cand(
+    input: &Input,
+    out: &Output,
+    color_type: i32,
+    focus: usize,
+    color_instrument: Option<usize>,
+    cand: &Vec<P>,
+) -> (i64, String, String) {
     let room = (
         input.pos.iter().map(|a| a.0.ceil() as usize).max().unwrap() as f64 + 10.0,
         input.pos.iter().map(|a| a.1.ceil() as usize).max().unwrap() as f64 + 10.0,
@@ -164,6 +175,17 @@ pub fn vis(
                 .set("cy", c.1 * mul)
                 .set("r", r * mul)
                 .set("fill", "gray"),
+        )
+    }
+    for &p in cand {
+        doc = doc.add(
+            Circle::new()
+                .set("cx", p.0 * mul)
+                .set("cy", p.1 * mul)
+                .set("r", 5.0 * mul)
+                .set("fill", "none")
+                .set("stroke", "purple")
+                .set("stroke-width", 0.1),
         )
     }
     // Focus on musician
