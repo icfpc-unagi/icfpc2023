@@ -4,7 +4,7 @@ use std::{collections::BinaryHeap, net::SocketAddr, ops::Mul};
 use aead::NewAead;
 use rand::Rng;
 
-use crate::{Input, P};
+use crate::{candidate_arc, Input, P};
 
 pub fn get_all_candidate2(inp: &Input) -> Vec<P> {
     let mut ret = vec![];
@@ -34,7 +34,7 @@ pub fn get_candidate3(
         candidate.push(first_cand[i]);
     }
 
-    let random_space = rng.gen_range(0.0, 3.0);
+    let random_space = rng.gen_range(0.0, 9.99);
 
     let ten = {
         if rand_flag % 2 == 0 {
@@ -85,12 +85,8 @@ pub fn get_candidate3(
             pattern += 8;
         }
 
-        for j in 0..4 {
-            if base_pos != 0.0 && j == 0 {
-                continue;
-            }
-
-            if j != 3 {
+        for j in 0..5 {
+            if base_pos != 0.0 && j != 0 && j != 4 {
                 continue;
             }
 
@@ -528,6 +524,42 @@ pub fn get_candidate3(
             if flag {
                 heap.push((dist - 100, pattern, num + 1, id, chal_type));
             }
+        } else if chal_type == 4 {
+            //7個おき
+
+            let mut ps = candidate_arc::get_candidate(&inp, id, 3);
+
+            if ps.len() != 7 {
+                continue;
+            }
+            if pattern == 1 {
+                ps[0] = P(ps[0].0 + ten * num as f64, ps[0].1);
+                ps[6] = P(ps[6].0 - ten * num as f64, ps[6].1);
+            } else if pattern == 4 {
+                ps[0] = P(ps[0].0 - ten * num as f64, ps[0].1);
+                ps[6] = P(ps[6].0 + ten * num as f64, ps[6].1);
+            } else if pattern == 2 {
+                ps[0] = P(ps[0].0, ps[0].1 + ten * num as f64);
+                ps[6] = P(ps[6].0, ps[6].1 - ten * num as f64);
+            } else if pattern == 8 {
+                ps[0] = P(ps[0].0, ps[0].1 - ten * num as f64);
+                ps[6] = P(ps[6].0, ps[6].1 + ten * num as f64);
+            }
+
+            for ii in 0..ps.len() {
+                if num >= 1 && ii != 0 && ii != 6 {
+                    break;
+                }
+                let p = ps[ii];
+                if check_all_cand(&inp, &candidate, p) {
+                    candidate.push(p);
+                    flag = true;
+                }
+            }
+
+            if flag {
+                heap.push((dist - 100, pattern, num + 1, id, chal_type));
+            }
         }
     }
 
@@ -559,6 +591,10 @@ pub fn get_candidate3(
 
                     let p = candidate[i] + v1.mul(0.5) + v2;
                     ps.push(p);
+
+                    //let d1 = get_stage_diff_inside(candidate[i], inp.stage0, inp.stage1);
+                    //let d2 = get_stage_diff_inside(candidate[j], inp.stage0, inp.stage1);
+
                     heap.push((
                         (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
                         ps.len() - 1,
@@ -597,153 +633,7 @@ pub fn get_candidate3(
                 }
             }
         }
-
-        /*
-        let mut pre = now_n;
-        loop {
-            let mut heap = BinaryHeap::new();
-            let mut ps = vec![];
-
-            let now_n = candidate.len();
-            for i in pre..now_n {
-                for j in i + 1..now_n {
-                    if (candidate[i] - candidate[j]).abs2() >= 400.0 {
-                        continue;
-                    }
-
-                    if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
-                        continue;
-                    }
-
-                    //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
-
-                    let d1 = (candidate[i] - candidate[j]).abs();
-                    let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.0001;
-
-                    let v1 = candidate[i] - candidate[j];
-                    let v2 = v1.rot();
-                    let v2 = P(v2.0 / d1 * d2, v2.1 / d1 * d2);
-
-                    let p = candidate[i] + v1.mul(0.5) + v2;
-                    ps.push(p);
-                    heap.push((
-                        (get_stage_diff(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
-                        ps.len() - 1,
-                    ));
-                    let p = candidate[i] + v1.mul(0.5) - v2;
-                    ps.push(p);
-                    heap.push((
-                        (get_stage_diff(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
-                        ps.len() - 1,
-                    ));
-
-                    /*
-                    if candidate[i].0 == candidate[j].0 {
-                        let next_p = {
-                            if candidate[i].0 <= (inp.stage0.0 + inp.stage1.0) / 2.0 {
-                                P(candidate[i].0 + d2, (candidate[i].1 + candidate[j].1) / 2.0)
-                            } else {
-                                P(candidate[i].0 - d2, (candidate[i].1 + candidate[j].1) / 2.0)
-                            }
-                        };
-
-                        if check_all_cand(&inp, &candidate, next_p) {
-                            candidate.push(next_p);
-                        }
-
-                        //dbg!((ret_ps[i] - next_p).abs2());
-                        //dbg!((ret_ps[j] - next_p).abs2());
-                    }
-
-                    if candidate[i].1 == candidate[j].1 {
-                        let next_p = {
-                            if candidate[i].1 <= (inp.stage0.1 + inp.stage1.1) / 2.0 {
-                                P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 + d2)
-                            } else {
-                                P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 - d2)
-                            }
-                        };
-                        if check_all_cand(&inp, &candidate, next_p) {
-                            candidate.push(next_p);
-                        }
-
-                        //dbg!((ret_ps[i] - next_p).abs2());
-                        //dbg!((ret_ps[j] - next_p).abs2());
-                    }
-                    */
-                }
-            }
-
-            while !heap.is_empty() {
-                let p = ps[heap.pop().unwrap().1];
-                if check_all_cand(&inp, &candidate, p) {
-                    candidate.push(p);
-                }
-            }
-
-            if now_n == candidate.len() {
-                break;
-            }
-            pre = now_n;
-        }
-        */
     }
-
-    //dbg!(candidate.len());
-
-    /*
-    let add_l = vec![
-        0.01, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, r3, 9.0,
-    ];
-
-    for add in add_l {
-        //y=0
-        for x in (inp.stage0.0 as i32 + 10)..(inp.stage1.0 as i32 - 10) {
-            let nx = x as f64;
-            let ny = inp.stage0.1 + 10.0 + add;
-
-            if !check_all_cand(&inp, &candidate, P(nx, ny)) {
-                continue;
-            }
-            candidate.push(P(nx, ny));
-        }
-
-        //x=0
-        for y in (inp.stage0.1 as i32 + 10)..(inp.stage1.1 as i32 - 10) {
-            let nx = inp.stage0.0 + 10.0 + add;
-            let ny = y as f64;
-
-            if !check_all_cand(&inp, &candidate, P(nx, ny)) {
-                continue;
-            }
-
-            candidate.push(P(nx, ny));
-        }
-
-        //y=maxy
-        for x in (inp.stage0.0 as i32 + 10)..(inp.stage1.0 as i32 - 10) {
-            let nx = x as f64;
-            let ny = inp.stage1.1 - 10.0 - add;
-
-            if !check_all_cand(&inp, &candidate, P(nx, ny)) {
-                continue;
-            }
-            candidate.push(P(nx, ny));
-        }
-
-        //x=maxx
-        for y in (inp.stage0.1 as i32 + 10)..(inp.stage1.1 as i32 - 10) {
-            let nx = inp.stage1.0 - 10.0 - add;
-            let ny = y as f64;
-
-            if !check_all_cand(&inp, &candidate, P(nx, ny)) {
-                continue;
-            }
-
-            candidate.push(P(nx, ny));
-        }
-    }
-    */
 
     candidate = set_more_candidate(&inp, candidate);
 

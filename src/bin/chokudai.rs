@@ -82,7 +82,7 @@ fn main() {
 
             let maxdiff = (inp.stage1.0 - inp.stage0.0 + inp.stage1.1 - inp.stage0.1) / 4.0;
             let target_range = rng.gen_range(20.0, maxdiff);
-            let target_range = 50000.0;
+            //let target_range = 50000.0;
 
             for i in 0..best_cand.len() {
                 if (target_cand - best_cand[i]).abs() > target_range {
@@ -250,7 +250,7 @@ fn main() {
                 }
 
                 let score = compute_score_fast(&inp, &ret).0;
-                //dbg!(myans, score);
+                //dbg!(score);
 
                 if pre_score == score {
                     break;
@@ -258,7 +258,6 @@ fn main() {
                 pre_score = score;
             }
 
-            //dbg!(score);
             if pre_score > best_score {
                 best_ret = ret.clone();
                 let diff = pre_score - best_score;
