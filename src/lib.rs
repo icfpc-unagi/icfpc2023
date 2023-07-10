@@ -242,6 +242,10 @@ pub fn parse_input_with_version(s: &str, version: Version) -> Input {
     input
 }
 
+pub fn urlencode(s: &str) -> String {
+    percent_encoding::utf8_percent_encode(s, percent_encoding::NON_ALPHANUMERIC).to_string()
+}
+
 /// Corresponds to the output json format.
 #[derive(Serialize, Deserialize, Debug)]
 struct Solution {
