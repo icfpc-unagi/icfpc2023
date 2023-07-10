@@ -49,7 +49,10 @@ NATURAL RIGHT JOIN(
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
         let score = submission_score.to_formatted_string(&Locale::en);
-        let score = match official_id.or_else(|| submission_id.map(|x| x.to_string())) {
+        let score = match official_id
+            .clone()
+            .or_else(|| submission_id.map(|x| x.to_string()))
+        {
             Some(id) => format!("<a href=\"/submission?submission_id={}\">{}</a>", id, score),
             None => format!("{}", score),
         };
@@ -58,10 +61,15 @@ NATURAL RIGHT JOIN(
 <div style="display: inline-block; min-width: 200px; width: 20%; margin: 1em; text-align: right">
 問題番号: {}<br>
 スコア: {}<br>
+<div style="font-size: 70%">提出ID (#{}): {}</div>
 <img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;">
 </div>
 "#,
-            problem_id, score, problem_id,
+            problem_id,
+            score,
+            submission_id.unwrap_or(0),
+            official_id.clone().unwrap_or_else(|| "N/A".to_string()),
+            problem_id,
         ));
     }
     Ok(format!(
