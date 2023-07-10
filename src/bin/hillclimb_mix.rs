@@ -57,7 +57,7 @@ fn main() {
 
         let score = compute_score(&input, &output);
         eprintln!(
-            "UP-TOTAL {}\n{:10} -> {:10} ({:+10})\n{}",
+            "{}\nUP-TOTAL {:10} -> {:10} ({:+10})\n{}",
             "=".repeat(80),
             score_original,
             score,
