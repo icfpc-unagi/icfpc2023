@@ -381,8 +381,7 @@ pub async fn submit(
     if local {
         let local_id = submit_local(problem_id, output).await?;
         // Add local-only tag, that will be removed when the submission is synced in submit.rs.
-        // TODO(sulume): Uncomment this later.
-        // tags.push("local-only");
+        tags.push("local-only");
         tag_submission(local_id, &tags).await?;
         return Ok(local_id.to_string());
     } else {
