@@ -9,7 +9,7 @@ use serde::Deserialize;
 use std::iter::*;
 use std::{collections::HashMap, fmt::Write};
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Default)]
 pub struct Query {
     #[serde(default = "default_offset")]
     pub offset: u32,
@@ -47,7 +47,7 @@ pub async fn handler(info: web::Query<Query>) -> impl Responder {
     response
 }
 
-fn build_url(info: &Query) -> String {
+pub fn build_url(info: &Query) -> String {
     format!(
         "/my_submissions?offset={offset}&limit={limit}&tag={tag}&problem_id={problem_id}&order_by={order_by}",
         offset = info.offset,
@@ -117,6 +117,14 @@ async fn handle(info: &web::Query<Query>) -> Result<String, Box<dyn std::error::
             String::new()
         } else {
             format!("WHERE {}", where_clause.join(" AND "))
+        };
+        let where_clause = if info.tag.is_empty() {
+            where_clause
+        } else {
+            format!(
+                r#"NATURAL JOIN submission_tags {where_clause}"#,
+                where_clause = where_clause
+            )
         };
         sql::select(
             &format!(
