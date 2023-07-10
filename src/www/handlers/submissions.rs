@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{*, www::utils::maybe_enrich_datetime_str};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -47,7 +47,7 @@ pub async fn handle(info: web::Query<Query>) -> Result<String> {
             "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td class=\"align-r\">{}</td><td class=\"align-r\">{}</td></tr>",
             submission._id,
             submission._id,
-            submission.submitted_at,
+            maybe_enrich_datetime_str(submission.submitted_at),
             submission.problem_id,
             submission.score,
         )?;

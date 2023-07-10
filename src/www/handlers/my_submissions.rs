@@ -1,11 +1,12 @@
+use crate::www::utils::maybe_enrich_datetime_str;
 use crate::*;
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
-use handlebars::html_escape;
 use mysql::params;
 use num_format::{Locale, ToFormattedString};
 use serde::Deserialize;
+use std::iter::*;
 use std::{collections::HashMap, fmt::Write};
 
 #[derive(Deserialize)]
@@ -172,7 +173,7 @@ WHERE
                 "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td class=\"align-r\">{}</td><td class=\"align-r\">{}</td><td>{}</td></tr>",
                 submission_id,
                 official_id.unwrap_or("N/A".into()),
-                submission_created,
+                maybe_enrich_datetime_str(submission_created),
                 problem_id,
                 score,
                 tag_str,

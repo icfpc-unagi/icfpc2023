@@ -1,4 +1,4 @@
-use crate::{input_stats::get_stats, *};
+use crate::{input_stats::get_stats, www::utils::maybe_enrich_datetime_str, *};
 
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
@@ -132,7 +132,7 @@ WHERE
     write!(
         &mut buf,
         "</uL><li>Submitted at: {}</li>",
-        submission.submission.submitted_at
+        maybe_enrich_datetime_str(submission.submission.submitted_at)
     )?;
     write!(
         &mut buf,
