@@ -57,7 +57,7 @@ NATURAL RIGHT JOIN(
         buf.push_str(&format!(
             r#"
 <div style="display: inline-block; min-width: 200px; width: 20%; margin: 1em; text-align: right">
-<a href="{problem_url}">問題 {problem_id}</a><br>
+<a href="{problem_url}" style="font-weight: bold; font-size: 120%">問題 {problem_id}</a><br>
 スコア: {score}<br>
 <div style="font-size: 70%">提出ID (#{submission_id}): {official_id}</div>
 <a href="/submission?submission_id={id}"><img src="/problem_png?problem_id={problem_id}" style="width: 200px; height: 200px; object-fit: contain;"></a>
