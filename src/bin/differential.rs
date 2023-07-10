@@ -106,6 +106,8 @@ fn main() {
                     score_new - score_old,
                     score_new - score_original,
                 );
+            } else if score_new == score_old {
+                is_improved = true;
             }
         }
 
