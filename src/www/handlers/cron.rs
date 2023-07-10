@@ -10,27 +10,21 @@ async fn insert_official_submission(official_id: &str) -> Result<Option<String>>
     let submission = api::get_submission_api(official_id).await?;
     eprintln!("Updating submission: {:#?}", &submission);
     let (submission_score, submission_error) = match submission.submission.score {
-        api::SubmissionStatus::Processing => (None, None),
-        api::SubmissionStatus::Success(score) => (Some(score), None),
+        api::SubmissionStatus::Processing => {
+            let problem_id: u32 = submission.submission.problem_id;
+            let input = api::get_problem(problem_id).await?.into();
+            match parse_output(&submission.contents) {
+                Ok(output) => {
+                    let score = compute_score_fast(&input, &output).0;
+                    eprintln!("Computed score: {}", score);
+                    (Some(score), None)
+                }
+                Err(error) => (None, Some(format!("Local: {:?}", error))),
+            }
+        }
+        api::SubmissionStatus::Success(score) => (Some(score as i64), None),
         api::SubmissionStatus::Failure(error) => (None, Some(error)),
     };
-    // sql::exec(
-    //     "REPLACE INTO submissions(
-    //     official_id,
-    //     problem_id,
-    //     submission_score,
-    //     submission_error,
-    //     submission_contents,
-    //     submission_created
-    // ) VALUES (
-    //     :official_id,
-    //     :problem_id,
-    //     :submission_score,
-    //     :submission_error,
-    //     :submission_contents,
-    //     :submission_created
-    // )",
-    // Rewrite with INSERT ON DUPLICATE KEY UPDATE below
     sql::exec(
         "INSERT INTO submissions(
             official_id,
@@ -72,14 +66,14 @@ pub async fn update_official_submissions(offset: u32, limit: u32) -> Result<Vec<
         eprintln!("Checking submission: {}", submission._id);
         let result = sql::row(
             "
-            SELECT submission_id, submission_score, submission_error
+            SELECT submission_id, submission_score, submission_error, problem_id
             FROM submissions
             WHERE official_id = :official_id",
             params! {
                 "official_id" => &submission._id,
             },
         )?;
-        let (submission_score, submission_error) = match submission.score {
+        let (mut submission_score, submission_error) = match submission.score {
             api::SubmissionStatus::Processing => (None, None),
             api::SubmissionStatus::Success(score) => (Some(score), None),
             api::SubmissionStatus::Failure(error) => (None, Some(error)),
@@ -88,7 +82,16 @@ pub async fn update_official_submissions(offset: u32, limit: u32) -> Result<Vec<
             Some(row) => {
                 let db_submission_score: Option<u64> = row.get_option("submission_score")?;
                 let db_submission_error: Option<String> = row.get_option("submission_error")?;
-                submission_score != db_submission_score || submission_error != db_submission_error
+                if submission_score.is_none() && !db_submission_score.is_none() {
+                    submission_score = db_submission_score
+                }
+                let is_processing = submission_score.is_none()
+                    && submission_error.is_none()
+                    && db_submission_score.is_none()
+                    && db_submission_error.is_none();
+                is_processing
+                    || submission_score != db_submission_score
+                    || submission_error != db_submission_error
             }
             None => true,
         };
