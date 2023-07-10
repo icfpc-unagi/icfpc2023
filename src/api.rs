@@ -320,6 +320,33 @@ VALUES
     Ok(())
 }
 
+/// Removes a tag for a submission.
+async fn untag_submission(local_submission_id: u64, tag: &str) -> Result<()> {
+    sql::exec(
+        "
+DELETE FROM submission_tags
+WHERE
+    submission_id = :local_id AND submission_tag = :submission_tag
+",
+        params! {
+            "local_id" => local_submission_id,
+            "submission_tag" => tag,
+        },
+    )?;
+    Ok(())
+}
+
+/// Removes a tag for all submissions.
+async fn untag_all(tag: &str) -> Result<()> {
+    sql::exec(
+        "
+DELETE FROM submission_tags
+WHERE
+    submission_tag = :tag",
+        params! { "tag" => tag },
+    )
+}
+
 /// Submits a solution and returns the submission ID.
 pub async fn submit(
     problem_id: u32,

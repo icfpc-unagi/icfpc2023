@@ -172,7 +172,7 @@ WHERE
             Ok(format!(
                 "<tr><td><a href=\"/submission?submission_id={}\">{}</a></td><td>{}</td><td class=\"align-r\">{}</td><td class=\"align-r\">{}</td><td>{}</td></tr>",
                 submission_id,
-                official_id.unwrap_or("N/A".into()),
+                official_id.unwrap_or(format!("{} (local-only)", submission_id)),
                 maybe_enrich_datetime_str(submission_created),
                 problem_id,
                 score,
