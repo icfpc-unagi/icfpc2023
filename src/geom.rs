@@ -53,7 +53,7 @@ pub fn first_hit(
     for i in 0..musicians.len() {
         let c = musicians[i];
         if (c - p).dot(dir) > 0.0 {
-            if (c - p).abs() < 10.0 + EPS {
+            if (c - p).abs() < 10.0 + 2.0 * EPS {
                 let r = (c - p) * 0.1;
                 powers[i] = powers[i] + r * r.dot(dir);
                 dir = dir - r * r.dot(dir);
