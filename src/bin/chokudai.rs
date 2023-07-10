@@ -6,7 +6,9 @@ use icfpc2023::{
     self,
     candidate2::get_candidate3,
     compute_score, compute_score_fast, compute_score_for_a_musician_fast,
-    compute_score_for_instruments, get_time,
+    compute_score_for_instruments,
+    differential::hillclimb_grad,
+    get_time,
     mcf::{weighted_matching, weighted_matching_with_capacity},
     read_input, write_output, Input, P,
 };
@@ -164,8 +166,12 @@ fn main() {
             }
 
             let score = compute_score_fast(&inp, &ret).0;
+            dbg!(score);
 
-            //dbg!(score);
+            ret = hillclimb_grad(&inp, &ret, "out_chokuiwi", Some(10.0));
+            let score = compute_score_fast(&inp, &ret).0;
+            dbg!(score);
+
             if score > best_score {
                 best_ret = ret.clone();
                 let diff = score - best_score;
@@ -249,7 +255,11 @@ fn main() {
                 }
 
                 let score = compute_score_fast(&inp, &ret).0;
-                //dbg!(score);
+                dbg!(score);
+
+                ret = hillclimb_grad(&inp, &ret, "out_chokuiwi", Some(10.0));
+                let score = compute_score_fast(&inp, &ret).0;
+                dbg!(score);
 
                 if pre_score == score {
                     break;
