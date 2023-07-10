@@ -15,21 +15,25 @@ async fn insert_official_submission(official_id: &str) -> Result<Option<String>>
         api::SubmissionStatus::Failure(error) => (None, Some(error)),
     };
     sql::exec(
-        "REPLACE INTO submissions(
-        official_id,
-        problem_id,
-        submission_score,
-        submission_error,
-        submission_contents,
-        submission_created
-    ) VALUES (
-        :official_id,
-        :problem_id,
-        :submission_score,
-        :submission_error,
-        :submission_contents,
-        :submission_created
-    )",
+        "INSERT INTO submissions(
+            official_id,
+            problem_id,
+            submission_score,
+            submission_error,
+            submission_contents,
+            submission_created
+        ) VALUES (
+            :official_id,
+            :problem_id,
+            :submission_score,
+            :submission_error,
+            :submission_contents,
+            :submission_created
+        ) ON DUPLICATE KEY UPDATE
+            submission_score = :submission_score,
+            submission_error = :submission_error,
+            submission_contents = :submission_contents,
+        ",
         params! {
             "official_id" => &submission.submission._id,
             "problem_id" => submission.submission.problem_id,
