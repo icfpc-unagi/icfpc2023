@@ -168,7 +168,7 @@ fn main() {
             let score = compute_score_fast(&inp, &ret).0;
             dbg!(score);
 
-            ret = hillclimb_grad(&inp, &ret, "out_chokuiwi", Some(10.0));
+            ret = hillclimb_grad(&inp, ret, "out_chokuiwi", Some(10.0));
             let score = compute_score_fast(&inp, &ret).0;
             dbg!(score);
 
@@ -257,7 +257,7 @@ fn main() {
                 let score = compute_score_fast(&inp, &ret).0;
                 dbg!(score);
 
-                ret = hillclimb_grad(&inp, &ret, "out_chokuiwi", Some(10.0));
+                ret = hillclimb_grad(&inp, ret, "out_chokuiwi", Some(10.0));
                 let score = compute_score_fast(&inp, &ret).0;
                 dbg!(score);
 
