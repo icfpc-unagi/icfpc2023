@@ -407,6 +407,21 @@ pub fn enumerate_candidate_positions_sa(input: &Input, output: &Output) -> Vec<P
     enumerate_candidate_positions_with_config(
         input,
         output,
+        //     &CandidateConfig {
+        //         use_pattern1: false,
+        //         use_pattern2: false,
+        //         use_pattern3: false,
+        //         use_pattern4: false,
+        //         use_pattern23: true,
+        //         limit_pattern2: None,
+        //         limit_pattern3: None,
+        //         limit_pattern23: Some(100),
+        //         filter_by_intersections1: Some(0),
+        //         filter_by_intersections234: None,
+        //         filter_by_reach23: false,
+        //         filter_by_reach14: false,
+        //         pattern2_disallow_blocked: false,
+        //     },
         &CandidateConfig {
             use_pattern1: true,
             use_pattern2: false,
