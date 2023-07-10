@@ -122,6 +122,7 @@ pub fn hillclimb_candidate_findbest(
     candidate_limit: usize,
     time_limit: f64,
 ) -> Output {
+    let save_dir = simple_hillclimb::prepare_output_dir(&input, save_dir);
     let time_start = get_time();
     let mut rng = rand::thread_rng();
     let mut scorer = DynamicScorer::new_with_output(&input, &output);
