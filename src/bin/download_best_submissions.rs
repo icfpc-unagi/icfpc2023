@@ -63,7 +63,7 @@ async fn download_all_best_submissions_db(
     let mut submission_ids = Vec::new();
     for row in rows {
         let submission_id = row.get::<u32>("submission_id")?;
-        let official_id = row.get::<Option<String>>("official_id")?;
+        let official_id = row.get_option::<String>("official_id")?;
         let problem_id = row.get::<u32>("problem_id")?;
         let submission_score = row.get::<i64>("submission_score")?;
         let submission_error = row.get_option::<String>("submission_error")?;
