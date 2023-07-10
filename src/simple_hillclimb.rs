@@ -139,9 +139,11 @@ pub fn hillclimb_candidate_findbest(
                 use_pattern3: true,
                 use_pattern4: true,
                 use_pattern23: false,
+                use_pattern67: false,
                 limit_pattern2: Some(candidate_limit),
                 limit_pattern3: Some(candidate_limit / 10), // tekitou
                 limit_pattern23: None,
+                limit_pattern67: None,
                 filter_by_intersections1: Some(1),
                 filter_by_intersections234: Some(1),
                 filter_by_reach23: true,

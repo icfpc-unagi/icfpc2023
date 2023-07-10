@@ -6,9 +6,11 @@ pub struct CandidateConfig {
     pub use_pattern3: bool,
     pub use_pattern4: bool,
     pub use_pattern23: bool,
+    pub use_pattern67: bool,
     pub limit_pattern2: Option<usize>,
     pub limit_pattern3: Option<usize>,
     pub limit_pattern23: Option<usize>,
+    pub limit_pattern67: Option<usize>,
     pub filter_by_reach23: bool,
     pub filter_by_reach14: bool,
     /// この個数より多くintersectしてたら捨てる
@@ -297,6 +299,58 @@ pub fn pattern4(input: &Input, output: &Output) -> Vec<P> {
     cposs
 }
 
+pub fn pattern67(input: &Input, output: &Output) -> Vec<P> {
+    let eps = 1e-6;
+    let mut entries = vec![];
+
+    for side in 0..4 {
+        let stage_line = get_stage_line(input, side);
+        for musician_id in 0..input.n_musicians() {
+            let musician_pos = output.0[musician_id];
+            // 岩田さんいわくsatge際にあるmusicianだけを考えてほしいらしい
+            if P::dist2_lp(stage_line, musician_pos) != 0.0 {
+                continue;
+            }
+
+            for attendee_id in 0..input.n_attendees() {
+                if is_blocked_by_someone(input, &output.0, musician_id, attendee_id) {
+                    continue;
+                }
+                let attendee_pos = input.pos[attendee_id];
+
+                for tan_pos in P::tan_cp((musician_pos, 5.0 + eps), attendee_pos) {
+                    let tan_line = (attendee_pos, tan_pos);
+                    let vec = (tan_line.1 - tan_line.0).rot();
+                    let vec = vec * ((5.0 + eps) / vec.abs());
+                    for sign in [-1.0, 1.0] {
+                        let shifted_tan_line = (tan_line.0 + vec * sign, tan_line.1 + vec * sign);
+                        if let Some(cand_pos6) = P::pi_ll(stage_line, shifted_tan_line) {
+                            // めり込み側は捨てる
+                            if (cand_pos6 - musician_pos).abs2() < 100.0 {
+                                continue;
+                            }
+
+                            for cand_pos7 in P::pi_cl((cand_pos6, 10.0 + eps), tan_line) {
+                                if !input.in_stage(cand_pos7)
+                                    || (cand_pos7 - musician_pos).abs2() < 100.0
+                                {
+                                    continue;
+                                }
+
+                                let priority = (cand_pos7 - attendee_pos).abs2();
+                                entries.push((priority, vec![cand_pos6, cand_pos7]));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    entries.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    entries.into_iter().map(|e| e.1).flatten().collect()
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Filters
 ///////////////////////////////////////////////////////////////////////////////
@@ -350,6 +404,7 @@ pub fn enumerate_candidate_positions_with_config(
     let mut cp3 = vec![];
     let mut cp4 = vec![];
     let mut cp23 = vec![];
+    let mut cp67 = vec![];
 
     // Generation
     if config.use_pattern1 {
@@ -409,8 +464,21 @@ pub fn enumerate_candidate_positions_with_config(
             cp23 = cp23.into_iter().take(limit).collect();
         }
     }
+    if config.use_pattern67 {
+        cp67 = filter_outside(pattern67(input, output), input);
+        if let Some(limit) = config.limit_pattern67 {
+            cp67 = cp67.into_iter().take(limit).collect();
+        }
+    }
 
-    let (l1, l2, l3, l4, l23) = (cp1.len(), cp2.len(), cp3.len(), cp4.len(), cp23.len());
+    let (l1, l2, l3, l4, l23, l67) = (
+        cp1.len(),
+        cp2.len(),
+        cp3.len(),
+        cp4.len(),
+        cp23.len(),
+        cp67.len(),
+    );
 
     let mut cp: Vec<_> = cp1
         .into_iter()
@@ -418,18 +486,20 @@ pub fn enumerate_candidate_positions_with_config(
         .chain(cp3)
         .chain(cp4)
         .chain(cp23)
+        .chain(cp67)
         .collect();
     cp.sort();
     cp.dedup();
 
     eprintln!(
-        "Candidate sets: {} + {} + {} + {} + {} = {} -> {}",
+        "Candidate sets: {} + {} + {} + {} + {} + {} = {} -> {}",
         l1,
         l2,
         l3,
         l4,
         l23,
-        (l1 + l2 + l3 + l4 + l23),
+        l67,
+        (l1 + l2 + l3 + l4 + l23 + l67),
         cp.len()
     );
 
@@ -451,9 +521,11 @@ pub fn enumerate_candidate_positions_hc(input: &Input, output: &Output) -> Vec<P
             use_pattern3: true,
             use_pattern4: true,
             use_pattern23: false,
+            use_pattern67: false,
             limit_pattern2: Some(1000),
             limit_pattern3: Some(100),
             limit_pattern23: None,
+            limit_pattern67: None,
             filter_by_intersections1: Some(0),
             filter_by_intersections234: Some(0),
             filter_by_reach23: true,
@@ -465,6 +537,9 @@ pub fn enumerate_candidate_positions_hc(input: &Input, output: &Output) -> Vec<P
 
 /// これは岩田さん用設定のサンプル
 pub fn enumerate_candidate_positions_sa(input: &Input, output: &Output) -> Vec<P> {
+    unimplemented!();
+
+    /*
     enumerate_candidate_positions_with_config(
         input,
         output,
@@ -489,9 +564,11 @@ pub fn enumerate_candidate_positions_sa(input: &Input, output: &Output) -> Vec<P
             use_pattern3: false,
             use_pattern4: true,
             use_pattern23: true,
+            use_pattern67: true,
             limit_pattern2: None,
             limit_pattern3: None,
             limit_pattern23: Some(1000),
+            limit_pattern67: Some(1000),
             filter_by_intersections1: Some(0),
             filter_by_intersections234: None,
             filter_by_reach23: false,
@@ -499,4 +576,5 @@ pub fn enumerate_candidate_positions_sa(input: &Input, output: &Output) -> Vec<P
             pattern2_disallow_blocked: false,
         },
     )
+    */
 }
