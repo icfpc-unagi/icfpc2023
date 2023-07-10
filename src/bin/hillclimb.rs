@@ -8,6 +8,9 @@ struct Args {
     input_path: String,
     output_path: String,
     save_dir: String,
+
+    #[clap(long = "time-limit")]
+    time_limit: Option<f64>,
 }
 
 fn dump_output(output: &Output, save_dir: &str, score: i64) {
@@ -28,8 +31,10 @@ fn main() {
     let args = Args::parse();
     let input = read_input_from_file(&args.input_path);
     let mut output = read_output_from_file(&args.output_path);
-    let mut rng = rand::thread_rng();
 
+    random_hillclimb::hillclimb_random_move(&input, output, &args.save_dir, args.time_limit);
+
+    /*
     // 出力ディレクトリの準備
     let problem_name = std::path::Path::new(&args.input_path)
         .file_stem()
@@ -145,4 +150,5 @@ fn main() {
             }
         }
     }
+    */
 }

@@ -1,4 +1,5 @@
 use super::*;
+use rand::seq::SliceRandom;
 use rand::Rng;
 
 fn compute_grad(input: &Input, scorer: &DynamicScorer, musician_id: usize) -> P {
@@ -86,8 +87,13 @@ pub fn hillclimb_grad(
     let mut lr: f64 = 1000.0;
     let mut touch_force = vec![P(0.0, 0.0); input.n_musicians()];
 
+    let mut musicians_order = (0..input.n_musicians()).collect::<Vec<_>>();
+
     for iter in 0.. {
-        let musician_id = iter % input.n_musicians();
+        if iter % input.n_musicians() == 0 {
+            musicians_order.shuffle(&mut rng);
+        }
+        let musician_id = musicians_order[iter % input.n_musicians()];
 
         if iter > 0 && iter % 1000 == 0 {
             let current_score = scorer.get_score();
@@ -140,7 +146,7 @@ pub fn hillclimb_grad(
                 let time_now = get_time();
 
                 eprintln!(
-                    "UP t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
+                    "UP-G t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
                     time_now - time_start,
                     iter,
                     score_old,

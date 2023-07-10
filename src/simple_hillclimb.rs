@@ -202,7 +202,7 @@ pub fn hillclimb_candidate_findbest(
                 if score_best > score_old {
                     let time_now = get_time();
                     eprintln!(
-                        "UP t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
+                        "UP-C t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
                         time_now - time_start,
                         iter,
                         score_old,
