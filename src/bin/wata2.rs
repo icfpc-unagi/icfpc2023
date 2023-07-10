@@ -168,6 +168,8 @@ pub fn enumerate_candidate_positions_sa2(input: &Input, output: &Output) -> Vec<
             filter_by_reach23: false,
             filter_by_reach14: false,
             pattern2_disallow_blocked: false,
+            limit_pattern67: Some(10000),
+            use_pattern67: true,
         },
     );
     list
