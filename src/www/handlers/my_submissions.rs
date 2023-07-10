@@ -223,7 +223,7 @@ WHERE
 <td>{tags}</td>
 </tr>"#,
                 submission_id = submission_id,
-                official_id.unwrap_or(format!("{} (local-only)", submission_id)),
+                official_id = official_id.unwrap_or(format!("{} (local-only)", submission_id)),
                 submission_created = maybe_enrich_datetime_str(submission_created),
                 problem_url = build_url(&Query {
                     problem_id: problem_id,
