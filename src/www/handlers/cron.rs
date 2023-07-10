@@ -78,6 +78,31 @@ pub async fn update_official_submissions(offset: u32, limit: u32) -> Result<Vec<
     Ok(ids)
 }
 
+pub async fn update_pending_official_submissions() -> Result<Vec<String>> {
+    let mut ids = Vec::new();
+    for row in sql::select(
+        "
+SELECT
+    official_id
+FROM
+    submissions
+WHERE
+    submission_score IS NULL AND
+    submission_error IS NULL AND
+    official_id IS NOT NULL
+ORDER BY
+    RAND()",
+        mysql::Params::Empty,
+    )? {
+        let official_id: String = row.get("official_id")?;
+        eprintln!("Checking submission: {}", official_id);
+        if let Some(id) = insert_official_submission(&official_id).await? {
+            ids.push(id);
+        }
+    }
+    Ok(ids)
+}
+
 pub async fn update_official_problem(problem_id: u32) -> Result<()> {
     const CHUNK_SIZE: usize = 1024 * 1024;
     const TEMP_ID: u32 = 100000;
@@ -206,16 +231,30 @@ INSERT INTO problem_pngs(
 
 pub async fn handler() -> impl Responder {
     let mut buf = String::new();
-    match update_official_submissions(0, 100).await {
+    for i in 0..3 {
+        match update_official_submissions(i * 100, 100).await {
+            Ok(ids) => {
+                if ids.len() == 0 {
+                    buf.push_str("No submissions to update\n");
+                } else {
+                    buf.push_str(&format!("Added submissions: {:?}\n", ids));
+                }
+            }
+            Err(e) => {
+                buf.push_str(&format!("Failed to update submissions: {}\n", e));
+            }
+        }
+    }
+    match update_pending_official_submissions().await {
         Ok(ids) => {
             if ids.len() == 0 {
-                buf.push_str("No submissions to update\n");
+                buf.push_str("No pending submissions to update\n");
             } else {
-                buf.push_str(&format!("Added submissions: {:?}\n", ids));
+                buf.push_str(&format!("Updated pending submissions: {:?}\n", ids));
             }
         }
         Err(e) => {
-            buf.push_str(&format!("Failed to update submissions: {}\n", e));
+            buf.push_str(&format!("Failed to update pending submissions: {}\n", e));
         }
     }
     match update_official_problems().await {
