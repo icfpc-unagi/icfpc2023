@@ -156,15 +156,17 @@ fn main() {
         //dbg!(score);
         if score > best_score {
             best_ret = ret.clone();
+            let diff = score - best_score;
             best_score = score;
             best_cand = candidate.clone();
             eprintln!(
-                "{} {} {} {} +{}",
+                "{} {} +{} (first +{}) {} {}",
                 &cli.input,
+                best_score,
+                diff,
+                best_score - first_score,
                 (get_time() - stime),
                 iter,
-                best_score,
-                best_score - first_score
             );
         }
         //write_output(&best_ret);
