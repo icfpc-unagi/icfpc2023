@@ -29,7 +29,9 @@ impl fmt::Display for SubmissionStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SubmissionStatus::Processing => write!(f, "Pending"),
-            SubmissionStatus::Success(score) => write!(f, "{}", score.to_formatted_string(&Locale::en)),
+            SubmissionStatus::Success(score) => {
+                write!(f, "{}", score.to_formatted_string(&Locale::en))
+            }
             SubmissionStatus::Failure(e) => write!(f, "{}", e),
         }
     }
@@ -332,17 +334,21 @@ pub async fn submit(
     if let Some(arg0) = std::env::args().nth(0) {
         if let Some(arg0) = Path::new(&arg0).file_name() {
             if let Some(arg0) = arg0.to_str() {
-                builtin_tags.push(format!("NAME={}", arg0));
+                if arg0 != "submit" {
+                    builtin_tags.push(format!("NAME={}", arg0));
+                }
             }
         }
     }
     if let Ok(user) = std::env::var("USER") {
-        builtin_tags.push(format!("USER={}", user));
+        if user != "unagi" {
+            builtin_tags.push(format!("USER={}", user));
+        }
     }
-    let tags: Vec<&str> = builtin_tags
+    let tags: Vec<&str> = tags
         .iter()
-        .map(|s| s.as_str())
-        .chain(tags.iter().map(|&s| s))
+        .map(|&s| s)
+        .chain(builtin_tags.iter().map(|s| s.as_str()))
         .collect();
     // Submit to local DB or official API.
     if local {
