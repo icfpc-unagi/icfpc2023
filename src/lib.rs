@@ -7,6 +7,7 @@ use std::io::BufWriter;
 
 pub mod candidate_positions;
 pub mod differential;
+pub mod random_hillclimb;
 pub mod secret;
 pub mod simple_hillclimb;
 

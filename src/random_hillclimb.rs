@@ -1,47 +1,18 @@
-#![allow(non_snake_case)]
-use clap::Parser;
-use icfpc2023::*;
+use crate::simple_hillclimb::simple_hillclimb;
+
+use super::*;
+use rand::seq::SliceRandom;
 use rand::Rng;
 
-#[derive(Parser, Debug)]
-struct Args {
-    input_path: String,
-    output_path: String,
-    save_dir: String,
-
-    #[clap(long = "time-limit")]
+pub fn hillclimb_random_move(
+    input: &Input,
+    mut output: Output,
+    save_dir: &str,
     time_limit: Option<f64>,
-}
-
-fn dump_output(output: &Output, save_dir: &str, score: i64) {
-    let out_name = format!("{}.txt", score);
-    let out_path = format!("{}/{}", save_dir, out_name);
-    write_output_to_file(&output, &out_path);
-    eprintln!("Saved: {}", out_path);
-
-    let latest_path = format!("{}/latest.txt", save_dir);
-    let _ = std::fs::remove_file(&latest_path).ok();
-    let ret = std::os::unix::fs::symlink(out_name, latest_path);
-    if let Err(e) = ret {
-        eprintln!("Failed to create symlink: {:?}", e);
-    }
-}
-
-fn main() {
-    let args = Args::parse();
-    let input = read_input_from_file(&args.input_path);
-    let mut output = read_output_from_file(&args.output_path);
-
-    random_hillclimb::hillclimb_random_move(&input, output, &args.save_dir, args.time_limit);
-
-    /*
-    // 出力ディレクトリの準備
-    let problem_name = std::path::Path::new(&args.input_path)
-        .file_stem()
-        .and_then(|name| name.to_str())
-        .unwrap_or("");
-    let save_dir = args.save_dir.to_owned() + "/" + problem_name;
-    std::fs::create_dir_all(save_dir.to_owned()).unwrap();
+) -> Output {
+    let save_dir = simple_hillclimb::prepare_output_dir(&input, save_dir);
+    let time_limit = time_limit.unwrap_or(1e9);
+    let mut rng: rand::rngs::ThreadRng = rand::thread_rng();
 
     let mut scorerer = DynamicScorer::new_with_output(&input, &output);
     let score_original = scorerer.get_score();
@@ -51,10 +22,21 @@ fn main() {
     let mut d: f64 = 1.0;
     let time_start = get_time();
 
+    let mut musicians_order = (0..input.n_musicians()).collect::<Vec<_>>();
+
     for iter in 0.. {
+        if iter % input.n_musicians() == 0 {
+            musicians_order.shuffle(&mut rng);
+        }
+        let musician_id = musicians_order[iter % input.n_musicians()];
+
         let current_score = scorerer.get_score();
         if iter > 0 && iter % 1000 == 0 {
-            dump_output(&output, &save_dir, current_score);
+            simple_hillclimb::dump_output(&output, &save_dir, current_score);
+
+            if get_time() > time_start + time_limit {
+                break;
+            }
         }
 
         if iter - iter_last_update > 10000 {
@@ -65,8 +47,6 @@ fn main() {
             iter_last_update = iter;
             println!("New D: {} (iter={})", d, iter);
         }
-
-        let musician_id = iter % input.n_musicians();
 
         let vec; // 移動する方向のベクトル
         let is_orthogonal = rng.gen::<f64>() < 0.5;
@@ -116,7 +96,7 @@ fn main() {
                     let time_now = get_time();
 
                     eprintln!(
-                        "UP t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
+                        "UP-R t={:.1} iter={:10} {:10} -> {:10} --- {:+10} | {:+10}",
                         time_now - time_start,
                         iter,
                         score_old,
@@ -150,5 +130,6 @@ fn main() {
             }
         }
     }
-    */
+
+    output
 }

@@ -184,9 +184,12 @@ LIMIT :offset, :limit
             Ok(submission_id.to_string())
         })
         .collect::<Result<Vec<_>>>()?;
-    let tag_rows = sql::select(
-        &format!(
-            r#"
+    let tag_rows = if submission_ids.is_empty() {
+        Vec::new()
+    } else {
+        sql::select(
+            &format!(
+                r#"
 SELECT
     submission_id,
     submission_tag
@@ -195,10 +198,11 @@ FROM
 WHERE
     submission_id IN ({})
 "#,
-            submission_ids.join(",")
-        ),
-        mysql::Params::Empty,
-    )?;
+                submission_ids.join(",")
+            ),
+            mysql::Params::Empty,
+        )?
+    };
     let mut tag_map = HashMap::<_, Vec<_>>::new();
     for row in tag_rows {
         let submission_id: u32 = row.get("submission_id")?;
