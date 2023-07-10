@@ -15,6 +15,8 @@ COPY ./scripts/exec.sh /usr/local/bin/exec.sh
 RUN chmod +x /usr/local/bin/exec.sh
 COPY ./bin/gcsrun /usr/local/bin/gcsrun
 RUN chmod +x /usr/local/bin/gcsrun
+COPY ./bin/gcsinstall /usr/local/bin/gcsinstall
+RUN chmod +x /usr/local/bin/gcsinstall
 
 FROM rust-builder AS problems
 ARG UNAGI_PASSWORD
