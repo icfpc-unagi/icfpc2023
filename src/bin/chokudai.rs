@@ -247,7 +247,7 @@ fn main() {
                 }
 
                 let score = compute_score_fast(&inp, &ret).0;
-                dbg!(myans, score);
+                //dbg!(myans, score);
 
                 if pre_score == score {
                     break;
