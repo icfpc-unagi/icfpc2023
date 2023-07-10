@@ -72,7 +72,7 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: usize) -> Vec
             }
 
             heap.push((
-                (-dist as f64 * 100000.0 / maxpower) as i64 + rng.gen_range(0.0, 100.0) as i64,
+                (-dist as f64 * 100000.0 / maxpower) as i64 + rng.gen_range(0.0, 1000.0) as i64,
                 pattern,
                 0,
                 i,

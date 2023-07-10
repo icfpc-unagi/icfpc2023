@@ -62,7 +62,7 @@ fn main() {
 
     let tl: f64 = std::env::var("TL")
         .map(|a| a.parse().unwrap())
-        .unwrap_or(10800.0);
+        .unwrap_or(300.0);
     let stime = get_time();
 
     let mut iter = 0;
@@ -70,7 +70,7 @@ fn main() {
     loop {
         let t = (get_time() - stime) / tl;
         if t >= 1.0 {
-            eprintln!("Iter = {}", iter);
+            //eprintln!("Iter = {}", iter);
             break;
         }
 
