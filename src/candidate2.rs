@@ -6,6 +6,18 @@ use rand::Rng;
 
 use crate::{Input, P};
 
+pub fn get_all_candidate2(inp: &Input) -> Vec<P> {
+    let mut ret = vec![];
+    for i in 0..8 {
+        let vp: Vec<P> = vec![];
+        let r2 = get_candidate3(inp, &vp, i, false);
+        for r in r2 {
+            ret.push(r);
+        }
+    }
+    ret
+}
+
 pub fn get_candidate3(
     inp: &Input,
     first_cand: &Vec<P>,
@@ -75,6 +87,10 @@ pub fn get_candidate3(
 
         for j in 0..4 {
             if base_pos != 0.0 && j == 0 {
+                continue;
+            }
+
+            if j != 3 {
                 continue;
             }
 

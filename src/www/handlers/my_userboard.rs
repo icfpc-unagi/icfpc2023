@@ -43,12 +43,13 @@ NATURAL RIGHT JOIN(
         mysql::Params::Empty,
     )? {
         let problem_id: i64 = row.get("problem_id")?;
-        let submission_id = row.get_option::<i64>("submission_id")?;
+        let submission_id = row.get::<i64>("submission_id")?;
         let official_id = row.get_option::<String>("official_id")?;
         let submission_score = row.get_option::<i64>("submission_score")?;
         let submission_score = submission_score.unwrap_or(0);
         total_score += submission_score;
         let score = submission_score.to_formatted_string(&Locale::en);
+        let id = official_id.unwrap_or_else(|| submission_id.to_string());
         let score = match official_id
             .clone()
             .or_else(|| submission_id.map(|x| x.to_string()))
@@ -62,13 +63,14 @@ NATURAL RIGHT JOIN(
 問題番号: {}<br>
 スコア: {}<br>
 <div style="font-size: 70%">提出ID (#{}): {}</div>
-<img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;">
+<a href="/submission?submission_id={}"><img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;"></a>
 </div>
 "#,
             problem_id,
             score,
             submission_id.unwrap_or(0),
             official_id.clone().unwrap_or_else(|| "N/A".to_string()),
+            id
             problem_id,
         ));
     }

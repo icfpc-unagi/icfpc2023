@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use icfpc2023::{
-    candidate::get_all_candidate,
+    candidate2::get_all_candidate2,
     candidate_positions::{enumerate_candidate_positions_with_config, CandidateConfig},
     mcf::weighted_matching_with_capacity,
     *,
@@ -90,7 +90,7 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
         .unwrap_or(1)
         > 0
     {
-        cand_list.extend(get_all_candidate(input));
+        cand_list.extend(get_all_candidate2(input));
     }
     if !has_ans {
         for d in 0.. {
