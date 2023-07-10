@@ -181,7 +181,6 @@ fn main() {
                     iter,
                 );
             }
-            break;
         } else {
             let mut ret = best_ret.clone();
             let mut pre_score = -999999999;
