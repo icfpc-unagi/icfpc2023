@@ -451,6 +451,7 @@ pub mod input_stats;
 
 pub mod candidate;
 pub mod candidate2;
+pub mod candidate_ncirc;
 
 pub mod bigint_scoring;
 
