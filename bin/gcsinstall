@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Usage: gcsinstall <version> <command>
+
+VERSION="$1"
+COMMAND="$2"
+
+gsutil cp "gs://icfpc2023/bin/${VERSION}/${COMMAND}" "/usr/local/bin/${COMMAND}"
+chmod +x "/usr/local/bin/${COMMAND}"
