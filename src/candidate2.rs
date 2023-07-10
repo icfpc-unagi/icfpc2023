@@ -1,12 +1,17 @@
 #![allow(unused_imports)]
-use std::{collections::BinaryHeap, net::SocketAddr};
+use std::{collections::BinaryHeap, net::SocketAddr, ops::Mul};
 
 use aead::NewAead;
 use rand::Rng;
 
 use crate::{Input, P};
 
-pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: usize) -> Vec<P> {
+pub fn get_candidate3(
+    inp: &Input,
+    first_cand: &Vec<P>,
+    rand_flag: usize,
+    has_pillar: bool,
+) -> Vec<P> {
     let mut candidate = Vec::new();
 
     let mut heap = BinaryHeap::new();
@@ -330,55 +335,215 @@ pub fn get_candidate3(inp: &Input, first_cand: &Vec<P>, rand_flag: usize) -> Vec
         }
     }
 
-    let now_n = candidate.len();
-    for i in 0..now_n {
-        for j in i..now_n {
-            if (candidate[i] - candidate[j]).abs2() >= 400.0 {
-                continue;
-            }
-
-            if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
-                continue;
-            }
-
-            //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
-
-            let d1 = (candidate[i] - candidate[j]).abs();
-            let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.001;
-
-            if candidate[i].0 == candidate[j].0 {
-                let next_p = {
-                    if candidate[i].0 <= inp.stage0.0 + 15.0 {
-                        P(candidate[i].0 + d2, (candidate[i].1 + candidate[j].1) / 2.0)
-                    } else {
-                        P(candidate[i].0 - d2, (candidate[i].1 + candidate[j].1) / 2.0)
-                    }
-                };
-
-                if check_all_cand(&inp, &candidate, next_p) {
-                    candidate.push(next_p);
+    if !has_pillar && false {
+        let now_n = candidate.len();
+        for i in 0..now_n {
+            for j in i..now_n {
+                if (candidate[i] - candidate[j]).abs2() > 400.0 {
+                    continue;
                 }
 
-                //dbg!((ret_ps[i] - next_p).abs2());
-                //dbg!((ret_ps[j] - next_p).abs2());
-            }
-
-            if candidate[i].1 == candidate[j].1 {
-                let next_p = {
-                    if candidate[i].1 <= inp.stage0.1 + 15.0 {
-                        P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 + d2)
-                    } else {
-                        P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 - d2)
-                    }
-                };
-                if check_all_cand(&inp, &candidate, next_p) {
-                    candidate.push(next_p);
+                if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
+                    continue;
                 }
 
-                //dbg!((ret_ps[i] - next_p).abs2());
-                //dbg!((ret_ps[j] - next_p).abs2());
+                //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
+
+                let d1 = (candidate[i] - candidate[j]).abs();
+                let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.001;
+
+                if candidate[i].0 == candidate[j].0 {
+                    let next_p = {
+                        if candidate[i].0 <= inp.stage0.0 + 15.0 {
+                            P(candidate[i].0 + d2, (candidate[i].1 + candidate[j].1) / 2.0)
+                        } else {
+                            P(candidate[i].0 - d2, (candidate[i].1 + candidate[j].1) / 2.0)
+                        }
+                    };
+
+                    if check_all_cand(&inp, &candidate, next_p) {
+                        candidate.push(next_p);
+                    }
+
+                    //dbg!((ret_ps[i] - next_p).abs2());
+                    //dbg!((ret_ps[j] - next_p).abs2());
+                }
+
+                if candidate[i].1 == candidate[j].1 {
+                    let next_p = {
+                        if candidate[i].1 <= inp.stage0.1 + 15.0 {
+                            P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 + d2)
+                        } else {
+                            P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 - d2)
+                        }
+                    };
+                    if check_all_cand(&inp, &candidate, next_p) {
+                        candidate.push(next_p);
+                    }
+
+                    //dbg!((ret_ps[i] - next_p).abs2());
+                    //dbg!((ret_ps[j] - next_p).abs2());
+                }
             }
         }
+    }
+
+    if has_pillar || true {
+        let mut next = 0;
+
+        let mut heap = BinaryHeap::new();
+        let mut ps = vec![];
+        loop {
+            if next < candidate.len() {
+                let i = next;
+                for j in 0..next {
+                    if (candidate[i] - candidate[j]).abs2() >= 400.0 {
+                        continue;
+                    }
+
+                    if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
+                        continue;
+                    }
+
+                    //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
+
+                    let d1 = (candidate[i] - candidate[j]).abs();
+                    let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.0001;
+
+                    let v1 = candidate[j] - candidate[i];
+                    let v2 = v1.rot();
+                    let v2 = P(v2.0 / d1 * d2, v2.1 / d1 * d2);
+
+                    let p = candidate[i] + v1.mul(0.5) + v2;
+                    ps.push(p);
+                    heap.push((
+                        (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
+                        ps.len() - 1,
+                    ));
+
+                    let p = candidate[i] + v1.mul(0.5) - v2;
+                    ps.push(p);
+                    heap.push((
+                        (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
+                        ps.len() - 1,
+                    ));
+                }
+
+                next += 1;
+            } else {
+                if heap.is_empty() {
+                    break;
+                }
+                while !heap.is_empty() {
+                    let h = heap.pop().unwrap();
+
+                    let p = ps[h.1];
+
+                    if !has_pillar && h.0 as f64 >= 20.0 * 100000000000.0 {
+                        continue;
+                    }
+                    if h.0 as f64 >= 700.0 * 100000000000.0 {
+                        continue;
+                    }
+
+                    //dbg!(h.0, p);
+                    if check_all_cand(&inp, &candidate, p) {
+                        candidate.push(p);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /*
+        let mut pre = now_n;
+        loop {
+            let mut heap = BinaryHeap::new();
+            let mut ps = vec![];
+
+            let now_n = candidate.len();
+            for i in pre..now_n {
+                for j in i + 1..now_n {
+                    if (candidate[i] - candidate[j]).abs2() >= 400.0 {
+                        continue;
+                    }
+
+                    if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
+                        continue;
+                    }
+
+                    //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
+
+                    let d1 = (candidate[i] - candidate[j]).abs();
+                    let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.0001;
+
+                    let v1 = candidate[i] - candidate[j];
+                    let v2 = v1.rot();
+                    let v2 = P(v2.0 / d1 * d2, v2.1 / d1 * d2);
+
+                    let p = candidate[i] + v1.mul(0.5) + v2;
+                    ps.push(p);
+                    heap.push((
+                        (get_stage_diff(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
+                        ps.len() - 1,
+                    ));
+                    let p = candidate[i] + v1.mul(0.5) - v2;
+                    ps.push(p);
+                    heap.push((
+                        (get_stage_diff(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
+                        ps.len() - 1,
+                    ));
+
+                    /*
+                    if candidate[i].0 == candidate[j].0 {
+                        let next_p = {
+                            if candidate[i].0 <= (inp.stage0.0 + inp.stage1.0) / 2.0 {
+                                P(candidate[i].0 + d2, (candidate[i].1 + candidate[j].1) / 2.0)
+                            } else {
+                                P(candidate[i].0 - d2, (candidate[i].1 + candidate[j].1) / 2.0)
+                            }
+                        };
+
+                        if check_all_cand(&inp, &candidate, next_p) {
+                            candidate.push(next_p);
+                        }
+
+                        //dbg!((ret_ps[i] - next_p).abs2());
+                        //dbg!((ret_ps[j] - next_p).abs2());
+                    }
+
+                    if candidate[i].1 == candidate[j].1 {
+                        let next_p = {
+                            if candidate[i].1 <= (inp.stage0.1 + inp.stage1.1) / 2.0 {
+                                P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 + d2)
+                            } else {
+                                P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 - d2)
+                            }
+                        };
+                        if check_all_cand(&inp, &candidate, next_p) {
+                            candidate.push(next_p);
+                        }
+
+                        //dbg!((ret_ps[i] - next_p).abs2());
+                        //dbg!((ret_ps[j] - next_p).abs2());
+                    }
+                    */
+                }
+            }
+
+            while !heap.is_empty() {
+                let p = ps[heap.pop().unwrap().1];
+                if check_all_cand(&inp, &candidate, p) {
+                    candidate.push(p);
+                }
+            }
+
+            if now_n == candidate.len() {
+                break;
+            }
+            pre = now_n;
+        }
+        */
     }
 
     //dbg!(candidate.len());
@@ -522,4 +687,28 @@ fn get_stage_diff(target: P, lb: P, ru: P) -> f64 {
         }
     };
     xdiff + ydiff
+}
+
+fn get_stage_diff_inside(target: P, lb: P, ru: P) -> f64 {
+    let mut ans = 9999999999999.9;
+    let a = target.0 - lb.0;
+    if ans > a {
+        ans = a;
+    }
+    let a = target.1 - lb.1;
+    if ans > a {
+        ans = a;
+    }
+
+    let a = ru.0 - target.0;
+    if ans > a {
+        ans = a;
+    }
+
+    let a = ru.1 - target.1;
+    if ans > a {
+        ans = a;
+    }
+
+    ans
 }

@@ -79,7 +79,8 @@ fn main() {
         let mut first_cand = vec![];
         if best_cand.len() != 0 {
             let target_cand = best_cand[rng.gen_range(0, best_cand.len())].clone();
-            let target_range = rng.gen_range(30.0, 100.0);
+            let target_range = rng.gen_range(20.0, 200.0);
+            //let target_range = 50000.0;
 
             for i in 0..best_cand.len() {
                 if (target_cand - best_cand[i]).abs() > target_range {
@@ -88,86 +89,188 @@ fn main() {
             }
         }
 
-        let candidate = get_candidate3(&inp, &first_cand, iter);
+        let candidate = get_candidate3(&inp, &first_cand, iter, inp.pillars.len() != 0);
 
-        let pos_to_music = compute_score_for_instruments(&inp, &candidate);
+        if inp.pillars.len() == 0 {
+            let pos_to_music = compute_score_for_instruments(&inp, &candidate);
 
-        //dbg!(candidate.len());
-        let mut ar = Vec::new();
-        for i in 0..pos_to_music[0].len() {
-            let mut br = Vec::new();
-            for j in 0..pos_to_music.len() {
-                br.push(pos_to_music[j][i]);
+            //dbg!(candidate.len());
+            let mut ar = Vec::new();
+            for i in 0..pos_to_music[0].len() {
+                let mut br = Vec::new();
+                for j in 0..pos_to_music.len() {
+                    if pos_to_music[j][i] > 0 {
+                        br.push(pos_to_music[j][i]);
+                    } else {
+                        br.push(0);
+                    }
+                }
+                ar.push(br);
             }
-            ar.push(br);
-        }
 
-        let ans = weighted_matching_with_capacity(&ar, &music_num);
+            let ans = weighted_matching_with_capacity(&ar, &music_num);
 
-        let mut ret = (vec![P(0.0, 0.0); m], vec![10.0; m]);
-        for i in 0..ans.1.len() {
-            for j in 0..ans.1[i].len() {
-                ret.0[music_index[i][j]] = candidate[ans.1[i][j]];
-                if ar[i][ans.1[i][j]] == 0 {
-                    ret.1[music_index[i][j]] = 0.0;
+            let mut ret = (vec![P(0.0, 0.0); m], vec![10.0; m]);
+            for i in 0..ans.1.len() {
+                for j in 0..ans.1[i].len() {
+                    ret.0[music_index[i][j]] = candidate[ans.1[i][j]];
+                    if ar[i][ans.1[i][j]] == 0 {
+                        ret.1[music_index[i][j]] = 0.0;
+                    }
                 }
             }
-        }
-        //let score = ans.0;
+            //let score = ans.0;
 
-        let mut cand2 = Vec::new();
-        for i in 0..inp.musicians.len() {
-            cand2.push(ret.0[i]);
-            //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
-            //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
-        }
-
-        let candidate = cand2.clone();
-        let mut position = vec![];
-        for i in 0..cand2.len() {
-            position.push(cand2[i].clone());
-        }
-
-        let pos_to_music = compute_score_for_instruments(&inp, &position);
-
-        let mut ar = Vec::new();
-        for i in 0..pos_to_music[0].len() {
-            let mut br = Vec::new();
-            for j in 0..pos_to_music.len() {
-                br.push(pos_to_music[j][i]);
+            let mut cand2 = Vec::new();
+            for i in 0..inp.musicians.len() {
+                cand2.push(ret.0[i]);
+                //dbg!(pos_to_music[ans.1[i]][inp.musicians[i]]);
+                //dbg!(compute_score_for_a_musician_fast(&inp, &ret, i).0);
             }
-            ar.push(br);
-        }
 
-        let ans = weighted_matching_with_capacity(&ar, &music_num);
+            let candidate = cand2.clone();
+            let mut position = vec![];
+            for i in 0..cand2.len() {
+                position.push(cand2[i].clone());
+            }
 
-        let mut ret = (vec![P(0.0, 0.0); m], vec![10.0; m]);
-        for i in 0..ans.1.len() {
-            for j in 0..ans.1[i].len() {
-                ret.0[music_index[i][j]] = cand2[ans.1[i][j]];
-                if ar[i][ans.1[i][j]] == 0 {
-                    ret.1[music_index[i][j]] = 0.0;
+            let pos_to_music = compute_score_for_instruments(&inp, &position);
+
+            let mut ar = Vec::new();
+            for i in 0..pos_to_music[0].len() {
+                let mut br = Vec::new();
+                for j in 0..pos_to_music.len() {
+                    if pos_to_music[j][i] > 0 {
+                        br.push(pos_to_music[j][i]);
+                    } else {
+                        br.push(0);
+                    }
+                }
+                ar.push(br);
+            }
+
+            let ans = weighted_matching_with_capacity(&ar, &music_num);
+
+            let mut ret = (vec![P(0.0, 0.0); m], vec![10.0; m]);
+            for i in 0..ans.1.len() {
+                for j in 0..ans.1[i].len() {
+                    ret.0[music_index[i][j]] = cand2[ans.1[i][j]];
+                    if ar[i][ans.1[i][j]] == 0 {
+                        ret.1[music_index[i][j]] = 0.0;
+                    }
                 }
             }
-        }
 
-        let score = compute_score_fast(&inp, &ret).0;
+            let score = compute_score_fast(&inp, &ret).0;
 
-        //dbg!(score);
-        if score > best_score {
-            best_ret = ret.clone();
-            let diff = score - best_score;
-            best_score = score;
-            best_cand = candidate.clone();
-            eprintln!(
-                "{} {} +{} (first +{}) {} {}",
-                &cli.input,
-                best_score,
-                diff,
-                best_score - first_score,
-                (get_time() - stime),
-                iter,
-            );
+            //dbg!(score);
+            if score > best_score {
+                best_ret = ret.clone();
+                let diff = score - best_score;
+                best_score = score;
+                best_cand = candidate.clone();
+                eprintln!(
+                    "{} {} +{} (first +{}) {} {}",
+                    &cli.input,
+                    best_score,
+                    diff,
+                    best_score - first_score,
+                    (get_time() - stime),
+                    iter,
+                );
+            }
+        } else {
+            let mut ret = best_ret.clone();
+            let mut pre_score = -999999999;
+
+            let pos_to_music = compute_score_for_instruments(&inp, &candidate);
+
+            let mut ar = Vec::new();
+            for i in 0..pos_to_music[0].len() {
+                let mut br = Vec::new();
+                for j in 0..pos_to_music.len() {
+                    if pos_to_music[j][i] > 0 {
+                        br.push(pos_to_music[j][i]);
+                    } else {
+                        br.push(0);
+                    }
+                }
+                ar.push(br);
+            }
+
+            for ttt in 0..5 {
+                let ret_to_music = compute_score_for_instruments(&inp, &(ret.0));
+
+                let mut effect = vec![vec![0; candidate.len()]; music_n];
+
+                for i in 0..ret.0.len() {
+                    let target_p = ret.0[i];
+                    let music = inp.musicians[i];
+                    let attack = ret_to_music[i][music];
+
+                    for j in 0..candidate.len() {
+                        let mut di = (candidate[j] - target_p).abs();
+                        if di < 10.0 {
+                            di = 10.0;
+                            //continue;
+                            //di = 1.0;
+                        }
+                        if ttt != 0 {
+                            effect[music][j] += ((attack as f64) * (1.0 / di)) as i64;
+                        }
+                    }
+                }
+
+                let mut cr = vec![vec![0; candidate.len()]; music_n];
+
+                for i in 0..music_n {
+                    for j in 0..candidate.len() {
+                        cr[i][j] = ar[i][j] + effect[i][j];
+                        //dbg!(cr[i][j]);
+                    }
+                }
+
+                //eprintln!("{} {} {} {}", ar.len(), ar[0].len(), cr.len(), cr[0].len());
+                let ans = weighted_matching_with_capacity(&cr, &music_num);
+
+                let mut myans = 0;
+                for i in 0..ans.1.len() {
+                    for j in 0..ans.1[i].len() {
+                        ret.0[music_index[i][j]] = candidate[ans.1[i][j]];
+                        if cr[i][ans.1[i][j]] <= 0 {
+                            ret.1[music_index[i][j]] = 0.0;
+                        } else {
+                            ret.1[music_index[i][j]] = 10.0;
+                            myans += cr[i][ans.1[i][j]] * 10;
+                        }
+                    }
+                }
+
+                let score = compute_score_fast(&inp, &ret).0;
+                dbg!(myans, score);
+
+                if pre_score == score {
+                    break;
+                }
+                pre_score = score;
+            }
+
+            //dbg!(score);
+            if pre_score > best_score {
+                best_ret = ret.clone();
+                let diff = pre_score - best_score;
+                best_score = pre_score;
+                best_cand = candidate.clone();
+                eprintln!(
+                    "{} {} +{} (first +{}) {} {}",
+                    &cli.input,
+                    best_score,
+                    diff,
+                    best_score - first_score,
+                    (get_time() - stime),
+                    iter,
+                );
+            }
         }
         //write_output(&best_ret);
     }
