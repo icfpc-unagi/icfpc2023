@@ -79,7 +79,9 @@ fn main() {
         let mut first_cand = vec![];
         if best_cand.len() != 0 {
             let target_cand = best_cand[rng.gen_range(0, best_cand.len())].clone();
-            let target_range = rng.gen_range(20.0, 200.0);
+
+            let maxdiff = (inp.stage1.0 - inp.stage0.0 + inp.stage1.1 - inp.stage0.1) / 4.0;
+            let target_range = rng.gen_range(20.0, maxdiff);
             //let target_range = 50000.0;
 
             for i in 0..best_cand.len() {
@@ -233,7 +235,7 @@ fn main() {
                 //eprintln!("{} {} {} {}", ar.len(), ar[0].len(), cr.len(), cr[0].len());
                 let ans = weighted_matching_with_capacity(&cr, &music_num);
 
-                let mut myans = 0;
+                //let mut myans = 0;
                 for i in 0..ans.1.len() {
                     for j in 0..ans.1[i].len() {
                         ret.0[music_index[i][j]] = candidate[ans.1[i][j]];
@@ -241,7 +243,7 @@ fn main() {
                             ret.1[music_index[i][j]] = 0.0;
                         } else {
                             ret.1[music_index[i][j]] = 10.0;
-                            myans += cr[i][ans.1[i][j]] * 10;
+                            //myans += cr[i][ans.1[i][j]] * 10;
                         }
                     }
                 }

@@ -44,6 +44,8 @@ pub fn get_candidate3(
         }
     };
 
+    let wide = rng.gen_range(0.5, 9.5);
+
     for i in 0..inp.pos.len() {
         let dist = get_stage_diff(inp.pos[i], inp.stage0, inp.stage1) as i64;
 
@@ -71,7 +73,7 @@ pub fn get_candidate3(
             pattern += 8;
         }
 
-        for j in 0..3 {
+        for j in 0..4 {
             if base_pos != 0.0 && j == 0 {
                 continue;
             }
@@ -217,25 +219,39 @@ pub fn get_candidate3(
         } else if chal_type == 1 {
             let mut ps = Vec::new();
 
+            let add_mini = {
+                if base_pos as i64 as f64 == base_pos {
+                    0.0
+                } else {
+                    0.000000001
+                }
+            };
+
             if pattern == 2 {
                 ps = vec![
                     P(
-                        base_pos + inp.pos[id].0 + (5.00 + ten * num as f64),
+                        base_pos
+                            + inp.pos[id].0
+                            + (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage0.1 + 10.0,
                     ),
                     P(
-                        base_pos + inp.pos[id].0 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].0
+                            - (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage0.1 + 10.0,
                     ),
                 ];
             } else if pattern == 8 {
                 ps = vec![
                     P(
-                        base_pos + inp.pos[id].0 + (5.00 + ten * num as f64),
+                        base_pos
+                            + inp.pos[id].0
+                            + (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage1.1 - 10.0,
                     ),
                     P(
-                        base_pos + inp.pos[id].0 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].0
+                            - (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage1.1 - 10.0,
                     ),
                 ];
@@ -243,22 +259,28 @@ pub fn get_candidate3(
                 ps = vec![
                     P(
                         inp.stage0.0 + 10.0,
-                        base_pos + inp.pos[id].1 + (5.00 + ten * num as f64),
+                        base_pos
+                            + inp.pos[id].1
+                            + (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                     P(
                         inp.stage0.0 + 10.0,
-                        base_pos + inp.pos[id].1 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].1
+                            - (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                 ];
             } else if pattern == 4 {
                 ps = vec![
                     P(
                         inp.stage1.0 - 10.0,
-                        base_pos + inp.pos[id].1 + (5.00 + ten * num as f64),
+                        base_pos
+                            + inp.pos[id].1
+                            + (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                     P(
                         inp.stage1.0 - 10.0,
-                        base_pos + inp.pos[id].1 - (5.00 + ten * num as f64),
+                        base_pos + inp.pos[id].1
+                            - (5.00 + ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                 ];
             }
@@ -273,28 +295,42 @@ pub fn get_candidate3(
             if flag {
                 heap.push((dist - 100, pattern, num + 1, id, chal_type));
             }
-        } else {
+        } else if chal_type == 2 {
             let mut ps = Vec::new();
 
+            let add_mini = {
+                if base_pos as i64 as f64 == base_pos {
+                    0.0
+                } else {
+                    0.000000001
+                }
+            };
+
             if pattern == 2 {
                 ps = vec![
                     P(
-                        base_pos + inp.pos[id].0 + (ten * num as f64),
+                        base_pos
+                            + inp.pos[id].0
+                            + (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage0.1 + 10.0,
                     ),
                     P(
-                        base_pos + inp.pos[id].0 - (ten * num as f64),
+                        base_pos + inp.pos[id].0
+                            - (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage0.1 + 10.0,
                     ),
                 ];
             } else if pattern == 8 {
                 ps = vec![
                     P(
-                        base_pos + inp.pos[id].0 + (ten * num as f64),
+                        base_pos
+                            + inp.pos[id].0
+                            + (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage1.1 - 10.0,
                     ),
                     P(
-                        base_pos + inp.pos[id].0 - (ten * num as f64),
+                        base_pos + inp.pos[id].0
+                            - (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                         inp.stage1.1 - 10.0,
                     ),
                 ];
@@ -302,22 +338,28 @@ pub fn get_candidate3(
                 ps = vec![
                     P(
                         inp.stage0.0 + 10.0,
-                        base_pos + inp.pos[id].1 + (ten * num as f64),
+                        base_pos
+                            + inp.pos[id].1
+                            + (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                     P(
                         inp.stage0.0 + 10.0,
-                        base_pos + inp.pos[id].1 - (ten * num as f64),
+                        base_pos + inp.pos[id].1
+                            - (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                 ];
             } else if pattern == 4 {
                 ps = vec![
                     P(
                         inp.stage1.0 - 10.0,
-                        base_pos + inp.pos[id].1 + (ten * num as f64),
+                        base_pos
+                            + inp.pos[id].1
+                            + (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                     P(
                         inp.stage1.0 - 10.0,
-                        base_pos + inp.pos[id].1 - (ten * num as f64),
+                        base_pos + inp.pos[id].1
+                            - (ten * num as f64 + add_mini * (num as f64 + 1.0)),
                     ),
                 ];
             }
@@ -332,63 +374,148 @@ pub fn get_candidate3(
             if flag {
                 heap.push((dist - 100, pattern, num + 1, id, chal_type));
             }
-        }
-    }
+        } else if chal_type == 3 {
+            //あなをあける！
+            let add_d = (wide + 10.0) / 2.0;
+            let up = (100.0 as f64 - add_d * add_d).sqrt() + 0.001;
 
-    if !has_pillar && false {
-        let now_n = candidate.len();
-        for i in 0..now_n {
-            for j in i..now_n {
-                if (candidate[i] - candidate[j]).abs2() > 400.0 {
-                    continue;
+            let add_mini = {
+                if base_pos as i64 as f64 == base_pos {
+                    0.0
+                } else {
+                    0.000000001
                 }
+            };
 
-                if (candidate[i] - candidate[j]).abs2() < 100.0 - 0.000000001 {
-                    continue;
+            let mut ps = Vec::new();
+            if pattern == 2 {
+                ps = vec![
+                    P(
+                        base_pos
+                            + inp.pos[id].0
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            + add_d,
+                        inp.stage0.1 + 10.0,
+                    ),
+                    P(
+                        base_pos + inp.pos[id].0
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            - add_d,
+                        inp.stage0.1 + 10.0,
+                    ),
+                    P(
+                        base_pos
+                            + inp.pos[id].0
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                        inp.stage0.1 + 10.0 + up,
+                    ),
+                    P(
+                        base_pos + inp.pos[id].0
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                        inp.stage0.1 + 10.0 + up,
+                    ),
+                ];
+            } else if pattern == 8 {
+                ps = vec![
+                    P(
+                        base_pos
+                            + inp.pos[id].0
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            + add_d,
+                        inp.stage1.1 - 10.0,
+                    ),
+                    P(
+                        base_pos + inp.pos[id].0
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            - add_d,
+                        inp.stage1.1 - 10.0,
+                    ),
+                    P(
+                        base_pos
+                            + inp.pos[id].0
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                        inp.stage1.1 - 10.0 - up,
+                    ),
+                    P(
+                        base_pos + inp.pos[id].0
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                        inp.stage1.1 - 10.0 - up,
+                    ),
+                ];
+            } else if pattern == 1 {
+                ps = vec![
+                    P(
+                        inp.stage0.0 + 10.0,
+                        base_pos
+                            + inp.pos[id].1
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            + add_d,
+                    ),
+                    P(
+                        inp.stage0.0 + 10.0,
+                        base_pos + inp.pos[id].1
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            - add_d,
+                    ),
+                    P(
+                        inp.stage0.0 + 10.0 + up,
+                        base_pos
+                            + inp.pos[id].1
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                    ),
+                    P(
+                        inp.stage0.0 + 10.0 + up,
+                        base_pos + inp.pos[id].1
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                    ),
+                ];
+            } else if pattern == 4 {
+                ps = vec![
+                    P(
+                        inp.stage1.0 - 10.0,
+                        base_pos
+                            + inp.pos[id].1
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            + add_d,
+                    ),
+                    P(
+                        inp.stage1.0 - 10.0,
+                        base_pos + inp.pos[id].1
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64)
+                            - add_d,
+                    ),
+                    P(
+                        inp.stage1.0 - 10.0 - up,
+                        base_pos
+                            + inp.pos[id].1
+                            + (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                    ),
+                    P(
+                        inp.stage1.0 - 10.0 - up,
+                        base_pos + inp.pos[id].1
+                            - (5.0 + add_mini * (num as f64 + 1.0) + ten * num as f64),
+                    ),
+                ];
+            }
+
+            for ii in 0..ps.len() {
+                if num >= 1 && ii >= 2 {
+                    break;
                 }
-
-                //dbg!(base_num[i], base_num[j], base_pat[i], base_pat[j]);
-
-                let d1 = (candidate[i] - candidate[j]).abs();
-                let d2 = (10.0 * 10.0 - d1 * d1 / 4.0).sqrt() + 0.001;
-
-                if candidate[i].0 == candidate[j].0 {
-                    let next_p = {
-                        if candidate[i].0 <= inp.stage0.0 + 15.0 {
-                            P(candidate[i].0 + d2, (candidate[i].1 + candidate[j].1) / 2.0)
-                        } else {
-                            P(candidate[i].0 - d2, (candidate[i].1 + candidate[j].1) / 2.0)
-                        }
-                    };
-
-                    if check_all_cand(&inp, &candidate, next_p) {
-                        candidate.push(next_p);
-                    }
-
-                    //dbg!((ret_ps[i] - next_p).abs2());
-                    //dbg!((ret_ps[j] - next_p).abs2());
+                let p = ps[ii];
+                if check_all_cand(&inp, &candidate, p) {
+                    candidate.push(p);
+                    flag = true;
                 }
+            }
 
-                if candidate[i].1 == candidate[j].1 {
-                    let next_p = {
-                        if candidate[i].1 <= inp.stage0.1 + 15.0 {
-                            P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 + d2)
-                        } else {
-                            P((candidate[i].0 + candidate[j].0) / 2.0, candidate[i].1 - d2)
-                        }
-                    };
-                    if check_all_cand(&inp, &candidate, next_p) {
-                        candidate.push(next_p);
-                    }
-
-                    //dbg!((ret_ps[i] - next_p).abs2());
-                    //dbg!((ret_ps[j] - next_p).abs2());
-                }
+            if flag {
+                heap.push((dist - 100, pattern, num + 1, id, chal_type));
             }
         }
     }
 
-    if has_pillar || true {
+    if true {
         let mut next = 0;
 
         let mut heap = BinaryHeap::new();
