@@ -1,3 +1,4 @@
+use crate::www::handlers::my_submissions;
 use crate::*;
 
 use actix_web::Responder;
@@ -42,7 +43,7 @@ NATURAL RIGHT JOIN(
 ) AS t2",
         mysql::Params::Empty,
     )? {
-        let problem_id: i64 = row.get("problem_id")?;
+        let problem_id: u32 = row.get("problem_id")?;
         let submission_id = row.get::<i64>("submission_id")?;
         let official_id = row.get_option::<String>("official_id")?;
         let submission_score = row.get_option::<i64>("submission_score")?;
@@ -56,18 +57,21 @@ NATURAL RIGHT JOIN(
         buf.push_str(&format!(
             r#"
 <div style="display: inline-block; min-width: 200px; width: 20%; margin: 1em; text-align: right">
-問題番号: {}<br>
-スコア: {}<br>
-<div style="font-size: 70%">提出ID (#{}): {}</div>
-<a href="/submission?submission_id={}"><img src="/problem_png?problem_id={}" style="width: 200px; height: 200px; object-fit: contain;"></a>
+<a href="{problem_url}">問題 {problem_id}</a><br>
+スコア: {score}<br>
+<div style="font-size: 70%">提出ID (#{submission_id}): {official_id}</div>
+<a href="/submission?submission_id={id}"><img src="/problem_png?problem_id={problem_id}" style="width: 200px; height: 200px; object-fit: contain;"></a>
 </div>
 "#,
-            problem_id,
-            score,
-            submission_id,
-            official_id.clone().unwrap_or("N/A".into()),
-            id,
-            problem_id,
+            problem_url = my_submissions::build_url(&my_submissions::Query {
+                problem_id: problem_id,
+                ..my_submissions::Query::default()
+            }),
+            problem_id = problem_id,
+            score = score,
+            submission_id = submission_id,
+            official_id = official_id.clone().unwrap_or("N/A".into()),
+            id = id,
         ));
     }
     Ok(format!(
