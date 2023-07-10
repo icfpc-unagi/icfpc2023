@@ -259,14 +259,15 @@ INSERT INTO problem_pngs(
 
 pub async fn handler() -> impl Responder {
     let mut buf = String::new();
-    // Pick 3 page numbers randomly from 3 to 30.
+
     let mut rng = rand::thread_rng();
-    let mut page_numbers = (3..=30).collect::<Vec<u32>>();
+    let mut page_numbers = (2..=30).collect::<Vec<u32>>();
     page_numbers.shuffle(&mut rng);
     page_numbers.truncate(2);
     for i in 0..2 {
         page_numbers.push(i)
     }
+
     for i in page_numbers {
         match update_official_submissions(i * 100, 100).await {
             Ok(ids) => {
