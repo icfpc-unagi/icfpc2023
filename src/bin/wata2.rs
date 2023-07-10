@@ -197,7 +197,11 @@ fn extend_cand(input: &Input, cand: &mut Vec<P>, best: &Vec<P>) {
             .partial_cmp(&(q - center).abs2())
             .unwrap()
     });
-    ex_cand.truncate(2000);
+    ex_cand.truncate(
+        std::env::var("NUM_CAND")
+            .map(|a| a.parse().unwrap())
+            .unwrap_or(2000),
+    );
     // let used = best.iter().cloned().collect::<BTreeSet<_>>();
     // let (_, _, svg) = vis::vis_cand(
     //     input,
