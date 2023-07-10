@@ -14,6 +14,23 @@ async fn insert_official_submission(official_id: &str) -> Result<Option<String>>
         api::SubmissionStatus::Success(score) => (Some(score), None),
         api::SubmissionStatus::Failure(error) => (None, Some(error)),
     };
+    // sql::exec(
+    //     "REPLACE INTO submissions(
+    //     official_id,
+    //     problem_id,
+    //     submission_score,
+    //     submission_error,
+    //     submission_contents,
+    //     submission_created
+    // ) VALUES (
+    //     :official_id,
+    //     :problem_id,
+    //     :submission_score,
+    //     :submission_error,
+    //     :submission_contents,
+    //     :submission_created
+    // )",
+    // Rewrite with INSERT ON DUPLICATE KEY UPDATE below
     sql::exec(
         "INSERT INTO submissions(
             official_id,
@@ -30,9 +47,11 @@ async fn insert_official_submission(official_id: &str) -> Result<Option<String>>
             :submission_contents,
             :submission_created
         ) ON DUPLICATE KEY UPDATE
+            problem_id = :problem_id,
             submission_score = :submission_score,
             submission_error = :submission_error,
             submission_contents = :submission_contents,
+            submission_created = :submission_created
         ",
         params! {
             "official_id" => &submission.submission._id,
