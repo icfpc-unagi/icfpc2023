@@ -510,6 +510,11 @@ fn main() {
             (best_score.round() as i64).to_formatted_string(&Locale::en),
             ((best_score - init_score).round() as i64).to_formatted_string(&Locale::en)
         );
+        let out = state.get_output(&cand);
+        write_output_to_file(
+            &out,
+            &format!("{}/{}.json", outdir, input.problem_id.unwrap_or(0)),
+        );
         let mut sum = 1.0;
         let mut cnt = 0;
 
