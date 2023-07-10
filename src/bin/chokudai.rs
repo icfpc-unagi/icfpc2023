@@ -165,12 +165,14 @@ fn main() {
                 }
             }
 
-            let score = compute_score_fast(&inp, &ret).0;
-            dbg!(score);
+            let mut score = compute_score_fast(&inp, &ret).0;
+            //dbg!(score);
 
-            ret = hillclimb_grad(&inp, ret, "out_chokuiwi", Some(10.0));
-            let score = compute_score_fast(&inp, &ret).0;
-            dbg!(score);
+            if score as f64 >= best_score as f64 * 0.98 {
+                ret = hillclimb_grad(&inp, ret, "out_chokuiwi", Some(30.0));
+                score = compute_score_fast(&inp, &ret).0;
+                //dbg!(score);
+            }
 
             if score > best_score {
                 best_ret = ret.clone();
@@ -257,14 +259,16 @@ fn main() {
                 let score = compute_score_fast(&inp, &ret).0;
                 dbg!(score);
 
-                ret = hillclimb_grad(&inp, ret, "out_chokuiwi", Some(10.0));
-                let score = compute_score_fast(&inp, &ret).0;
-                dbg!(score);
-
                 if pre_score == score {
                     break;
                 }
                 pre_score = score;
+            }
+
+            if pre_score as f64 >= best_score as f64 * 0.9 {
+                best_ret = hillclimb_grad(&inp, best_ret, "out_chokuiwi", Some(30.0));
+                let score = compute_score_fast(&inp, &ret).0;
+                //dbg!(score);
             }
 
             if pre_score > best_score {
