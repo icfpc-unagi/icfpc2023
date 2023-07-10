@@ -56,18 +56,18 @@ fn main() {
             simple_hillclimb::dump_output(&output, &save_dir, current_score);
         }
 
-        let grad = compute_grad(&input, &scorer, musician_id) * 1e-8 + touch_force[musician_id];
-        touch_force[musician_id] = P(0.0, 0.0);
+        // let grad = compute_grad(&input, &scorer, musician_id) * 1e-8 + touch_force[musician_id];
+        // touch_force[musician_id] = P(0.0, 0.0);
 
-        // let grad = compute_grad(&input, &scorer, musician_id);
+        let grad = compute_grad(&input, &scorer, musician_id);
         if grad == P(0.0, 0.0) {
             continue;
         }
 
-        let vec = grad;
+        // let vec = grad;
         // dbg!(&grad);
-        // let vec = grad * (1.0 / grad.abs()) + touch_force[musician_id];
-        // touch_force[musician_id] = P(0.0, 0.0);
+        let vec = grad * (1.0 / grad.abs()); // + touch_force[musician_id];
+        touch_force[musician_id] = P(0.0, 0.0);
 
         //
         // ここから下はhillclimbコピペ
