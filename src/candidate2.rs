@@ -590,22 +590,31 @@ pub fn get_candidate3(
                     let v2 = P(v2.0 / d1 * d2, v2.1 / d1 * d2);
 
                     let p = candidate[i] + v1.mul(0.5) + v2;
-                    ps.push(p);
 
-                    //let d1 = get_stage_diff_inside(candidate[i], inp.stage0, inp.stage1);
-                    //let d2 = get_stage_diff_inside(candidate[j], inp.stage0, inp.stage1);
+                    let d1 = get_stage_diff_inside(candidate[i], inp.stage0, inp.stage1);
+                    let d2 = get_stage_diff_inside(candidate[j], inp.stage0, inp.stage1);
+                    let d3 = get_stage_diff_inside(p, inp.stage0, inp.stage1);
 
-                    heap.push((
-                        (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
-                        ps.len() - 1,
-                    ));
+                    if d1 + d2 <= d3 + d3 {
+                        ps.push(p);
+                        heap.push((
+                            (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0)
+                                as i64,
+                            ps.len() - 1,
+                        ));
+                    }
 
                     let p = candidate[i] + v1.mul(0.5) - v2;
-                    ps.push(p);
-                    heap.push((
-                        (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0) as i64,
-                        ps.len() - 1,
-                    ));
+                    let d3 = get_stage_diff_inside(p, inp.stage0, inp.stage1);
+
+                    if d1 + d2 <= d3 + d3 {
+                        ps.push(p);
+                        heap.push((
+                            (-get_stage_diff_inside(p, inp.stage0, inp.stage1) * 100000000000.0)
+                                as i64,
+                            ps.len() - 1,
+                        ));
+                    }
                 }
 
                 next += 1;

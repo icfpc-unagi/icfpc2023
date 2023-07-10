@@ -166,7 +166,7 @@ fn main() {
             let score = compute_score_fast(&inp, &ret).0;
 
             //dbg!(score);
-            if score > best_score || true {
+            if score > best_score {
                 best_ret = ret.clone();
                 let diff = score - best_score;
                 best_score = score;
