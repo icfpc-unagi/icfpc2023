@@ -60,6 +60,7 @@ async fn download_all_best_submissions_db(
       )"#,
         mysql::Params::Empty,
     )?;
+    let mut submission_ids = Vec::new();
     for row in rows {
         let submission_id = row.get::<u32>("submission_id")?;
         let official_id = row.get::<Option<String>>("official_id")?;
@@ -99,8 +100,22 @@ async fn download_all_best_submissions_db(
                     "submission_id" => submission_id,
                 },
             )?;
+            untag_submission(submission_id, "local-only").await?;
+        }
+
+        submission_ids.push(submission_id);
+    }
+    // Update best tags.
+    if let Err(e) = untag_all("best").await {
+        eprintln!("Failed to untag 'best' all: {}", e);
+    } else {
+        for submission_id in submission_ids {
+            if let Err(e) = tag_submission(submission_id, &["best"]).await {
+                eprintln!("Failed to tag 'best': {}", e);
+            }
         }
     }
+
     Ok(())
 }
 
