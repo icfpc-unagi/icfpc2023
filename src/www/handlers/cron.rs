@@ -91,7 +91,8 @@ WHERE
     submission_error IS NULL AND
     official_id IS NOT NULL
 ORDER BY
-    RAND()",
+    RAND()
+LIMIT 5",
         mysql::Params::Empty,
     )? {
         let official_id: String = row.get("official_id")?;
