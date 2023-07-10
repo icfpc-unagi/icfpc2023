@@ -106,7 +106,7 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
         };
         */
 
-        let ex_cand = get_all_candidate2(input);
+        let mut ex_cand = get_all_candidate2(input);
 
         ex_cand.sort_by(|&p, &q| {
             (p - center)
@@ -120,7 +120,7 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
                 .unwrap_or(2000),
         );
 
-        cand_list.extend(a)
+        cand_list.extend(ex_cand);
     }
     if !has_ans {
         for d in 0.. {
