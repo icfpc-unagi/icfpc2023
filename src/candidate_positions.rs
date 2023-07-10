@@ -299,6 +299,33 @@ pub fn pattern4(input: &Input, output: &Output) -> Vec<P> {
     cposs
 }
 
+/*
+pub fn pattern5(input: &Input, output: &Output) -> Vec<P> {
+    for side in 0..4 {
+        let stage_line = get_stage_line(input, side);
+        let mut musician_ids = vec![];
+        for musician_id in 0..input.n_musicians() {
+            let musician_pos = output.0[musician_id];
+            // 岩田さんいわくsatge際にあるmusicianだけを考えてほしいらしい
+            if P::dist2_lp(stage_line, musician_pos) != 0.0 {
+                musician_ids.push(musician_id);
+            }
+        }
+
+        musician_ids.sort();
+        for (i, id1) in musician_ids.iter().enumerate() {
+            for id2 in &musician_ids[..i] {
+                let pos1 = output.0[*id1];
+                let pos2 = output.0[*id2];
+                let
+            }
+        }
+    }
+
+    unimplemented!()
+}
+*/
+
 pub fn pattern67(input: &Input, output: &Output) -> Vec<P> {
     let eps = 1e-6;
     let mut entries = vec![];

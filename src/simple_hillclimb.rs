@@ -11,7 +11,7 @@ pub fn prepare_output_dir(input: &Input, save_dir: &str) -> String {
     save_dir
 }
 
-fn dump_output(output: &Output, save_dir: &str, score: i64) {
+pub fn dump_output(output: &Output, save_dir: &str, score: i64) {
     let out_name = format!("{}.txt", score);
     let out_path = format!("{}/{}", save_dir, out_name);
     write_output_to_file(&output, &out_path);
