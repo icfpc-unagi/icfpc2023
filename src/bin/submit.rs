@@ -12,7 +12,7 @@ struct Cli {
     #[arg(short, long)]
     tags: Vec<String>,
     /// Whether to submit to the local server.
-    #[arg(short, long)]
+    #[arg(short, long, default_value_t = true)]
     local: bool,
 }
 
