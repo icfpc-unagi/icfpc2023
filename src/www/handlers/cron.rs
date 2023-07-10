@@ -5,6 +5,7 @@ use crate::*;
 use actix_web::{HttpResponse, Responder};
 use anyhow::Result;
 use mysql::params;
+use rand::seq::SliceRandom;
 
 async fn insert_official_submission(official_id: &str) -> Result<Option<String>> {
     let submission = api::get_submission_api(official_id).await?;
@@ -258,7 +259,16 @@ INSERT INTO problem_pngs(
 
 pub async fn handler() -> impl Responder {
     let mut buf = String::new();
-    for i in 0..3 {
+
+    let mut rng = rand::thread_rng();
+    let mut page_numbers = (2..=30).collect::<Vec<u32>>();
+    page_numbers.shuffle(&mut rng);
+    page_numbers.truncate(2);
+    for i in 0..2 {
+        page_numbers.push(i)
+    }
+
+    for i in page_numbers {
         match update_official_submissions(i * 100, 100).await {
             Ok(ids) => {
                 if ids.len() == 0 {
