@@ -83,7 +83,7 @@ LIMIT 10"#,
         for tag in &recent_tags {
             write!(
                 &mut buf,
-                " <a href=\"/my_submission?tag={}\" class=\"tag\">{}</a>",
+                " <a href=\"/my_submissions?tag={}\" class=\"tag\">{}</a>",
                 urlencode(tag),
                 tag,
             )?;
