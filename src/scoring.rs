@@ -651,9 +651,33 @@ impl DynamicScorer {
         total_score
     }
 
+    /*
+    pub fn get_musician_score_volume_opt(&self, musician_id: usize, closeness_factor: f64) -> i64 {
+        if self.musician_pos[musician_id] == None {
+            return 0;
+        }
+        let volume = self.musician_vol[musician_id].unwrap();
+        let mut total_score = 0;
+        for attendee_id in 0..self.n_attendees() {
+            if self.is_visible(musician_id, attendee_id) {
+                total_score +=
+                    ((10.0 * closeness_factor * self.pair_score[musician_id][attendee_id] as f64)
+                        .ceil() as i64)
+                        .max(0);
+            }
+        }
+        // dbg!(total_score);
+        total_score
+    }
+    */
+
     // O(M^2)
     pub fn get_closeness_factor(&self) -> Vec<f64> {
         let mut closeness_factor = vec![1.0; self.n_musicians()];
+        if self.input.version == Version::One {
+            return closeness_factor;
+        }
+
         for i in 0..self.n_musicians() {
             if self.musician_pos[i].is_none() {
                 continue;
@@ -688,6 +712,24 @@ impl DynamicScorer {
                 .sum()
         }
     }
+
+    // O(M(M + A))
+    /*
+    pub fn get_score_volume_opt(&self) -> i64 {
+        if self.input.version == Version::One {
+            (0..self.n_musicians())
+                .map(|musician_id| self.get_musician_score_volume_opt(musician_id, 1.0))
+                .sum()
+        } else {
+            let closeness_factor = self.get_closeness_factor();
+            (0..self.n_musicians())
+                .map(|musician_id| {
+                    self.get_musician_score_volume_opt(musician_id, closeness_factor[musician_id])
+                })
+                .sum()
+        }
+    }
+    */
 
     // O(M * A + P)
     pub fn add_musician(&mut self, musician_id: usize, pos: P, vol: f64) {

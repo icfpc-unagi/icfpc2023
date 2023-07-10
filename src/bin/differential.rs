@@ -14,9 +14,12 @@ fn compute_grad(input: &Input, scorer: &DynamicScorer, musician_id: usize) -> P 
     let instrument_id = input.musicians[musician_id];
     let m = scorer.musician_pos[musician_id].unwrap();
 
+    let closeness_factor = scorer.get_closeness_factor();
+
     // TODO: volume
-    // TODO: とりあえずVer1だけ動くようにする！closeness factorのことは後で考える！
-    let mut grad = P(0.0, 0.0);
+
+    // Factor 1
+    let mut grad1 = P(0.0, 0.0);
     for attendee_id in 0..input.n_attendees() {
         if !scorer.is_visible(musician_id, attendee_id) {
             continue;
@@ -26,10 +29,53 @@ fn compute_grad(input: &Input, scorer: &DynamicScorer, musician_id: usize) -> P 
         let a = input.pos[attendee_id];
         let t = 1_000_000.0 * input.tastes[attendee_id][instrument_id];
         let d = a - m;
-        grad = grad + d * (2.0 * t / d.abs2());
+        grad1 = grad1 + d * (2.0 * t / d.abs2() * closeness_factor[musician_id]);
     }
 
-    grad
+    return grad1;
+
+    if input.version == Version::One {
+        return grad1;
+    }
+
+    // Factor 2
+    let mut grad2 = P(0.0, 0.0);
+    let mut bare_score_sum = 0;
+    for attendee_id in 0..input.n_attendees() {
+        if scorer.is_visible(musician_id, attendee_id) {
+            bare_score_sum += scorer.pair_score[musician_id][attendee_id];
+        }
+    }
+    for other_musician_id in 0..input.n_musicians() {
+        if other_musician_id == musician_id || input.musicians[other_musician_id] != instrument_id {
+            continue;
+        }
+        let vec = scorer.musician_pos[other_musician_id].unwrap() - m;
+        let d = vec.abs();
+        grad2 = grad2 + vec * (bare_score_sum as f64 / (d * d * d));
+    }
+
+    // Factor 3
+    let mut grad3 = P(0.0, 0.0);
+    for other_musician_id in 0..input.n_musicians() {
+        if other_musician_id == musician_id || input.musicians[other_musician_id] != instrument_id {
+            continue;
+        }
+        // TODO: ここどうにかしないと遅すぎィ！！！！！！！！
+        let mut bare_score_sum = 0;
+        for attendee_id in 0..input.n_attendees() {
+            if scorer.is_visible(other_musician_id, attendee_id) {
+                bare_score_sum += scorer.pair_score[other_musician_id][attendee_id];
+            }
+        }
+        let vec = scorer.musician_pos[other_musician_id].unwrap() - m;
+        let d = vec.abs();
+        grad3 = grad3 + vec * (bare_score_sum as f64 / (d * d * d));
+    }
+
+    // dbg!(grad1, grad2, grad3);
+
+    grad1 + grad2 + grad3
 }
 
 fn main() {
@@ -112,6 +158,7 @@ fn main() {
         }
 
         if is_improved {
+            // output.1 = volume_new;
             iter_last_update = iter;
         } else {
             output.0[musician_id] = p_old;
