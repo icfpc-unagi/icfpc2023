@@ -11,15 +11,19 @@ struct Args {
 
     #[clap(long = "time-limit")]
     time_limit: Option<f64>,
+
+    #[clap(long = "session-time-limit")]
+    session_time_limit: Option<f64>,
 }
 
 fn main() {
     let args = Args::parse();
     let input = read_input_from_file(&args.input_path);
     let mut output = read_output_from_file(&args.output_path);
-    let time_limit = args.time_limit.unwrap_or(1e9);
 
-    let session_time_limit = 20.0;
+    let time_limit = args.time_limit.unwrap_or(1e9);
+    let session_time_limit = args.session_time_limit.unwrap_or(30.0);
+
     let time_start = get_time();
     let score_original = compute_score(&input, &output);
 
