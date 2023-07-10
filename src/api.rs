@@ -296,7 +296,7 @@ pub async fn get_submission(submission_id: &str) -> Result<SubmissionResponse> {
 
 /// Registers tags for a submission.
 /// It does not remove existing tags.
-async fn tag_submission(local_submission_id: u64, tags: &[&str]) -> Result<()> {
+pub async fn tag_submission(local_submission_id: u32, tags: &[&str]) -> Result<()> {
     if tags.is_empty() {
         return Ok(());
     }
@@ -318,6 +318,33 @@ VALUES
         }),
     )?;
     Ok(())
+}
+
+/// Removes a tag for a submission.
+pub async fn untag_submission(local_submission_id: u32, tag: &str) -> Result<()> {
+    sql::exec(
+        "
+DELETE FROM submission_tags
+WHERE
+    submission_id = :local_id AND submission_tag = :submission_tag
+",
+        params! {
+            "local_id" => local_submission_id,
+            "submission_tag" => tag,
+        },
+    )?;
+    Ok(())
+}
+
+/// Removes a tag for all submissions.
+pub async fn untag_all(tag: &str) -> Result<()> {
+    sql::exec(
+        "
+DELETE FROM submission_tags
+WHERE
+    submission_tag = :tag",
+        params! { "tag" => tag },
+    )
 }
 
 /// Submits a solution and returns the submission ID.
@@ -345,7 +372,7 @@ pub async fn submit(
             builtin_tags.push(format!("USER={}", user));
         }
     }
-    let tags: Vec<&str> = tags
+    let mut tags: Vec<&str> = tags
         .iter()
         .map(|&s| s)
         .chain(builtin_tags.iter().map(|s| s.as_str()))
@@ -353,6 +380,9 @@ pub async fn submit(
     // Submit to local DB or official API.
     if local {
         let local_id = submit_local(problem_id, output).await?;
+        // Add local-only tag, that will be removed when the submission is synced in submit.rs.
+        // TODO(sulume): Uncomment this later.
+        // tags.push("local-only");
         tag_submission(local_id, &tags).await?;
         return Ok(local_id.to_string());
     } else {
@@ -364,7 +394,7 @@ pub async fn submit(
 }
 
 /// Inserts a placeholder submission to local DB and returns the local submission ID.
-pub async fn insert_placeholder_submission(problem_id: u32, official_id: &str) -> Result<u64> {
+pub async fn insert_placeholder_submission(problem_id: u32, official_id: &str) -> Result<u32> {
     let local_id = sql::insert(
         "
 INSERT IGNORE INTO submissions
@@ -376,12 +406,12 @@ VALUES
             "official_id" => official_id,
         },
     )?;
-    Ok(local_id)
+    Ok(local_id as u32)
 }
 
 /// Submits a solution to local DB and returns the local submission ID.
 /// It fails if the submission is not valid.
-pub async fn submit_local(problem_id: u32, output: &Output) -> Result<u64> {
+pub async fn submit_local(problem_id: u32, output: &Output) -> Result<u32> {
     let input = get_problem(problem_id).await?.into();
     let score = compute_score_fast(&input, &output).0;
     let contents = serde_json::to_string::<Solution>(&output.into())?;
@@ -397,7 +427,7 @@ VALUES
             "submission_contents" => contents,
         },
     )?;
-    Ok(local_id)
+    Ok(local_id as u32)
 }
 
 /// Submits a solution and returns the submission ID.

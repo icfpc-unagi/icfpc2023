@@ -473,3 +473,5 @@ mod tests {
 }
 
 pub mod candidate_tree;
+
+pub mod geom;
