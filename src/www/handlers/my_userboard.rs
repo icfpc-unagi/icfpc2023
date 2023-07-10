@@ -65,6 +65,7 @@ NATURAL RIGHT JOIN(
 "#,
             problem_url = my_submissions::build_url(&my_submissions::Query {
                 problem_id: problem_id,
+                limit: 100,
                 ..my_submissions::Query::default()
             }),
             problem_id = problem_id,
