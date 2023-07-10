@@ -67,6 +67,27 @@ async fn handle(info: &web::Query<Query>) -> Result<String, Box<dyn std::error::
 
     if info.problem_id == 0 {
         write!(&mut buf, "<h1>提出一覧 (DB)</h1>")?;
+        let recent_tags = sql::select(
+            r#"
+SELECT submission_tag
+FROM submission_tags
+WHERE LEFT(submission_tag, 4) != 'CMD='
+GROUP BY submission_tag
+ORDER BY MAX(submission_tag_created) DESC
+LIMIT 10"#,
+            params::Params::Empty,
+        )?
+        .into_iter()
+        .map(|row| row.get::<String>("submission_tag"))
+        .collect::<Result<Vec<_>>>()?;
+        for tag in &recent_tags {
+            write!(
+                &mut buf,
+                " <a href=\"/my_submission?tag={}\" class=\"tag\">{}</a>",
+                urlencode(tag),
+                tag,
+            )?;
+        }
     } else {
         write!(
             &mut buf,
