@@ -49,7 +49,7 @@ async fn download_all_best_submissions_db(
         s1.submission_score, 
         s1.submission_error, 
         s1.submission_contents, 
-        s1.submission_created
+        DATE_FORMAT(s1.submission_created, "%Y-%m-%d %T") AS submission_created
       FROM submissions s1
       WHERE s1.submission_id = (
         SELECT s2.submission_id 
