@@ -90,7 +90,37 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
         .unwrap_or(1)
         > 0
     {
-        cand_list.extend(get_all_candidate2(input));
+        let r = thread_rng().gen_range(0, cand_list.len());
+
+        let center = cand_list[r].clone();
+        /*
+        let r = thread_rng().gen_range(0, 2 * (dx + dy).ceil() as i32) as f64;
+        let center = if r < dx {
+            P(input.stage0.0 + r, input.stage0.1)
+        } else if r < dx + dy {
+            P(input.stage1.0, input.stage0.1 + r - dx)
+        } else if r < dx + dy + dx {
+            P(input.stage1.0 - (r - dx - dy), input.stage1.1)
+        } else {
+            P(input.stage0.0, input.stage1.1 - (r - dx - dy - dx))
+        };
+        */
+
+        let ex_cand = get_all_candidate2(input);
+
+        ex_cand.sort_by(|&p, &q| {
+            (p - center)
+                .abs2()
+                .partial_cmp(&(q - center).abs2())
+                .unwrap()
+        });
+        ex_cand.truncate(
+            std::env::var("NUM_CAND")
+                .map(|a| a.parse().unwrap())
+                .unwrap_or(2000),
+        );
+
+        cand_list.extend(a)
     }
     if !has_ans {
         for d in 0.. {
@@ -200,7 +230,7 @@ fn extend_cand(input: &Input, cand: &mut Vec<P>, best: &Vec<P>) {
     ex_cand.truncate(
         std::env::var("NUM_CAND")
             .map(|a| a.parse().unwrap())
-            .unwrap_or(2000),
+            .unwrap_or(20),
     );
     // let used = best.iter().cloned().collect::<BTreeSet<_>>();
     // let (_, _, svg) = vis::vis_cand(
