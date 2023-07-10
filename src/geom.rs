@@ -4,7 +4,14 @@ const EPS: f64 = 1e-8;
 
 // p+dir*epsを求める。途中でぶつかる場合はそこまで進める
 // 最初からぶつかっている場合は法線方向の成分を消す
-pub fn first_hit(input: &Input, musicians: &Vec<P>, p: P, mut dir: P, mut eps: f64) -> P {
+pub fn first_hit(
+    input: &Input,
+    musicians: &Vec<P>,
+    powers: &mut Vec<P>,
+    p: P,
+    mut dir: P,
+    mut eps: f64,
+) -> P {
     let mut d;
     macro_rules! update {
         () => {
@@ -43,10 +50,12 @@ pub fn first_hit(input: &Input, musicians: &Vec<P>, p: P, mut dir: P, mut eps: f
         }
         eps.setmin((input.stage1.1 - 10.0 - p.1) / dir.1);
     }
-    for &c in musicians {
+    for i in 0..musicians.len() {
+        let c = musicians[i];
         if (c - p).dot(dir) > 0.0 {
             if (c - p).abs() < 10.0 + EPS {
                 let r = (c - p) * 0.1;
+                powers[i] = powers[i] + r * r.dot(dir);
                 dir = dir - r * r.dot(dir);
                 update!();
             } else {
