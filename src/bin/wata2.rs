@@ -1,6 +1,11 @@
 #![allow(non_snake_case)]
 
-use icfpc2023::{candidate::get_all_candidate, mcf::weighted_matching_with_capacity, *};
+use icfpc2023::{
+    candidate::get_all_candidate,
+    candidate_positions::{enumerate_candidate_positions_with_config, CandidateConfig},
+    mcf::weighted_matching_with_capacity,
+    *,
+};
 use num_format::{Locale, ToFormattedString};
 use rand::prelude::*;
 use rayon::prelude::*;
@@ -93,20 +98,30 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
             if x > stage1.0 {
                 break;
             }
+            let x2 = stage1.0 - 10.0 * d as f64;
             cand_list.push(P(x, stage0.1));
             cand_list.push(P(x, stage1.1));
-            cand_list.push(P(stage1.0 - 10.0 * d as f64, stage0.1));
-            cand_list.push(P(stage1.0 - 10.0 * d as f64, stage1.1));
+            cand_list.push(P(x2, stage0.1));
+            cand_list.push(P(x2, stage1.1));
+            cand_list.push(P(x + 5.0, stage0.1 + 5.0 * f64::sqrt(3.0) + 1e-8));
+            cand_list.push(P(x + 5.0, stage1.1 - 5.0 * f64::sqrt(3.0) - 1e-8));
+            cand_list.push(P(x2 - 5.0, stage0.1 + 5.0 * f64::sqrt(3.0) + 1e-8));
+            cand_list.push(P(x2 - 5.0, stage1.1 - 5.0 * f64::sqrt(3.0) - 1e-8));
         }
         for d in 0.. {
             let y = stage0.1 + 10.0 * d as f64;
             if y > stage1.1 {
                 break;
             }
+            let y2 = stage1.1 - 10.0 * d as f64;
             cand_list.push(P(stage0.0, y));
             cand_list.push(P(stage1.0, y));
-            cand_list.push(P(stage0.0, stage1.1 - 10.0 * d as f64));
-            cand_list.push(P(stage1.0, stage1.1 - 10.0 * d as f64));
+            cand_list.push(P(stage0.0, y2));
+            cand_list.push(P(stage1.0, y2));
+            cand_list.push(P(stage0.0 + 5.0 * f64::sqrt(3.0) + 1e-8, y + 5.0));
+            cand_list.push(P(stage1.0 - 5.0 * f64::sqrt(3.0) - 1e-8, y + 5.0));
+            cand_list.push(P(stage0.0 + 5.0 * f64::sqrt(3.0) + 1e-8, y2 - 5.0));
+            cand_list.push(P(stage1.0 - 5.0 * f64::sqrt(3.0) - 1e-8, y2 - 5.0));
         }
         // 内側に十分な量を追加しておく
         let mut count = 0;
@@ -127,17 +142,62 @@ fn add_cand(input: &Input, cand_list: &mut Vec<P>, has_ans: bool) {
                 break;
             }
         }
+        cand_list
+            .retain(|&p| stage0.0 <= p.0 && p.0 <= stage1.0 && stage0.1 <= p.1 && p.1 <= stage1.1);
     }
     cand_list.sort();
     cand_list.dedup();
     eprintln!("#cand = {}", cand_list.len());
 }
 
+pub fn enumerate_candidate_positions_sa2(input: &Input, output: &Output) -> Vec<P> {
+    let list = enumerate_candidate_positions_with_config(
+        input,
+        output,
+        &CandidateConfig {
+            use_pattern1: true,
+            use_pattern2: false,
+            use_pattern3: false,
+            use_pattern4: true,
+            use_pattern23: true,
+            limit_pattern2: None,
+            limit_pattern3: None,
+            limit_pattern23: Some(10000),
+            filter_by_intersections1: Some(0),
+            filter_by_intersections234: None,
+            filter_by_reach23: false,
+            filter_by_reach14: false,
+            pattern2_disallow_blocked: false,
+            limit_pattern67: Some(10000),
+            use_pattern67: true,
+        },
+    );
+    list
+}
+
 /// 現在の解の周辺に候補点を拡張する
 fn extend_cand(input: &Input, cand: &mut Vec<P>, best: &Vec<P>) {
     let volumes = vec![10.0; best.len()];
-    let ex_cand =
-        candidate_positions::enumerate_candidate_positions_sa(input, &(best.clone(), volumes));
+    let dx = input.stage1.0 - input.stage0.0;
+    let dy = input.stage1.1 - input.stage0.1;
+    let r = thread_rng().gen_range(0, 2 * (dx + dy).ceil() as i32) as f64;
+    let center = if r < dx {
+        P(input.stage0.0 + r, input.stage0.1)
+    } else if r < dx + dy {
+        P(input.stage1.0, input.stage0.1 + r - dx)
+    } else if r < dx + dy + dx {
+        P(input.stage1.0 - (r - dx - dy), input.stage1.1)
+    } else {
+        P(input.stage0.0, input.stage1.1 - (r - dx - dy - dx))
+    };
+    let mut ex_cand = enumerate_candidate_positions_sa2(input, &(best.clone(), volumes));
+    ex_cand.sort_by(|&p, &q| {
+        (p - center)
+            .abs2()
+            .partial_cmp(&(q - center).abs2())
+            .unwrap()
+    });
+    ex_cand.truncate(2000);
     // let used = best.iter().cloned().collect::<BTreeSet<_>>();
     // let (_, _, svg) = vis::vis_cand(
     //     input,
