@@ -210,6 +210,10 @@ pub fn pattern23(input: &Input, output: &Output, config: &CandidateConfig) -> Ve
     cposs
 }
 
+fn is_integer(n: f64) -> bool {
+    n.fract() == 0.0
+}
+
 /// stage際とmusicianに接するやつ
 pub fn pattern4(input: &Input, output: &Output) -> Vec<P> {
     let eps = 1e-6;
@@ -218,7 +222,15 @@ pub fn pattern4(input: &Input, output: &Output) -> Vec<P> {
     for side in 0..4 {
         for musician_pos in &output.0 {
             let line = get_stage_line(input, side);
-            cposs.extend(P::pi_cl((*musician_pos, 10.0 + eps), line));
+            let (x, y) = (musician_pos.0, musician_pos.1);
+
+            if line.0 .0 == x && line.1 .0 == x && is_integer(y) {
+                cposs.extend([P(x, y + 10.0), P(x, y - 10.0)]);
+            } else if line.0 .1 == y && line.1 .1 == y && is_integer(x) {
+                cposs.extend([P(x + 10.0, y), P(x - 10.0, y)]);
+            } else {
+                cposs.extend(P::pi_cl((*musician_pos, 10.0 + eps), line));
+            }
         }
     }
     cposs
@@ -336,21 +348,31 @@ pub fn enumerate_candidate_positions_with_config(
             cp23 = cp23.into_iter().take(limit).collect();
         }
     }
-    eprintln!(
-        "Candidate sets: {} + {} + {} + {} + {}",
-        cp1.len(),
-        cp2.len(),
-        cp3.len(),
-        cp4.len(),
-        cp23.len(),
-    );
 
-    cp1.into_iter()
+    let (l1, l2, l3, l4, l23) = (cp1.len(), cp2.len(), cp3.len(), cp4.len(), cp23.len());
+
+    let mut cp: Vec<_> = cp1
+        .into_iter()
         .chain(cp2)
         .chain(cp3)
         .chain(cp4)
         .chain(cp23)
-        .collect()
+        .collect();
+    cp.sort();
+    cp.dedup();
+
+    eprintln!(
+        "Candidate sets: {} + {} + {} + {} + {} = {} -> {}",
+        l1,
+        l2,
+        l3,
+        l4,
+        l23,
+        (l1 + l2 + l3 + l4 + l23),
+        cp.len()
+    );
+
+    cp
 }
 
 ///////////////////////////////////////////////////////////////////////////////
