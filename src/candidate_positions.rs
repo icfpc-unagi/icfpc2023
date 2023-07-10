@@ -190,7 +190,7 @@ pub fn pattern23(input: &Input, output: &Output, config: &CandidateConfig) -> Ve
         }
 
         // Pattern 3
-        let vec = (musician_pos - attendee_pos).rot();
+        let vec: P = (musician_pos - attendee_pos).rot();
         let vec = vec * ((5.0 + eps) / vec.abs());
         for stage_side in 0..4 {
             let stage_line = get_stage_line(input, stage_side);
@@ -208,6 +208,67 @@ pub fn pattern23(input: &Input, output: &Output, config: &CandidateConfig) -> Ve
         }
     }
     cposs
+}
+
+pub fn pattern23_v2(input: &Input, output: &Output, config: &CandidateConfig) -> Vec<P> {
+    let eps = 1e-6;
+    let mut entries = vec![];
+
+    for attendee_id in 0..input.n_attendees() {
+        for musician_id in 0..input.n_musicians() {
+            if is_blocked_by_someone(input, &output.0, musician_id, attendee_id) {
+                continue;
+            }
+
+            let attendee_pos = input.pos[attendee_id];
+            let musician_pos = output.0[musician_id];
+
+            // ！！！まずはpattern2 candidateについて考える！！！
+            // 左右の接線と
+            for tan_pos in P::tan_cp((musician_pos, 5.0 + eps), attendee_pos) {
+                // 半径10の円の交点について
+                for cand_pos in P::pi_cl((musician_pos, 10.0 + eps), (attendee_pos, tan_pos)) {
+                    // attendee_pos -> q がブロックされてたらこれいらないでしょっていう
+                    if config.pattern2_disallow_blocked
+                        && is_blocked_by_existing(input, output, attendee_pos, cand_pos)
+                    {
+                        continue;
+                    }
+
+                    // musicianより更に近くにおけるんだったら何かがおかしい（意味ない）
+                    if (cand_pos - attendee_pos).abs2() < (musician_pos - attendee_pos).abs2() {
+                        continue;
+                    }
+
+                    // この距離がこの優先度！！
+                    let priority = (cand_pos - attendee_pos).abs2();
+                    let mut entry = (priority, vec![cand_pos]);
+
+                    // ！！！次に、こいつに関するpattern 3 candidateについて考える！！！
+                    let vec: P = (cand_pos - attendee_pos).rot();
+                    let vec = vec * ((5.0 + eps) / vec.abs());
+                    for stage_side in 0..4 {
+                        let stage_line = get_stage_line(input, stage_side);
+
+                        for sign in [-1.0, 1.0] {
+                            let tan_line = (attendee_pos + vec * sign, cand_pos + vec * sign);
+                            if let Some(p) = P::pi_ll(stage_line, tan_line) {
+                                // 線分と近くないと候補点として意味ない
+                                let d = P::dist2_sp((attendee_pos, cand_pos), p).sqrt();
+                                if d < 5.0 + eps * 10.0 {
+                                    entry.1.push(p);
+                                }
+                            }
+                        }
+                    }
+                    entries.push(entry);
+                }
+            }
+        }
+    }
+
+    entries.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    entries.into_iter().map(|e| e.1).flatten().collect()
 }
 
 fn is_integer(n: f64) -> bool {
@@ -337,7 +398,7 @@ pub fn enumerate_candidate_positions_with_config(
         }
     }
     if config.use_pattern23 {
-        cp23 = filter_outside(pattern23(input, output, config), input);
+        cp23 = filter_outside(pattern23_v2(input, output, config), input);
         if let Some(limit) = config.filter_by_intersections234 {
             cp23 = filter_by_intersections(cp23, output, limit);
         }

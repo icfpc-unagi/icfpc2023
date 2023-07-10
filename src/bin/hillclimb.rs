@@ -14,6 +14,7 @@ fn dump_output(output: &Output, save_dir: &str, score: i64) {
     let out_name = format!("{}.txt", score);
     let out_path = format!("{}/{}", save_dir, out_name);
     write_output_to_file(&output, &out_path);
+    eprintln!("Saved: {}", out_path);
 
     let latest_path = format!("{}/latest.txt", save_dir);
     let _ = std::fs::remove_file(&latest_path).ok();
