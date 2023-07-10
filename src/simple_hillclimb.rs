@@ -250,3 +250,16 @@ pub fn simple_hillclimb(input: &Input, mut output: Output, save_dir: &str) -> Ou
 
     // unimplemented!();
 }
+
+/*
+pub fn submit_ouput(input: &Input, output: &Output, name: &str) {
+    use tokio::runtime::Runtime;
+
+    let rt = Runtime::new().unwrap();
+    let future =
+        async {
+            api::submit(input.problem_id.unwrap() as u32, &output, &vec![name], true) };
+
+    let result = rt.block_on(future);
+}
+*/

@@ -8,6 +8,8 @@ struct Args {
     input_path: String,
     output_path: String,
     save_dir: String,
+    #[clap(long = "time-limit")]
+    time_limit: Option<f64>,
 }
 
 fn compute_grad(input: &Input, scorer: &DynamicScorer, musician_id: usize) -> P {
@@ -81,6 +83,7 @@ fn main() {
     let input = read_input_from_file(&args.input_path);
     let mut output = read_output_from_file(&args.output_path);
     let save_dir = simple_hillclimb::prepare_output_dir(&input, &args.save_dir);
+    let time_limit = args.time_limit.unwrap_or(1e9);
     let mut rng = rand::thread_rng();
 
     let mut scorer = DynamicScorer::new_with_output(&input, &output);
@@ -98,6 +101,10 @@ fn main() {
         if iter > 0 && iter % 1000 == 0 {
             let current_score = scorer.get_score();
             simple_hillclimb::dump_output(&output, &save_dir, current_score);
+
+            if get_time() > time_start + time_limit {
+                break;
+            }
         }
 
         // let grad = compute_grad(&input, &scorer, musician_id) * 1e-8 + touch_force[musician_id];
