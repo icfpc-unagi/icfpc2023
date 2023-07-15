@@ -12,12 +12,11 @@ services:
     ports:
       - 8080:80
   mysql:
-    build:
-      context: ..
-      dockerfile: after_contest/mysql.Dockerfile
-      args:
-        UNAGI_PASSWORD: ${UNAGI_PASSWORD}
+    image: mysql
     environment:
+      MYSQL_ROOT_PASSWORD: ${UNAGI_PASSWORD}
       MYSQL_DATABASE: unagi
+    volumes:
+      - ./unagi.sql.zst:/docker-entrypoint-initdb.d/unagi.sql.zst
     ports:
       - 3306:3306
