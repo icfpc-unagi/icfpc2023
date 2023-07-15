@@ -8,7 +8,7 @@ services:
       args:
         UNAGI_PASSWORD: ${UNAGI_PASSWORD}
     environment:
-      MYSQL_HOST: mysql
+      MYSQL_HOSTNAME: mysql
     ports:
       - 8080:80
   mysql:
