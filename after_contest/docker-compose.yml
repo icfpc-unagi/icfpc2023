@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  mysql:
+    build:
+      context: ..
+      dockerfile: after_contest/mysql.Dockerfile
+    environment:
+      MYSQL_DATABASE: unagi
+    ports:
+      - 3306:3306
