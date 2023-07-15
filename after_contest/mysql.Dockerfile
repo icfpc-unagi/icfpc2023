@@ -6,4 +6,5 @@ RUN apt-get update && apt-get install -y \
 ENV MYSQL_ROOT_PASSWORD root
 COPY ./after_contest/unagi.sql.zst /
 RUN zstd -d unagi.sql.zst -o /docker-entrypoint-initdb.d/1.sql
-RUN echo "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';" > /docker-entrypoint-initdb.d/2.sql
+ARG UNAGI_PASSWORD
+RUN echo "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '${UNAGI_PASSWORD}';" > /docker-entrypoint-initdb.d/2.sql

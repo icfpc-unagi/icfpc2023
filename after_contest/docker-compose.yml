@@ -1,10 +1,22 @@
 version: '3'
 
 services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
+      args:
+        UNAGI_PASSWORD: ${UNAGI_PASSWORD}
+    environment:
+      MYSQL_HOST: mysql
+    ports:
+      - 8080:80
   mysql:
     build:
       context: ..
       dockerfile: after_contest/mysql.Dockerfile
+      args:
+        UNAGI_PASSWORD: ${UNAGI_PASSWORD}
     environment:
       MYSQL_DATABASE: unagi
     ports:
