@@ -12,7 +12,13 @@ static CLIENT: Lazy<mysql::Pool> = Lazy::new(|| {
             "mysql://root:{}@localhost:3306/unagi?socket={}",
             password, socket
         ),
-        Err(_) => format!("mysql://root:{}@34.146.125.93:3306/unagi", password),
+        Err(_) => format!(
+            "mysql://root:{}@{}:3306/unagi",
+            password,
+            env::var("MYSQL_HOSTNAME")
+                .as_deref()
+                .unwrap_or("34.146.125.93")
+        ),
     };
     let pool = Pool::new(url).unwrap();
     eprintln!("MySQL connection established.");

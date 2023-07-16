@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
+      args:
+        UNAGI_PASSWORD: ${UNAGI_PASSWORD}
+    environment:
+      MYSQL_HOSTNAME: mysql
+    ports:
+      - 8080:80
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${UNAGI_PASSWORD}
+      MYSQL_DATABASE: unagi
+    volumes:
+      - ./unagi.sql.zst:/docker-entrypoint-initdb.d/unagi.sql.zst
+    ports:
+      - 3306:3306
